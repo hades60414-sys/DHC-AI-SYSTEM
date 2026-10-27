@@ -1,0 +1,12 @@
+{
+ "note": "動作閘門的環境設定。來源：系統提示的「環境事實」與 manifest 的 hosts（DB01 正式資料、寫入需人核准；WS-MO-07 本機工作站，python 會被 EndpointGuard 終止）；WEB01／wwwroot／inetpub 是正式網站位置。改環境時只改這個檔。沒列在 production_hosts／other_hosts 的主機，閘門一律當正式環境；不在 local_drives 的磁碟代號當作看不出位置（可能是網路磁碟）。v1.4：python 樣式加 py 啟動器與 python3／.pyw；密碼樣式加 pwd、connection、appsettings、.config、.udl、.pfx。",
+ "production_hosts": ["DB01", "WEB01"],
+ "other_hosts": ["RAGENT", "FS01"],
+ "local_drives": ["C", "D"],
+ "production_path_pattern": "^\\\\\\\\WEB01\\\\|\\\\wwwroot\\\\|\\\\inetpub\\\\",
+ "secret_pattern": "\\.env\\b|password|passwd|pwd|secret|credential|connection|connstr|appsettings|\\.config\\b|\\.pem\\b|\\.key\\b|\\.udl\\b|\\.pfx\\b|id_rsa",
+ "python_blocked_tools": ["run_cmd", "run_cmd_readonly"],
+ "python_pattern": "\\bpy(w)?(\\.exe)?(\\s|$)|\\bpython[\\d.]*w?(\\.exe)?\\b|\\.pyw?\\b",
+ "pseudo_actions": ["ASK", "HOLD", "FINISH"],
+ "state_fields_compared": ["row_count", "file_count", "newest_in_scope", "oldest_modified", "modify_date", "size_bytes", "sha256"]
+}

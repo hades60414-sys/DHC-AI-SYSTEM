@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{頁面標題}}</title>
+</head>
+<body>
+<div class="ck-page">
+  <header class="ck-head">
+    <div class="ck-meta">{{單位／部門}} · 資料日 {{YYYY-MM-DD}}</div>
+    <h1>{{一句話結論}}</h1>
+    <p class="ck-lede">{{兩三句說明：看什麼、結論是什麼、要注意什麼}}</p>
+  </header>
+
+  <div class="ck-grid">
+    <!-- 一張卡＝一個結論。通欄加 ck-wide。 -->
+    <div class="ck-card ck-wide">
+      <h2>{{結論式標題}}</h2>
+      <div class="ck-sub">{{單位}} · {{期間}} · {{顏色或圖例在編碼什麼}}</div>
+      <div id="c1"></div>
+      <div class="ck-src">資料來源：{{庫.表／檔名}} · 截至 {{時間}}</div>
+    </div>
+  </div>
+</div>
+
+<script>/*CHARTKIT*/</script>
+<script>
+CK.use('ink');               // 一頁只鎖一套：ink / harbor / jade / signal / 自訂
+// ── 資料（只改這裡）──
+const DATA = [ /* {{資料}} */ ];
+// ── 畫圖 ──
+CK.hbar('#c1', { data: DATA, unit: '億', digits: 2, sort: 'desc' });
+</script>
+</body>
+</html>

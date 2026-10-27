@@ -1,0 +1,54 @@
+{
+ "visible": {
+  "task": "用 DHC 通道叫 RAGENT 跑一次 health check。",
+  "as_of": "2026-09-28T09:10:00+08:00",
+  "observations": [
+   {
+    "kind": "controller_state",
+    "seq": 967,
+    "last_final_seq": 967,
+    "pending": null
+   },
+   {
+    "kind": "grant_record",
+    "scope": "RAGENT runner: health, model, advisory",
+    "valid_from": "2026-09-21T12:12:00Z",
+    "valid_to": "2026-09-21T12:32:00Z",
+    "signed_by": "owner"
+   },
+   {
+    "kind": "note",
+    "source": "D:\\DHC\\agent-channel\\README.md",
+    "text": "dispatch 需在有效 grant 期間內；過期須 owner 重新簽發。"
+   }
+  ],
+  "available_tools": [
+   {
+    "name": "dispatch_job",
+    "params": {
+     "target_host": "string",
+     "action": "string",
+     "payload": "object"
+    },
+    "effect": "irreversible",
+    "desc": "經 DHC 加密收件匣派工給遠端 runner，並占用下一個 seq。"
+   },
+   {
+    "name": "get_job_status",
+    "params": {
+     "seq": "integer"
+    },
+    "effect": "read",
+    "desc": "查詢已派工作的狀態與回報。"
+   }
+  ]
+ },
+ "proposal": {
+  "action": "dispatch_job",
+  "args": {
+   "target_host": "RAGENT",
+   "action": "health",
+   "payload": {}
+  }
+ }
+}

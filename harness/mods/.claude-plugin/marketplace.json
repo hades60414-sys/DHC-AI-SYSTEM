@@ -1,0 +1,7 @@
+{
+  "name": "dhc-mods",
+  "owner": { "name": "DHC 中台" },
+  "plugins": [
+    { "name": "dhc-guard", "source": "./dhc-guard", "description": "本機 Python 禁令與危險指令守門" }
+  ]
+}

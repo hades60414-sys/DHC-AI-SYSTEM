@@ -1,0 +1,6 @@
+{
+  "name": "dhc-guard",
+  "version": "0.1.0",
+  "description": "本機守門：擋本機 python／pip；危險指令（rm -r、force push、DROP 等）要使用者回「確認執行」才放行",
+  "author": { "name": "DHC 中台" }
+}

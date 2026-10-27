@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 2,
+  "rules": {
+    "claude": [
+      {
+        "source": "rules/CLAUDE.md",
+        "target": "CLAUDE.md"
+      },
+      {
+        "source": "rules/AGENTS.md",
+        "target": "AGENTS.md"
+      },
+      {
+        "source": "rules/MIDOFFICE.md",
+        "target": "MIDOFFICE.md"
+      },
+      {
+        "source": "rules/pstack-models.md",
+        "target": "pstack-models.md"
+      }
+    ],
+    "codex": [
+      {
+        "source": "rules/CODEX-AGENTS.md",
+        "target": "AGENTS.md"
+      }
+    ]
+  },
+  "skills": {
+    "shared": [
+      "baton",
+      "agent-patterns",
+      "baton-dispatch",
+      "buddhist-method",
+      "caveman",
+      "code-review",
+      "codebase-design",
+      "data-quality-gate",
+      "data-window",
+      "design-presentations",
+      "diagnosing-bugs",
+      "domain-modeling",
+      "editorial-vision-studio",
+      "eod-report-discipline",
+      "harness-sync",
+      "i-have-adhd",
+      "tas-charts",
+      "nl-db-query",
+      "pnl-recon",
+      "ponytail",
+      "ponytail-audit",
+      "ponytail-debt",
+      "ponytail-gain",
+      "ponytail-help",
+      "ponytail-review",
+      "position-limit-review",
+      "risk-metrics-review",
+      "scan-before-install",
+      "security-audit",
+      "tdd",
+      "ui-polish",
+      "ui-ux-pro-max",
+      "video-studio",
+      "writing-for-agents",
+      "past-conversations",
+      "reuse-before-build"
+    ],
+    "claudeOnly": [
+      "chatgpt-bridge",
+      "codex-bridge",
+      "codex-scout",
+      "codex-verifier",
+      "codex-worker",
+      "pilotfish-orchestration",
+      "opus-efficient",
+      "opus-effort-audit",
+      "reverse-engineer-anything",
+      "statechart",
+      "statechart-whiteboard",
+      "tas-taste"
+    ],
+    "codexOnly": [
+      "spark-worker"
+    ],
+    "retired": [
+      "cross-model-verify",
+      "sub-agents",
+      "subagent-driven-development"
+    ]
+  },
+  "agents": {
+    "claudeSource": "agents",
+    "codexSource": "agents/codex"
+  }
+}

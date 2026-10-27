@@ -1,0 +1,7 @@
+{
+  "name": "deid-proxy",
+  "private": true,
+  "dependencies": {
+    "pdfjs-dist": "^6.4.299"
+  }
+}

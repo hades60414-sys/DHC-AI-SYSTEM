@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tas-charts 元件總覽（示意資料）</title>
+</head>
+<body>
+<!-- 每種元件一張卡，數字全是示意資料。也是 chartkit 的回歸測試：node scripts/build.mjs examples/gallery.html <out> 後跑 check.mjs --render。 -->
+<div class="ck-page">
+  <header class="ck-head">
+    <div class="ck-meta">tas-charts · 元件總覽 · 示意資料</div>
+    <h1>每種資料形狀各一張，數字都是假的</h1>
+    <p class="ck-lede">用來看樣子和當回歸測試。實際交付時從 templates/ 起頭，換上真數字與來源。</p>
+  </header>
+
+  <div id="st"></div>
+  <div class="ck-grid"><div class="ck-wide" id="k"></div></div>
+
+  <div class="ck-grid">
+    <div class="ck-card"><h2>自營一組貢獻最大</h2><div class="ck-sub">bar · 億 · 本月已實現損益，深色＝主角</div><div id="g1"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card"><h2>兩檔商品拖累整體</h2><div class="ck-sub">diverging · 百萬 · 紅漲綠跌</div><div id="g2"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card ck-wide"><h2>一組下半月追上二組</h2><div class="ck-sub">line · 億 · 累計損益，線尾標系列名</div><div id="g3"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card"><h2>部位市值穩定在 30 億上下</h2><div class="ck-sub">area · 億 · 近 60 個交易日</div><div id="g4"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card"><h2>股票占比逐季下降</h2><div class="ck-sub">stacked · 億 · 各季部位構成，柱頂為合計</div><div id="g5"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card"><h2>四個部門中三個比上月增加</h2><div class="ck-sub">dumbbell · 億 · 空心＝上月、實心＝本月</div><div id="g6"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card"><h2>價差收入撐起本月損益</h2><div class="ck-sub">waterfall · 百萬 · 由上月結餘拆到本月合計</div><div id="g7"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card ck-wide"><h2>週三的虧損集中在兩個部門</h2><div class="ck-sub">heatmap · 百萬 · 部門 × 交易日，紅賺綠賠</div><div id="g8"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card"><h2>高報酬的部位波動也高</h2><div class="ck-sub">scatter · 圓面積＝部位規模（開根號換算）</div><div id="g9"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card"><h2>一半部位在股票</h2><div class="ck-sub">waffle · 每格＝1% · 最大餘數法湊滿 100 格</div><div id="g10"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card ck-wide"><h2>權證 Delta 已過預警線</h2><div class="ck-sub">limits · 使用率＝使用 ÷ 限額 · 虛線 80% 預警、實線 100% 上限</div><div id="g11"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card ck-wide"><h2>兩項接近預警，無超限</h2><div class="ck-sub">table · 例外清單</div><div id="g12"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card"><h2>債券部位最大</h2><div class="ck-sub">hbar · 億 · 由大到小</div><div id="g13"></div><div class="ck-src">示意資料</div></div>
+    <div class="ck-card"><h2>空資料要明講</h2><div class="ck-sub">table · rows 為空時顯示 empty 文字</div><div id="g14"></div><div class="ck-src">示意資料</div></div>
+  </div>
+</div>
+
+<script>/*CHARTKIT*/</script>
+<script>
+CK.use('ink');
+const r = CK.demo;
+const DEPTS = ['自營一組', '自營二組', '債券部', '衍生品部', '權證部'];
+const DAYS = Array.from({ length: 60 }, (_, i) => `${Math.floor(i / 21) + 8}/${i % 21 + 1}`);
+
+CK.status('#st', { level: 'warn', text: '權證 Delta 使用率 86%，已過 80% 預警線；其餘限額正常。' });
+CK.kpi('#k', { items: [
+  { label: '本日損益', value: 12.4, unit: '百萬', digits: 1, delta: 3.1, deltaLabel: '較昨日' },
+  { label: '本月累計', value: -8.6, unit: '百萬', digits: 1, delta: -2.2, deltaLabel: '較上月同期' },
+  { label: '部位市值', value: 31.8, unit: '億', digits: 1, delta: 0.4, deltaLabel: '較昨日', neutral: true },
+  { label: 'VaR(99%,1D)', value: 1.62, unit: '億', digits: 2, note: '限額 2.5 億' } ] });
+CK.bar('#g1', { data: DEPTS.map((d, i) => ({ label: d, value: +(r(i) * 4 - .5).toFixed(2) })), unit: '億', digits: 2, highlight: '自營一組' });
+CK.diverging('#g2', { data: ['台指期', '電子期', '金融期', '小台', '個股期', '選擇權'].map((d, i) => ({ label: d, value: +((r(i, 2) - .4) * 30).toFixed(1) })), unit: '百萬', digits: 1, sort: 'desc' });
+let a = 0, b = 0;
+CK.line('#g3', { x: DAYS.slice(0, 21), unit: '億', digits: 1, highlight: '自營一組', series: [
+  { name: '自營一組', values: DAYS.slice(0, 21).map((_, i) => +(a += (r(i, 3) - .35) * .6).toFixed(2)) },
+  { name: '自營二組', values: DAYS.slice(0, 21).map((_, i) => +(b += (r(i, 4) - .45) * .6).toFixed(2)) },
+  { name: '債券部', values: DAYS.slice(0, 21).map((_, i) => +((r(i, 5) - .5) * .8 + i * .03).toFixed(2)) } ] });
+CK.area('#g4', { x: DAYS, unit: '億', digits: 1, series: [{ name: '市值', values: DAYS.map((_, i) => +(30 + Math.sin(i / 7) * 2 + r(i, 6)).toFixed(2)) }] });
+CK.stacked('#g5', { x: ['Q1', 'Q2', 'Q3', 'Q4'], unit: '億', digits: 1, series: [
+  { name: '股票', values: [18, 16.5, 15, 13.2] }, { name: '債券', values: [8, 9.2, 10.4, 11] }, { name: '衍生', values: [3.1, 3.4, 3.2, 4.0] } ] });
+CK.dumbbell('#g6', { data: DEPTS.slice(0, 4).map((d, i) => ({ label: d, a: +(5 + r(i, 7) * 8).toFixed(1), b: +(5 + r(i, 8) * 8).toFixed(1) })), aName: '上月', bName: '本月', unit: '億', digits: 1, pnl: true });
+CK.waterfall('#g7', { start: { label: '上月結餘', value: 42 }, steps: [
+  { label: '價差', value: 18.5 }, { label: '股利', value: 4.2 }, { label: '利息', value: 3.1 }, { label: '評價', value: -12.8 }, { label: '費用', value: -6.4 } ], endLabel: '本月合計', unit: '百萬', digits: 1 });
+CK.heatmap('#g8', { rows: DEPTS, cols: ['週一', '週二', '週三', '週四', '週五'], unit: '', digits: 1,
+  values: DEPTS.map((_, i) => [0, 1, 2, 3, 4].map(j => +((r(i * 5 + j, 9) - (j === 2 && i < 2 ? .9 : .45)) * 10).toFixed(1))) });
+CK.scatter('#g9', { xName: '年化波動 %', yName: '報酬 %', xDigits: 0, yDigits: 0, sizeName: '規模(億)', highlight: ['權證部'],
+  data: DEPTS.concat(['外匯', '可轉債', 'ETF']).map((d, i) => ({ label: d, x: +(8 + r(i, 10) * 25).toFixed(1), y: +((r(i, 11) - .3) * 20).toFixed(1), size: +(1 + r(i, 12) * 12).toFixed(1) })) });
+CK.waffle('#g10', { data: [{ label: '股票', value: 15.0 }, { label: '債券', value: 10.4 }, { label: '衍生', value: 4.9 }], unit: '億', digits: 1 });
+CK.limits('#g11', { soft: 0.8, unit: '億', digits: 2, data: [
+  { label: '權證 Delta', value: 0.86, limit: 1 }, { label: '股票部位', value: 14.2, limit: 20 },
+  { label: '債券 DV01(百萬)', value: 1.9, limit: 2.5 }, { label: 'VaR', value: 1.62, limit: 2.5 }, { label: '單一產業', value: 3.4, limit: 3.0 } ] });
+CK.table('#g12', { columns: [
+  { key: 'item', label: '項目' }, { key: 'used', label: '使用', num: true, digits: 2 }, { key: 'limit', label: '限額', num: true, digits: 2 },
+  { key: 'pct', label: '使用率', num: true, digits: 1, unit: '%' }, { key: 'pnl', label: '本日損益(百萬)', num: true, digits: 1, pnl: true, sign: true } ],
+  rows: [ { item: '權證 Delta', used: 0.86, limit: 1, pct: 86, pnl: -1.2 }, { item: '債券 DV01', used: 1.9, limit: 2.5, pct: 76, pnl: 0.8 } ] });
+CK.hbar('#g13', { data: DEPTS.map((d, i) => ({ label: d, value: +(2 + r(i, 13) * 10).toFixed(2) })), unit: '億', digits: 1, sort: 'desc' });
+CK.table('#g14', { columns: [{ key: 'a', label: '項目' }], rows: [], empty: '今日無例外' });
+</script>
+</body>
+</html>

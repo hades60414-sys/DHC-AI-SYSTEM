@@ -1,0 +1,83 @@
+{
+  "title": "開源 ＋ DHC CLI 架構：電腦操控與文件問答",
+  "output": "dhccli-architecture-teaser",
+  "canvas": { "width": 1920, "height": 1080, "fps": 30 },
+  "voice": { "engine": "edge", "name": "zh-TW-HsiaoChenNeural", "rate": "+0%" },
+  "music": { "file": "gen/music/bed-calm-92.wav", "gainDb": -8 },
+  "loudness": -16,
+  "defaults": { "lead": 0.35, "pad": 0.6, "overlap": 0.4, "gap": 0.3, "minSec": 3 },
+  "lexicon": {},
+  "scenes": [
+    {
+      "id": "hook",
+      "say": "{cue:in}工作在牆內，{cue:out}AI 卻在牆外。",
+      "lead": 1.1, "minSec": 4.6,
+      "sfx": [
+        { "at": 0.15, "file": "gen/sfx/impact.wav", "gainDb": -9 },
+        { "at": "cue:out", "file": "gen/sfx/whoosh.wav", "gainDb": -13, "offset": -0.1 }
+      ]
+    },
+    {
+      "id": "bridge",
+      "say": "DHC CLI 用一條{cue:tunnel}只往外連的通道，把雲端的大腦，{cue:brain}接進公司的瀏覽器。",
+      "sfx": [
+        { "at": "cue:brain", "file": "gen/sfx/pop.wav", "gainDb": -10 }
+      ]
+    },
+    {
+      "id": "hands",
+      "say": "新的架構，再幫大腦接上兩隻手：{cue:hand1}電腦操控，{cue:hand2}和文件問答。",
+      "sfx": [
+        { "at": "cue:hand1", "file": "gen/sfx/pop.wav", "gainDb": -12 }
+      ]
+    },
+    {
+      "id": "control",
+      "say": "{cue:agent}內網主機上的代理程式，只執行白名單裡的動作；{cue:manifest}大腦下指令前，只看清單和統計。",
+      "sfx": [
+        { "at": "cue:agent", "file": "sfx/kenney/confirmation_001.ogg", "gainDb": -15, "offset": 1.2 }
+      ]
+    },
+    {
+      "id": "gate",
+      "say": "{cue:gate}不能回頭的動作，一律停下來，{cue:human}等人確認。",
+      "minSec": 4.5,
+      "sfx": [
+        { "at": "cue:gate", "file": "gen/sfx/deny.wav", "gainDb": -12, "offset": 0.55 },
+        { "at": "cue:gate", "file": "gen/sfx/impact.wav", "gainDb": -14, "offset": 0.55 },
+        { "at": "cue:human", "file": "sfx/kenney/confirmation_002.ogg", "gainDb": -14, "offset": 0.3 }
+      ]
+    },
+    {
+      "id": "rag",
+      "say": "{cue:docs}六十七份現行法規，在內網建好索引；{cue:ask}一提問，{cue:found}一秒內就找出相關段落。",
+      "sfx": [
+        { "at": "cue:found", "file": "gen/sfx/shimmer.wav", "gainDb": -15 }
+      ]
+    },
+    {
+      "id": "answer",
+      "say": "{cue:answer}大腦讀完段落再作答，{cue:cite}每一句都附上出處，查得到來源。",
+      "sfx": [
+        { "at": "cue:answer", "file": "gen/sfx/whoosh-long.wav", "gainDb": -15, "offset": -0.2 }
+      ]
+    },
+    {
+      "id": "local",
+      "say": "{cue:lock}資料不能出門的時候，就讓開源模型在公司裡作答。{cue:slow}慢一點，但一個字都不離開內網。",
+      "sfx": [
+        { "at": "cue:lock", "file": "gen/sfx/impact.wav", "gainDb": -12, "offset": 0.2 }
+      ]
+    },
+    {
+      "id": "close",
+      "say": "牆還在，{cue:inside}但 AI 已經在牆內幫你做事。{cue:logo}",
+      "minSec": 7.5, "pad": 3.2,
+      "sfx": [
+        { "at": "cue:logo", "file": "gen/sfx/riser.wav", "gainDb": -16, "offset": -2.0 },
+        { "at": "cue:logo", "file": "gen/sfx/impact.wav", "gainDb": -10 },
+        { "at": "cue:logo", "file": "gen/sfx/shimmer.wav", "gainDb": -14, "offset": 0.1 }
+      ]
+    }
+  ]
+}

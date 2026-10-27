@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAS 已搬家</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#04121f;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;color:#e8f4ff}
+  canvas{position:fixed;inset:0;width:100%;height:100%;display:none}
+  .card{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);text-align:center;padding:36px 44px;border-radius:20px;
+        background:rgba(6,24,40,srv-nas);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(160,210,255,srv-old);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .card h1{margin:0 0 6px;font-size:15px;font-weight:600;letter-spacing:.32em;color:#9cc9ee}
+  .card p{margin:0 0 22px;font-size:22px;font-weight:300}
+  .card a{display:inline-block;padding:12px 26px;border-radius:999px;background:#e8f4ff;color:#06263f;text-decoration:none;font-weight:600;font-size:15px}
+  .card a:hover{background:#fff}
+  .card small{display:block;margin-top:14px;font-size:12px;color:#7ea6c6}
+</style>
+</head>
+<body>
+<canvas id="dots"></canvas>
+
+<div class="card">
+  <h1>DHC AI SYSTEM</h1>
+  <p>本週的新位置在這裡</p>
+  <a id="go" href="{{URL}}">前往 TAS</a>
+  <small>第一次進入新網址需要輸入密碼</small>
+</div>
+
+
+<script>
+function startDots(cv) {
+  const c = cv.getContext('2d');
+  let id, t = 0;
+  const frame = () => {
+    const w = cv.width = innerWidth, hgt = cv.height = innerHeight;
+    c.fillStyle = '#04121f'; c.fillRect(0, 0, w, hgt);
+    const cols = 90, rows = 34;
+    for (let j = 0; j < rows; j++) {
+      const z = j / rows, py = hgt * (.45 + z * z * .6);
+      for (let i = 0; i < cols; i++) {
+        const x = (i / (cols - 1) - .5) * (1 + z * 2.2) * w + w / 2;
+        const y = py + Math.sin(i * .28 + t * 1.6 + j * .35) * (6 + z * 26) + Math.sin(i * .11 - t + j * .2) * (4 + z * 14);
+        const a = .15 + z * .75, r = .6 + z * 2.2;
+        c.fillStyle = `rgba(${140 + z * 80},${200 + z * 40},255,${a})`;
+        c.beginPath(); c.arc(x, y, r, 0, 6.283); c.fill();
+      }
+    }
+    t += .016; id = requestAnimationFrame(frame);
+  };
+  frame();
+  return () => cancelAnimationFrame(id);
+}
+
+const cv=document.getElementById("dots");cv.style.display="block";
+if(matchMedia("(prefers-reduced-motion: reduce)").matches){startDots(cv)();}else startDots(cv);
+</script>
+</body>
+</html>

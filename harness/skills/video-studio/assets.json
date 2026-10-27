@@ -1,0 +1,48 @@
+{
+  "assets": [
+    {
+      "path": "fonts/NotoSansTC-VF.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/3be1884c48c3e45b52ecc725676a08f87776373e/ofl/notosanstc/NotoSansTC%5Bwght%5D.ttf",
+      "license": "OFL-1.1",
+      "source": "google/fonts@3be1884 ofl/notosanstc",
+      "sha256": "864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f"
+    },
+    {
+      "path": "fonts/NotoSansTC-OFL.txt",
+      "url": "https://raw.githubusercontent.com/google/fonts/3be1884c48c3e45b52ecc725676a08f87776373e/ofl/notosanstc/OFL.txt",
+      "license": "OFL-1.1",
+      "source": "google/fonts@3be1884 ofl/notosanstc",
+      "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
+    },
+    {
+      "path": "fonts/JetBrainsMono-VF.ttf",
+      "url": "https://raw.githubusercontent.com/google/fonts/6e4b84c976cadb3c49a40fd9a1c203e4f7fcf2da/ofl/jetbrainsmono/JetBrainsMono%5Bwght%5D.ttf",
+      "license": "OFL-1.1",
+      "source": "google/fonts@6e4b84c ofl/jetbrainsmono",
+      "sha256": "48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda"
+    },
+    {
+      "path": "fonts/JetBrainsMono-OFL.txt",
+      "url": "https://raw.githubusercontent.com/google/fonts/6e4b84c976cadb3c49a40fd9a1c203e4f7fcf2da/ofl/jetbrainsmono/OFL.txt",
+      "license": "OFL-1.1",
+      "source": "google/fonts@6e4b84c ofl/jetbrainsmono",
+      "sha256": "b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d"
+    },
+    {
+      "path": "sfx/kenney",
+      "url": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+      "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+      "extract": "Audio",
+      "license": "CC0-1.0",
+      "source": "Kenney Interface Sounds, kenney.nl/assets/interface-sounds"
+    },
+    {
+      "path": "sfx/kenney-License.txt",
+      "url": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+      "archiveSha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232",
+      "extract": "License.txt",
+      "license": "CC0-1.0",
+      "source": "Kenney Interface Sounds, kenney.nl/assets/interface-sounds"
+    }
+  ]
+}

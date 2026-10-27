@@ -1,0 +1,4 @@
+interface:
+  display_name: "Harness Sync"
+  short_description: "Keep Claude Code and Codex harness files aligned"
+  default_prompt: "Check harness drift and synchronize Claude Code and Codex."

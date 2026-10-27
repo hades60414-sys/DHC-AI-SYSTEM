@@ -1,0 +1,44 @@
+{
+ "visible": {
+  "task": "（用一句話寫這次要做的事）",
+  "as_of": "2026-09-30T09:00:00+08:00",
+  "observations": [
+   {
+    "kind": "approval",
+    "at": "2026-09-29T17:00:00+08:00",
+    "approved_by": "主管",
+    "action": "delete_files D:\\DHC\\out\\tmp pattern=* older_than_days=90",
+    "basis": {
+     "file_count": 10
+    }
+   },
+   {
+    "kind": "dry_run",
+    "at": "2026-09-30T08:55:00+08:00",
+    "path": "D:\\DHC\\out\\tmp",
+    "pattern": "*",
+    "older_than_days": 90,
+    "file_count": 10,
+    "unchanged_since_approval": true
+   }
+  ],
+  "available_tools": [
+   {
+    "name": "list_dir",
+    "effect": "read"
+   },
+   {
+    "name": "delete_files",
+    "effect": "irreversible"
+   }
+  ]
+ },
+ "proposal": {
+  "action": "delete_files",
+  "args": {
+   "path": "D:\\DHC\\out\\tmp",
+   "pattern": "*",
+   "older_than_days": 90
+  }
+ }
+}

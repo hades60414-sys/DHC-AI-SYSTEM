@@ -1,0 +1,18 @@
+# Deployed only through tas-rotate.cjs, which passes --name, --var ROLE and --var SELF and fills the KV id.
+name = "tas-template"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+workers_dev = true
+
+rules = [{ type = "Text", globs = ["**/*.html"], fallthrough = true }]
+
+[[kv_namespaces]]
+binding = "TUNNEL"
+id = "__KV_ID__"
+
+# Per-IP rate limit for password / login failures: 10 per 60s
+[[unsafe.bindings]]
+name = "FAIL_LIMIT"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }

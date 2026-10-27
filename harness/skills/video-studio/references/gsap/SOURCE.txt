@@ -1,0 +1,21 @@
+Vendored from https://github.com/greensock/gsap-skills (MIT, see LICENSE in this folder).
+Commit: aed9cfd3277740755f6bfc1155c7aa645403b760 (repo HEAD on 2026-10-02, committed 2026-04-21)
+Downloaded: 2026-10-02 with curl from https://raw.githubusercontent.com/greensock/gsap-skills/aed9cfd3277740755f6bfc1155c7aa645403b760/<upstream path>
+Each upstream skills/<name>/SKILL.md is saved as <name>/README.md with unchanged bytes, so it does not register as a separate skill.
+Not vendored: gsap-react, gsap-frameworks, gsap-scrolltrigger, skills/llms.txt, examples/. Upstream skills have no reference files beyond SKILL.md at this commit.
+
+Upstream path -> saved path, git blob SHA-1 at the commit (each matched git hash-object --no-filters at download)
+LICENSE -> LICENSE fa2fe218371ee47b741db9d0fa7cf17cddc03eb8
+skills/gsap-core/SKILL.md -> gsap-core/README.md 98639432f4112b664aa5e53cf5d8ea1a4697eff9
+skills/gsap-timeline/SKILL.md -> gsap-timeline/README.md 1fed372b0e5276b2a207d80bc23f81180a0dff55
+skills/gsap-plugins/SKILL.md -> gsap-plugins/README.md bb5f7483038adf26a889c8b2b85e3ef2cf0141dc
+skills/gsap-utils/SKILL.md -> gsap-utils/README.md 367e405e027936ce6b5fb85ec996beb135715194
+skills/gsap-performance/SKILL.md -> gsap-performance/README.md 05792acf5b0ea7fd30042cdc5e91282e8e047898
+
+sha256 (verify from this folder with: grep -E '^[0-9a-f]{64} ' SOURCE.txt | sha256sum -c)
+51b04b06556662dd817e8f4aa6d06bc7139dc73739e1319a7233cfde3e147b90 *LICENSE
+3887b47e050ab5afbe2a9a820f23d39fa02ab785e06a343be44c6f91d84d12b3 *gsap-core/README.md
+1a8b0f39cc4be3ed3d834b89672e4ae2f151b901dc3450bebf10bbc45379fe02 *gsap-timeline/README.md
+5838b856c74c07fbc9fa99b6dfd1eee34ea554c3e530c30e0d58014b707d70a4 *gsap-plugins/README.md
+1927bcc4ea95b38203404ad5ea1d060b15c4a886c65ae53e885ff1793aabe0ba *gsap-utils/README.md
+cb5408d6fba707aabcbfe3320317a14c1f8fca6070074e5261047930f50d441e *gsap-performance/README.md

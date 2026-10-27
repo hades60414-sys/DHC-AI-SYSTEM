@@ -1,0 +1,16 @@
+{
+  "_說明": "每週檢查的第三方來源。repo＝GitHub owner/name；pin＝目前裝的版本（有 clone 的讀 clone 的 HEAD，pin 留空）；paths＝只看這些路徑（空＝整個 repo）。升級完要更新 pin（或 clone 的 HEAD）。",
+  "sources": [
+    { "name": "pstack（Claude 移植版）", "repo": "michael-denyer/pstack-claude", "clone": "D:\\TAS\\ai-tools\\plugins\\pstack-claude", "paths": [] },
+    { "name": "statechart（cursor 官方 pstack）", "repo": "cursor/plugins", "clone": "D:\\TAS\\ai-tools\\plugins\\cursor-plugins", "paths": ["pstack/skills/statechart/"] },
+    { "name": "buddhist-method", "repo": "nai0om/buddhist-method", "pin": "745caa7", "paths": [] },
+    { "name": "design-presentations（NESA-SLIDE）", "repo": "slidefirm/NESA-SLIDE", "pin": "4b18b52", "paths": [] },
+    { "name": "lieflat-charts", "repo": "larashero3-dotcom/lieflat-charts", "pin": "475c9b6", "paths": [] },
+    { "name": "ui-ux-pro-max", "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "pin": "c87cdc226f85b28040c6f15c1d29b5684fd32121", "paths": [] },
+    { "name": "editorial-vision-studio", "repo": "Yu-0312/editorial-vision-studio", "pin": "0bb7aad07174be6c3fa6b9f81c83ad25edddb814", "paths": [] },
+    { "name": "mattpocock skills（tdd、code-review 等）", "repo": "mattpocock/skills", "pin": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76", "paths": [] },
+    { "name": "ponytail", "repo": "DietrichGebert/ponytail", "pin": "2ed6c52c9d7e5e56942508591085fd45dea277d3", "paths": [] },
+    { "name": "frontend-design（官方外掛）", "repo": "anthropics/claude-plugins-official", "pin": "3b600518a637", "paths": ["plugins/frontend-design/"] },
+    { "name": "gsap 參考（video-studio）", "repo": "greensock/gsap-skills", "pin": "aed9cfd3277740755f6bfc1155c7aa645403b760", "paths": [] }
+  ]
+}

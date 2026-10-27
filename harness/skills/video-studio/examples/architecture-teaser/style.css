@@ -1,0 +1,123 @@
+/* World is 3200x1800; the camera frames parts of it. Labels meant for wide shots are >= 44px. */
+#world { width: 3200px; height: 1800px; }
+#links { width: 3200px; height: 1800px; }
+.link.dash { stroke-dasharray: 10 12; stroke-width: 3; }
+
+.zone-label { position: absolute; font-size: 56px; font-weight: 800; letter-spacing: .14em; color: rgba(238, 243, 251, .85); white-space: nowrap; }
+.zone-label.cool { color: var(--cool); }
+#lbl-in { right: 1360px; top: 150px; }
+#lbl-out { left: 2010px; top: 150px; }
+
+#wall { position: absolute; left: 1900px; top: 110px; width: 60px; height: 1610px; border-radius: 30px; overflow: hidden; transform-origin: 50% 100%;
+  background: linear-gradient(90deg, rgba(92, 200, 255, .08), rgba(92, 200, 255, .32) 50%, rgba(92, 200, 255, .08)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .08) 0 2px, transparent 2px 46px);
+  box-shadow: 0 0 40px rgba(92, 200, 255, .35), inset 0 0 18px rgba(92, 200, 255, .4); }
+#wall .scan { position: absolute; left: 0; right: 0; top: -220px; height: 220px; background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .5), transparent); }
+
+#exit, #exitlock { position: absolute; left: 1862px; top: 370px; width: 136px; height: 116px; border-radius: 24px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px; font-size: 30px; font-weight: 800; color: var(--warm); z-index: 4; }
+#exit { background: #0d1a30; border: 2px solid var(--warm); box-shadow: 0 0 30px rgba(255, 181, 71, .35); }
+#exit .icon { width: 40px; height: 40px; }
+#exitlock { background: #2b1606; border: 3px solid var(--warm); box-shadow: 0 0 50px rgba(255, 181, 71, .6); }
+#exitlock .icon { width: 60px; height: 60px; }
+#outbound { position: absolute; left: 1650px; top: 236px; font-size: 40px; }
+
+#browser { left: 200px; top: 330px; width: 700px; height: 430px; }
+#b-me { right: 30px; top: 96px; font-size: 40px; }
+#b-ai { left: 30px; top: 250px; font-size: 40px; padding: 18px 26px; }
+.dots b { display: inline-block; width: 14px; height: 14px; margin: 0 5px; border-radius: 50%; background: var(--cool); }
+
+#brain { position: absolute; left: 2330px; top: 410px; width: 460px; height: 460px; border-radius: 50%; }
+#brain .rings { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#brain .rings circle { fill: none; stroke-width: 3; }
+#brain .r1 { stroke: rgba(92, 200, 255, .6); stroke-dasharray: 18 14; }
+#brain .r2 { stroke: rgba(138, 125, 255, .55); stroke-dasharray: 6 12; }
+#brain .r3 { stroke: rgba(255, 255, 255, .35); stroke-dasharray: 40 18; }
+#brain .core { position: absolute; inset: 82px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #d8f5ff, #5cc8ff 34%, #3d52da 70%, #1b1f5e);
+  box-shadow: 0 0 80px rgba(92, 200, 255, .6), 0 0 170px rgba(138, 125, 255, .35); }
+#brain .brain-icon { position: absolute; left: 170px; top: 170px; width: 120px; height: 120px; color: #fff; }
+#brain .brain-icon .icon { width: 120px; height: 120px; stroke-width: 1.4; }
+#brain .ring { border-color: var(--cool); }
+#brain-label { left: 2445px; top: 900px; }
+
+.tag { position: absolute; display: inline-flex; align-items: center; gap: 14px; padding: 12px 26px; border-radius: 16px; font-size: 46px; font-weight: 800;
+  color: var(--warm); background: rgba(255, 181, 71, .12); border: 2px solid rgba(255, 181, 71, .55); white-space: nowrap; }
+.tag .icon { width: 46px; height: 46px; }
+#tag-host { left: 160px; top: 896px; }
+#tag-docs { left: 1290px; top: 896px; }
+
+.card-head { display: flex; align-items: center; gap: 14px; font-size: 34px; font-weight: 700; margin-bottom: 20px; }
+.card-head .icon { width: 40px; height: 40px; color: var(--cool); }
+.card-head.warm .icon { color: var(--warm); }
+
+#host { left: 160px; top: 1010px; width: 760px; height: 600px; padding: 28px 34px; }
+#agent { font-size: 28px; margin-bottom: 14px; }
+.live { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 12px var(--ok); }
+.wl { display: flex; align-items: center; gap: 14px; width: 430px; margin: 10px 0; padding: 10px 20px; border-radius: 14px; font-size: 30px; font-weight: 600;
+  background: rgba(62, 227, 164, .08); border: 1.5px solid rgba(62, 227, 164, .38); }
+.wl .icon { width: 30px; height: 30px; color: var(--ok); }
+#raw { position: absolute; left: 34px; right: 34px; bottom: 26px; height: 120px; display: flex; align-items: center; justify-content: center;
+  border-radius: 14px; background: rgba(0, 0, 0, .25); border: 1.5px dashed rgba(147, 166, 194, .35); overflow: hidden; }
+#raw .rows { position: absolute; inset: 16px 22px; display: flex; flex-direction: column; justify-content: space-between; filter: blur(5px); }
+#raw .rows b { height: 14px; border-radius: 6px; background: rgba(147, 166, 194, .5); }
+#raw .lockbadge { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 12px; font-size: 26px; font-weight: 700;
+  color: var(--warm); background: rgba(6, 10, 19, .88); border: 1.5px solid rgba(255, 181, 71, .5); white-space: nowrap; }
+#raw .lockbadge .icon { width: 26px; height: 26px; }
+
+/* Action gate: a striped barrier that rises out of the floor in front of the incoming action. */
+#gate, #danger, #stop, #human, .mini { z-index: 5; }
+#gate { position: absolute; left: 975px; top: 1120px; width: 40px; height: 400px; }
+#gate .post { position: absolute; left: 0; top: 0; width: 34px; height: 330px; border-radius: 10px; transform-origin: 50% 100%;
+  background: repeating-linear-gradient(45deg, #ffb547 0 20px, #1b1205 20px 40px); box-shadow: 0 0 36px rgba(255, 181, 71, .45); }
+#gate .gate-label { position: absolute; left: -44px; top: 344px; font-size: 30px; font-weight: 800; color: var(--warm); white-space: nowrap; }
+#danger { position: absolute; left: 1036px; top: 1250px; font-size: 34px; }
+#stop { left: 1050px; top: 1140px; font-size: 40px; padding: 8px 22px; background: rgba(40, 8, 14, .9); }
+#human { position: absolute; left: 1036px; top: 1346px; font-size: 32px; }
+.ghost { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(140, 172, 226, .16); pointer-events: none; }
+.ghost .icon { width: 240px; height: 240px; stroke-width: 1; }
+#browser { border-color: rgba(92, 200, 255, .45); box-shadow: 0 0 50px rgba(92, 200, 255, .16), var(--shadow); }
+#browser .bar .url { font-size: 24px; }
+.mini { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 14px; white-space: nowrap;
+  font-size: 28px; font-weight: 700; background: rgba(13, 26, 48, .95); border: 2px solid var(--cool); box-shadow: 0 0 24px rgba(92, 200, 255, .5); }
+.mini .icon { width: 28px; height: 28px; color: var(--cool); }
+
+#docs { left: 1290px; top: 1010px; width: 580px; height: 600px; padding: 28px 30px; }
+#stack { position: absolute; left: 34px; top: 112px; width: 210px; height: 260px; }
+#stack .doc { left: 20px; top: 26px; }
+#count { position: absolute; left: 46px; top: 400px; font-size: 76px; font-weight: 900; color: var(--warm); }
+#count small { margin-left: 8px; font-size: 30px; color: var(--muted); }
+#grid { position: absolute; left: 270px; top: 112px; width: 272px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.cell { height: 40px; border-radius: 8px; background: rgba(92, 200, 255, .14); border: 1.5px solid rgba(92, 200, 255, .35); }
+#beam { position: absolute; left: 262px; top: 100px; width: 26px; height: 330px; border-radius: 13px;
+  background: linear-gradient(90deg, transparent, rgba(255, 181, 71, .85), transparent); }
+#question { left: 1330px; top: 800px; display: flex; align-items: center; gap: 12px; font-size: 32px; white-space: nowrap; background: rgba(38, 27, 10, .94); }
+#question .icon { width: 30px; height: 30px; color: var(--warm); }
+#timer { position: absolute; left: 1716px; top: 1036px; font-size: 26px; }
+.chunk { width: 64px; height: 40px; border-radius: 8px; background: rgba(255, 181, 71, .3); border: 2px solid var(--warm); box-shadow: 0 0 18px rgba(255, 181, 71, .7); }
+.chunk.fly { position: absolute; left: 0; top: 0; }
+
+#answer { left: 2140px; top: 1040px; width: 880px; height: 380px; padding: 28px 36px; }
+#answer .line { height: 22px; margin: 18px 0; border-radius: 8px; background: rgba(147, 166, 194, .35); }
+#answer .cites { display: flex; gap: 18px; margin-top: 26px; }
+.cite { display: inline-flex; align-items: center; gap: 10px; padding: 10px 20px; border-radius: 12px; font-size: 34px; font-weight: 700;
+  color: var(--warm); background: rgba(255, 181, 71, .12); border: 2px solid rgba(255, 181, 71, .55); }
+.cite .icon { width: 28px; height: 28px; }
+
+#local { left: 1060px; top: 300px; width: 680px; height: 300px; padding: 28px 34px; border-color: rgba(255, 181, 71, .5); }
+#local-status { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 30px; color: var(--muted); }
+#local-status .icon { width: 30px; height: 30px; color: var(--warm); }
+#progress { margin-top: 36px; height: 16px; border-radius: 8px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+#progress b { display: block; width: 100%; height: 100%; transform-origin: 0 50%; background: linear-gradient(90deg, var(--warm), #ffd98a); }
+#zero { position: absolute; left: 1440px; top: 650px; font-size: 32px; }
+
+.hook { position: absolute; top: 452px; font-size: 104px; font-weight: 900; letter-spacing: .04em; white-space: nowrap; }
+#hook-in { right: 1010px; }
+#hook-out { left: 1010px; color: var(--cool); }
+#close-1, #close-2 { position: absolute; left: 0; right: 0; text-align: center; text-shadow: 0 6px 30px rgba(0, 0, 0, .6); }
+#close-1 { top: 250px; }
+#close-2 { top: 360px; }
+#logo { position: absolute; left: 0; right: 0; top: 330px; text-align: center; font-size: 200px; font-weight: 900; letter-spacing: .04em; visibility: hidden; }
+#logo .shine { position: absolute; left: 0; right: 0; top: 0; color: transparent; -webkit-background-clip: text; background-clip: text;
+  background-image: linear-gradient(100deg, transparent 38%, rgba(255, 255, 255, .95) 50%, transparent 62%); background-size: 300% 100%; background-position: 120% 0; }
+#logo-sub { position: absolute; left: 0; right: 0; top: 610px; text-align: center; font-size: 46px; font-weight: 600; letter-spacing: .12em; color: var(--ink); visibility: hidden; }

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{報告名稱}} {{YYYY 年 M 月}}</title>
+</head>
+<body>
+<!-- 月報／專題：開頭三句結論 → 每節一張圖＋一段解讀 → 附表。節數跟著結論數走，不湊數。 -->
+<div class="ck-page">
+  <header class="ck-head">
+    <div class="ck-meta">{{部門}} · {{YYYY 年 M 月}} · 資料截至 {{YYYY-MM-DD}}</div>
+    <h1>{{整份報告最重要的一句結論}}</h1>
+    <p class="ck-lede">{{結論一}}<br>{{結論二}}<br>{{結論三}}</p>
+  </header>
+
+  <div class="ck-grid"><div class="ck-wide" id="k"></div></div>
+
+  <div class="ck-section">一、{{節名}}</div>
+  <div class="ck-grid">
+    <div class="ck-card ck-wide">
+      <h2>{{結論式標題}}</h2>
+      <div class="ck-sub">{{單位}} · {{期間}} · {{圖例}}</div>
+      <div id="s1"></div>
+      <p class="ck-note">{{解讀：數字說明什麼、原因、要不要行動}}</p>
+      <div class="ck-src">資料來源：{{庫.表}}</div>
+    </div>
+  </div>
+
+  <div class="ck-section">二、{{節名}}</div>
+  <div class="ck-grid">
+    <div class="ck-card">
+      <h2>{{結論式標題}}</h2>
+      <div class="ck-sub">{{單位}} · {{期間}}</div>
+      <div id="s2a"></div>
+      <div class="ck-src">資料來源：{{庫.表}}</div>
+    </div>
+    <div class="ck-card">
+      <h2>{{結論式標題}}</h2>
+      <div class="ck-sub">{{單位}} · {{期間}}</div>
+      <div id="s2b"></div>
+      <div class="ck-src">資料來源：{{庫.表}}</div>
+    </div>
+  </div>
+
+  <div class="ck-section">附表</div>
+  <div class="ck-grid">
+    <div class="ck-card ck-wide">
+      <h2>{{附表標題}}</h2>
+      <div class="ck-sub">{{單位}} · {{期間}}</div>
+      <div id="tb"></div>
+      <div class="ck-src">資料來源：{{庫.表}}</div>
+    </div>
+  </div>
+</div>
+
+<script>/*CHARTKIT*/</script>
+<script>
+CK.use('harbor');
+// ── 資料（只改這裡）──
+const KPIS = [ /* {label, value, unit, delta, deltaLabel} */ ];
+const S1 = { x: [ /* 月份 */ ], series: [ /* {name, values} */ ] };
+const S2A = { steps: [ /* {label, value} */ ], start: null };
+const S2B = [ /* {label, a, b} */ ];
+const TB = { columns: [ /* {key, label, num, digits, unit, pnl} */ ], rows: [] };
+// ── 畫圖 ──
+CK.kpi('#k', { items: KPIS });
+CK.line('#s1', Object.assign({ unit: '億', digits: 1 }, S1));
+CK.waterfall('#s2a', Object.assign({ unit: '百萬', digits: 1, endLabel: '本月損益' }, S2A));
+CK.dumbbell('#s2b', { data: S2B, aName: '上月', bName: '本月', unit: '億', digits: 1 });
+CK.table('#tb', TB);
+</script>
+</body>
+</html>

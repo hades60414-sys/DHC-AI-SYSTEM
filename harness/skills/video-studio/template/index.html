@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="/studio/theme.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <div id="bg"></div>
+  <div id="drift">
+    <div id="world">
+      <svg id="links"></svg>
+      <h1 class="h1 abs" id="title">三個節點，一條資料流</h1>
+      <div class="node" id="n1"><i data-icon="monitor"></i><div class="label">瀏覽器</div></div>
+      <div class="node" id="n2"><i data-icon="cpu"></i><div class="label">大腦</div></div>
+      <div class="node warm" id="n3"><i data-icon="server"></i><div class="label">本地主機</div></div>
+      <div class="stamp" id="stamp">已核准</div>
+    </div>
+  </div>
+  <div id="vignette"></div>
+  <div id="subs"></div>
+  <div id="grain"></div>
+</div>
+<script src="/vendor/gsap/dist/gsap.min.js"></script>
+<script src="/vendor/gsap/dist/SplitText.min.js"></script>
+<script src="/vendor/gsap/dist/DrawSVGPlugin.min.js"></script>
+<script src="/vendor/gsap/dist/MotionPathPlugin.min.js"></script>
+<script src="/vendor/gsap/dist/ScrambleTextPlugin.min.js"></script>
+<script src="/vendor/gsap/dist/CustomEase.min.js"></script>
+<script type="module">
+  import { boot } from '/studio/runtime.js';
+  import * as scenes from './scenes.js';
+  boot(scenes);
+</script>
+</body>
+</html>

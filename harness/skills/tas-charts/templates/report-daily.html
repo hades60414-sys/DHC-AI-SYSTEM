@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{報表名稱}} {{YYYY-MM-DD}}</title>
+</head>
+<body>
+<!-- 日報一頁：狀態行 → KPI → 例外清單 → 2–4 張證據圖 → 來源。今日無事也照常產出，狀態行寫「正常」。 -->
+<div class="ck-page">
+  <header class="ck-head">
+    <div class="ck-meta">{{部門}} · 資料日 {{YYYY-MM-DD}} · 產出 {{YYYY-MM-DD HH:mm}}</div>
+    <h1>{{報表名稱}}</h1>
+  </header>
+
+  <div id="st"></div>
+  <div class="ck-section">今日數字</div>
+  <div class="ck-grid"><div class="ck-wide" id="k"></div></div>
+
+  <div class="ck-section">例外</div>
+  <div class="ck-grid">
+    <div class="ck-card ck-wide">
+      <h2>{{例外摘要，例如：2 項接近預警、無超限}}</h2>
+      <div class="ck-sub">只列需要處理的項目 · 使用率 ≥ 預警線</div>
+      <div id="ex"></div>
+      <div class="ck-src">資料來源：{{庫.表}} · 截至 {{時間}}</div>
+    </div>
+  </div>
+
+  <div class="ck-section">證據</div>
+  <div class="ck-grid">
+    <div class="ck-card">
+      <h2>{{結論式標題 1}}</h2>
+      <div class="ck-sub">{{單位}} · {{期間}}</div>
+      <div id="c1"></div>
+      <div class="ck-src">資料來源：{{庫.表}}</div>
+    </div>
+    <div class="ck-card">
+      <h2>{{結論式標題 2}}</h2>
+      <div class="ck-sub">{{單位}} · {{期間}}</div>
+      <div id="c2"></div>
+      <div class="ck-src">資料來源：{{庫.表}}</div>
+    </div>
+  </div>
+</div>
+
+<script>/*CHARTKIT*/</script>
+<script>
+CK.use('ink');
+// ── 資料（只改這裡）──
+const STATUS = { level: 'ok', text: '{{一句話狀態}}' };          // ok / warn / breach
+const KPIS = [ /* {label, value, unit, digits, delta, deltaLabel} */ ];
+const EXCEPTIONS = [ /* 一列一筆 */ ];
+const C1 = [ /* {{資料}} */ ];
+const C2 = [ /* {{資料}} */ ];
+// ── 畫圖 ──
+CK.status('#st', STATUS);
+CK.kpi('#k', { items: KPIS });
+CK.table('#ex', { empty: '今日無例外', rows: EXCEPTIONS, columns: [
+  { key: 'item', label: '項目' }, { key: 'used', label: '使用', num: true, digits: 2 },
+  { key: 'limit', label: '限額', num: true, digits: 2 }, { key: 'pct', label: '使用率', num: true, digits: 1, unit: '%' } ] });
+CK.limits('#c1', { data: C1, soft: 0.8 });
+CK.diverging('#c2', { data: C2, unit: '百萬', digits: 1 });
+</script>
+</body>
+</html>

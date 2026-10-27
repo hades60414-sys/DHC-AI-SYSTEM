@@ -1,0 +1,20 @@
+{
+  "title": "video-studio 範本",
+  "canvas": { "width": 1920, "height": 1080, "fps": 30 },
+  "voice": { "engine": "edge", "name": "zh-TW-HsiaoChenNeural", "rate": "+0%" },
+  "music": { "file": "gen/music/bed-calm-92.wav", "gainDb": -8 },
+  "lexicon": {},
+  "loudness": -16,
+  "scenes": [
+    {
+      "id": "intro",
+      "say": "這是影片工作室的範本。{cue:nodes}三個節點依序出現，{cue:flow}資料沿著連線流動。",
+      "sfx": [{ "at": "cue:nodes", "file": "sfx/kenney/maximize_004.ogg", "gainDb": -14 }]
+    },
+    {
+      "id": "detail",
+      "say": "鏡頭推進到中間的節點，{cue:stamp}重要的步驟蓋上印章。",
+      "sfx": [{ "at": "cue:stamp", "file": "sfx/kenney/drop_002.ogg", "gainDb": -10 }]
+    }
+  ]
+}

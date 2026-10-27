@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="/studio/theme.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <div id="bg"></div>
+  <div id="drift">
+    <div id="world">
+      <div class="zone-label" id="lbl-in">公司內網</div>
+      <div class="zone-label cool" id="lbl-out">雲端</div>
+      <div id="wall"><div class="scan"></div></div>
+
+      <svg id="links">
+        <g id="pipes"></g>
+        <g id="refs"></g>
+        <g id="flow"></g>
+        <g id="localflow"></g>
+      </svg>
+
+      <div id="exit"><i data-icon="arrow-up-right"></i><span>出口</span></div>
+      <div id="exitlock"><i data-icon="lock-keyhole"></i></div>
+      <div class="chip warm" id="outbound"><i data-icon="shield-check"></i>只往外連・不開入口</div>
+
+      <div class="window" id="browser">
+        <div class="bar"><i></i><i></i><i></i><div class="url">DHC CLI</div></div>
+        <div class="bubble me" id="b-me">幫我看今天的報表有沒有異常</div>
+        <div class="bubble" id="b-ai"><span class="dots"><b></b><b></b><b></b></span></div>
+      </div>
+
+      <div id="brain">
+        <svg class="rings" viewBox="0 0 460 460">
+          <circle class="r1" cx="230" cy="230" r="214"></circle>
+          <circle class="r2" cx="230" cy="230" r="176"></circle>
+          <circle class="r3" cx="230" cy="230" r="138"></circle>
+        </svg>
+        <div class="core"></div>
+        <i data-icon="sparkles" class="brain-icon"></i>
+        <div class="ring"></div>
+      </div>
+      <div class="zone-label cool" id="brain-label">雲端大腦</div>
+
+      <div class="tag" id="tag-host"><i data-icon="mouse-pointer-click"></i>電腦操控</div>
+      <div class="card" id="host">
+        <div class="ghost" id="ghost-host"><i data-icon="server-cog"></i></div>
+        <div class="card-head"><i data-icon="server"></i>內網主機</div>
+        <div class="chip" id="agent"><span class="live"></span>代理程式・運行中</div>
+        <div class="wl" id="wl1"><i data-icon="check"></i>健康檢查</div>
+        <div class="wl" id="wl2"><i data-icon="check"></i>讀取檔案資訊</div>
+        <div class="wl" id="wl3"><i data-icon="check"></i>唯讀資料查詢</div>
+        <div id="raw"><div class="rows"><b></b><b></b><b></b><b></b></div><div class="lockbadge"><i data-icon="lock"></i>原始資料留在內網</div></div>
+      </div>
+
+      <div id="gate"><div class="post"></div><div class="gate-label">動作閘門</div></div>
+      <div class="chip danger" id="danger"><i data-icon="trash-2"></i>刪除資料表</div>
+      <div class="stamp" id="stop">停・等人確認</div>
+      <div class="chip ok" id="human"><i data-icon="user-check"></i>人工確認後才執行</div>
+      <div class="mini" id="manifest"><i data-icon="list-checks"></i>清單＋統計</div>
+
+      <div class="tag" id="tag-docs"><i data-icon="book-open-text"></i>文件問答</div>
+      <div class="card" id="docs">
+        <div class="ghost" id="ghost-docs"><i data-icon="library-big"></i></div>
+        <div class="card-head"><i data-icon="file-text"></i>現行法規・索引</div>
+        <div id="stack"><div class="doc"></div><div class="doc"></div><div class="doc"></div><div class="doc"></div><div class="doc"></div><div class="doc"></div></div>
+        <div id="count"><span id="n67">0</span><small>份</small></div>
+        <div id="grid"></div>
+        <div id="beam"></div>
+      </div>
+      <div class="bubble me" id="question"><i data-icon="search"></i><span id="q-text">交易限額怎麼申請？</span></div>
+      <div class="badge" id="timer">0.9 秒</div>
+      <div class="chunk fly" id="fly1"></div>
+      <div class="chunk fly" id="fly2"></div>
+      <div class="chunk fly" id="fly3"></div>
+
+      <div class="card" id="answer">
+        <div class="card-head cool"><i data-icon="sparkles"></i>回答</div>
+        <div class="line" style="width: 92%"></div>
+        <div class="line" style="width: 78%"></div>
+        <div class="line" style="width: 86%"></div>
+        <div class="cites"><span class="cite" id="cite1"><i data-icon="file-text"></i>出處 ①</span><span class="cite" id="cite2"><i data-icon="file-text"></i>出處 ②</span></div>
+      </div>
+
+      <div class="card" id="local">
+        <div class="card-head warm"><i data-icon="cpu"></i>開源模型・本機</div>
+        <div id="local-status"><i data-icon="hourglass"></i>在公司裡作答中・約 2–3 分鐘</div>
+        <div id="progress"><b></b></div>
+      </div>
+      <div class="chip ok" id="zero"><i data-icon="shield"></i>0 字離開內網</div>
+    </div>
+  </div>
+  <div id="vignette"></div>
+  <div id="hud">
+    <div class="hook" id="hook-in">工作在牆內，</div>
+    <div class="hook" id="hook-out">AI 卻在牆外。</div>
+    <div id="close-1" class="h1">牆還在，</div>
+    <div id="close-2" class="h1">但 AI 已經在牆內幫你做事。</div>
+    <div id="logo"><span class="grad">DHC CLI</span><span class="shine">DHC CLI</span></div>
+    <div id="logo-sub">開源模型 × 雲端大腦 × 內網代理程式</div>
+  </div>
+  <div id="subs"></div>
+  <div id="grain"></div>
+</div>
+<script src="/vendor/gsap/dist/gsap.min.js"></script>
+<script src="/vendor/gsap/dist/SplitText.min.js"></script>
+<script src="/vendor/gsap/dist/DrawSVGPlugin.min.js"></script>
+<script src="/vendor/gsap/dist/MotionPathPlugin.min.js"></script>
+<script src="/vendor/gsap/dist/ScrambleTextPlugin.min.js"></script>
+<script src="/vendor/gsap/dist/CustomEase.min.js"></script>
+<script type="module">
+  import { boot } from '/studio/runtime.js';
+  import * as scenes from './scenes.js';
+  boot(scenes);
+</script>
+</body>
+</html>
