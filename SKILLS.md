@@ -70,6 +70,30 @@ Skill 是一份寫給 AI 的做事說明，放在 `%USERPROFILE%\.claude\skills\
 | `pilotfish-orchestration` | 多模型協作規則（要明講才啟用） |
 | `opus-efficient`、`opus-effort-audit` | 長程式任務的精簡執行與事後檢討 |
 
+## 要先填才能用的範本
+
+| Skill | 幫你做什麼 |
+|---|---|
+| `company-environment` | 記下你們公司機器能跑什麼、資料庫在哪、怎麼連；填好後 AI 碰到相關工作會照你們的規矩做。填 `references/` 裡的 `<...>` |
+| `company-intranet` | 指向你們自己的內網知識庫（主機、網頁、資料表）；把 `<KB_DIR>` 換成實際資料夾或設 `INTRANET_KB` |
+
+沒填之前，AI 看到 `<...>` 會停下來問你，不會亂猜。
+
+## 一起附上的第三方外掛（`vendor/`）
+
+原樣收錄，授權檔在各資料夾內（MIT／Apache-2.0）。裝法：
+
+```
+claude plugin marketplace add C:\tas\vendor
+claude plugin install pstack@dhc-vendor --scope user
+```
+
+| 外掛 | 幫你做什麼 |
+|---|---|
+| `pstack` | 複雜系統（RAG、多代理、跨機部署）的設計、除錯、審查流程；規則裡「pstack workflow」段靠它 |
+| `ctx-handoff` | 把你糾正 AI 的話整理成專案筆記；長對話快滿時自動交接 |
+| `frontend-design` | 做網頁介面時，避免千篇一律的 AI 風格 |
+
 ## 停用或只給特定環境
 
 | Skill | 狀態 |

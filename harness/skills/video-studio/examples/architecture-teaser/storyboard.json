@@ -2,7 +2,7 @@
   "title": "開源 ＋ DHC CLI 架構：電腦操控與文件問答",
   "output": "dhccli-architecture-teaser",
   "canvas": { "width": 1920, "height": 1080, "fps": 30 },
-  "voice": { "engine": "edge", "name": "zh-TW-HsiaoChenNeural", "rate": "+0%" },
+  "voice": { "engine": "winrt", "name": "Microsoft Yating", "rate": 1 },
   "music": { "file": "gen/music/bed-calm-92.wav", "gainDb": -8 },
   "loudness": -16,
   "defaults": { "lead": 0.35, "pad": 0.6, "overlap": 0.4, "gap": 0.3, "minSec": 3 },

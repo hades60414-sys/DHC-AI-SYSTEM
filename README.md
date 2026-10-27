@@ -14,6 +14,7 @@ TAS 是某證券中台團隊在一台共用主機上運作 Claude Code 的整套
 | `local-model/` | 離線本地模型（llama.cpp server）安裝與測試腳本 | 有 GPU、想離線跑模型 | [local-model/DELIVERY.md](local-model/DELIVERY.md) |
 | `tools/` | 動作閘門（提案動作放行／停下）、本地文件問答與評估、內網網頁測試沙盒、文件掃描、提醒、第三方技能更新檢查、skill 用量統計、專案記憶範本 | 挑著用 | 各資料夾 README |
 | `migration/` | 主機搬家工具：加密分段打包、路徑改寫、搬家用 Cloudflare Worker | 進階：主機搬家 | 各檔開頭註解 |
+| `vendor/` | 原樣附上的第三方外掛：pstack、ctx-handoff（MIT）、frontend-design（Apache-2.0），授權檔在各資料夾 | 想要完整工作流程的人 | [SKILLS.md](SKILLS.md) |
 | `scripts/` | `scan-sensitive.mjs`：上傳前的敏感字掃描 | 分享前每個人 | 見下方 |
 
 網頁版本身（CloudCLI 的 fork，AGPL-3.0）另有獨立 repo「DHC CLI」，這裡只放它旁邊的服務。

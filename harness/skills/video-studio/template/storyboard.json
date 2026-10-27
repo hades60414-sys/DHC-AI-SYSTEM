@@ -1,7 +1,7 @@
 {
   "title": "video-studio 範本",
   "canvas": { "width": 1920, "height": 1080, "fps": 30 },
-  "voice": { "engine": "edge", "name": "zh-TW-HsiaoChenNeural", "rate": "+0%" },
+  "voice": { "engine": "winrt", "name": "Microsoft Yating", "rate": 1 },
   "music": { "file": "gen/music/bed-calm-92.wav", "gainDb": -8 },
   "lexicon": {},
   "loudness": -16,

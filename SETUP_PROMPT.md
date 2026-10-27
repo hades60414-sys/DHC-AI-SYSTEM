@@ -46,7 +46,7 @@
 - A：複製選好的資料夾。
 - B／C：跑 `sync-harness.ps1 -Target Claude`（只用 Codex 的人改 `-Target Codex`），它會自動把被覆蓋的檔案備份到 `%USERPROFILE%\.claude\backups\harness-sync-<時間>\`。
 - 要護欄：先跑 `node harness\ops\install-hooks.cjs --check` 給我看預覽，我同意再跑 `node harness\ops\install-hooks.cjs --guard`（它會先備份 `settings.json`、保留我原本的 hooks；我不想要繁中回覆檢查就加 `--no-zh`）。
-- 規則裡有 pstack 外掛的段落：問我要不要裝 pstack（說明它是做什麼的、來源網址）；不裝就把 `rules\CLAUDE.md` 的「pstack workflow」段和 `@pstack-models.md` 那行刪掉，再同步。
+- 規則裡有 pstack 外掛的段落：問我要不要裝 pstack（說明它是做什麼的；它已附在 repo 的 `vendor\pstack`，MIT 授權）。要裝就跑 `claude plugin marketplace add <repo>\vendor` 再 `claude plugin install pstack@dhc-vendor --scope user`；不裝就把 `rules\CLAUDE.md` 的「pstack workflow」段和 `@pstack-models.md` 那行刪掉，再同步。
 - C：網頁版、遠端代理、本地模型都要額外的機器或帳號，先說明需要什麼、大概花多久，問我要不要今天做；不做就寫進最後的待辦。
 
 ## 第 4 步：驗證，然後教我用

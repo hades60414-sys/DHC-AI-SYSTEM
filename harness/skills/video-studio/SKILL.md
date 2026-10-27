@@ -33,14 +33,13 @@ Commands (run from this skill folder; `<dir>` is the project folder):
 
 - Recipes (`runtime/recipes.js`): `reveal`, `exit`, `pop`, `title` (mask-up by char), `typewriter`, `scramble`, `count`, `draw` (stroke), `packets` (dots along a path), `follow` (element along a path), `camera` (center x,y at scale; duration 0 cuts), `link` / `route` / `anchor` (connectors), `pulse`, `glow`, `stamp`, `pointer`, `bokeh`, `$`, `$$`. Icons: `<i data-icon="lucide-name">`.
 - Runtime ctx per scene: `{ tl, at(cue, offset), start, end, dur, total, data }`. Cues: `start`, `voiceStart`, `voiceEnd`, `end`, plus each `{cue:}` in `say`.
-- Storyboard fields: `canvas{width,height,fps}`, `voice{engine: edge|winrt, name, rate, pitch}`, `music{file, gainDb}`, `loudness`, `defaults{lead,pad,overlap,gap,minSec}`, `lexicon`, `scenes[]{id, say, minSec, lead, pad, sfx[]{at: seconds|"cue:x", file, gainDb, offset}, data}`. Asset paths resolve in the project first, then `VIDEO_STUDIO_HOME/assets` (`gen/music/*`, `gen/sfx/*`, `sfx/kenney/*`, `fonts/*`).
-- Voices: `edge` = zh-TW-HsiaoChenNeural / YunJheNeural / HsiaoYuNeural (online; Edge read-aloud has no commercial-use grant, so the user decides; Azure AI Speech is the licensed route and needs their key). `winrt` = offline Yating / Zhiwei / Hanhan.
+- Storyboard fields: `canvas{width,height,fps}`, `voice{engine: winrt, name, rate, pitch}`, `music{file, gainDb}`, `loudness`, `defaults{lead,pad,overlap,gap,minSec}`, `lexicon`, `scenes[]{id, say, minSec, lead, pad, sfx[]{at: seconds|"cue:x", file, gainDb, offset}, data}`. Asset paths resolve in the project first, then `VIDEO_STUDIO_HOME/assets` (`gen/music/*`, `gen/sfx/*`, `sfx/kenney/*`, `fonts/*`).
+- Voices: `winrt` = offline Windows voices Yating / Zhiwei / Hanhan (no network, no key). For studio-grade neural voices, add an Azure AI Speech engine with the user's own key; the online Edge read-aloud endpoint has no public licence and is not included.
 - Worked example: [examples/architecture-teaser](examples/architecture-teaser) (65 s, nine scenes, one camera world). GSAP API: [references/gsap/](references/gsap/). Licenses: `VIDEO_STUDIO_HOME/assets/LICENSES.md`.
 - Measured on the 28-thread office machine: a 65 s piece drafts in about 66 s (6 workers, ~30 frames/s); the `--blur 4` final runs ~4.4 frames/s with 3 workers, about 7.5 min.
 
 ## Gotchas
 
 - Each render worker commits about 2.5 GB; `render` caps workers so 3 GB of Windows commit stays free and says so. The cap is measured once at start, so keep other heavy work (more renders, local models, big builds) off the machine during a final render. `0x800705AF` or `0xC000012D` from any program means the commit limit ran out; close heavy work and rerun.
-- The `edge` voice impersonates the Edge browser against an undocumented endpoint: Microsoft can change or block it without notice. If `voice` fails with a connection or empty-audio error, fall back to `winrt` for drafts and ask the user about Azure AI Speech for the final.
 - Write render output to a log file; a failing worker's error is otherwise lost in progress lines.
 - Regenerate sounds by overwriting (`generateSounds({ force: true })` in `scripts/audio-gen.mjs`) where file deletion is blocked.

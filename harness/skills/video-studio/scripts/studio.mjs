@@ -91,7 +91,6 @@ const ENGINES = {
     if (r.status !== 0) throw new Error(`winrt tts failed: ${r.stderr || r.stdout}`);
     return { file: wav, words: JSON.parse(readFileSync(meta, 'utf8')) };
   },
-  edge: async (opts, base) => (await import('./tts-edge.mjs')).synth(opts, base),
 };
 
 export async function voice(p) {

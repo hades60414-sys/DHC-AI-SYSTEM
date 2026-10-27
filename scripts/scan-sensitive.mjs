@@ -162,9 +162,10 @@ const GENERIC_RULES = [
   {
     name: 'key:long-base64',
     re: /(?<![A-Za-z0-9+/=_-])[A-Za-z0-9+/_-]{40,}={0,2}(?![A-Za-z0-9+/=_-])/g,
-    // Mixed case + digits, not a path, not an embedded PNG, not a UUID-bearing file name.
+    // Mixed case + digits, not a path, not an embedded PNG or lockfile hash, not a UUID-bearing file name.
     check: (_line, m) => /[A-Z]/.test(m[0]) && /[a-z]/.test(m[0]) && /\d/.test(m[0]) && !m[0].includes('/')
-      && !m[0].startsWith('iVBORw0KGgo') && !/[0-9a-f]{8}-[0-9a-f]{4}-/i.test(m[0]),
+      && !m[0].startsWith('iVBORw0KGgo') && !/^sha(256|384|512)-/.test(m[0]) // lockfile integrity hashes
+      && !/[0-9a-f]{8}-[0-9a-f]{4}-/i.test(m[0]),
   },
 ];
 

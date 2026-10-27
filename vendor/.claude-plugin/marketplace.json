@@ -1,0 +1,10 @@
+{
+  "name": "dhc-vendor",
+  "owner": { "name": "DHC-AI-SYSTEM" },
+  "description": "Third-party plugins vendored unchanged (MIT / Apache-2.0); see each folder's LICENSE.",
+  "plugins": [
+    { "name": "pstack", "source": "./pstack/plugins/pstack", "description": "Rigorous agent workflows (Lauren Tan / Michael Denyer, MIT)", "version": "0.9.102" },
+    { "name": "ctx-handoff", "source": "./ctx-handoff", "description": "Project notes from corrections, long-session handoff (CabLate, MIT)", "version": "0.8.2" },
+    { "name": "frontend-design", "source": "./frontend-design", "description": "Distinctive frontend UI design guidance (Anthropic, Apache-2.0)" }
+  ]
+}
