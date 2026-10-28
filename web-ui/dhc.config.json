@@ -1,0 +1,7 @@
+{
+  "workspaceRoot": "DHC Workspace",
+  "mode": "personal",
+  "remote": { "enabled": false },
+  "agents": ["claude", "codex"],
+  "domain": "general"
+}

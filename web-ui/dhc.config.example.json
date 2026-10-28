@@ -1,0 +1,7 @@
+{
+  "workspaceRoot": "DHC Workspace",
+  "mode": "team",
+  "remote": { "enabled": true },
+  "agents": ["claude", "codex", "cursor"],
+  "domain": "finance"
+}
