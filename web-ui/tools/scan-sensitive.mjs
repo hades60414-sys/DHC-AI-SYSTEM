@@ -53,8 +53,8 @@ const isLetter = (c) => /[A-Za-z]/.test(c || '');
 const isUpper = (c) => /[A-Z]/.test(c || '');
 const isLower = (c) => /[a-z]/.test(c || '');
 
-// Short ASCII words (TSS, BSC ...) must not match inside ordinary words such as
-// "obscure", but should match "tss.key", "TSSCLI" and camelCase "useTssStore".
+// Short ASCII words (ABC, XYZ ...) must not match inside ordinary words such as
+// "fabcd", but should match "abc.key", "ABCCLI" and camelCase "useAbcStore".
 function asciiWordBoundaryOk(line, start, end) {
   const left = line[start - 1];
   const right = line[end];
@@ -110,7 +110,7 @@ const GENERIC_RULES = [
     check: null,
   },
   {
-    // Host shorthand such as ".41" or ".120": a dot with 2-3 digits that is not
+    // Host shorthand such as ".NN" or ".NNN": a dot with 2-3 digits that is not
     // part of a version number / decimal and not followed by a unit or word.
     name: 'host-code',
     re: /(?<![\w.\])])\.(\d{2,3})(?![\w.%])/g,

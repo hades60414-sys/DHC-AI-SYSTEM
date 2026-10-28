@@ -14,6 +14,7 @@ TAS 是某證券中台團隊在一台共用主機上運作 Claude Code 的整套
 | `local-model/` | 離線本地模型（llama.cpp server）安裝與測試腳本 | 有 GPU、想離線跑模型 | [local-model/DELIVERY.md](local-model/DELIVERY.md) |
 | `tools/` | 動作閘門（提案動作放行／停下）、本地文件問答與評估、內網網頁測試沙盒、文件掃描、提醒、第三方技能更新檢查、skill 用量統計、專案記憶範本 | 挑著用 | 各資料夾 README |
 | `migration/` | 主機搬家工具：加密分段打包、路徑改寫、搬家用 Cloudflare Worker | 進階：主機搬家 | 各檔開頭註解 |
+| `web-ui/` | 網頁版 DHC CLI（CloudCLI 改版：多人聊天室、規劃白板、停止時連子代理一起收、去識別層接口）；AGPL-3.0，授權檔在資料夾內 | 想讓團隊用瀏覽器操作 Claude Code | [web-ui/README.md](web-ui/README.md) |
 | `vendor/` | 原樣附上的第三方外掛：pstack、ctx-handoff（MIT）、frontend-design（Apache-2.0），授權檔在各資料夾 | 想要完整工作流程的人 | [SKILLS.md](SKILLS.md) |
 | `scripts/` | `scan-sensitive.mjs`：上傳前的敏感字掃描 | 分享前每個人 | 見下方 |
 
@@ -43,4 +44,4 @@ node scripts/scan-sensitive.mjs
 
 ## 授權
 
-第三方內容的來源與授權見 [THIRD-PARTY.md](THIRD-PARTY.md)；MIT 授權的第三方 skill 保留原授權檔在各自資料夾。其餘自寫內容僅供內部協作參考，對外散布前請先確認授權方式。
+第三方內容的來源與授權見 [THIRD-PARTY.md](THIRD-PARTY.md)；MIT 授權的第三方 skill 保留原授權檔在各自資料夾。`web-ui/` 是 CloudCLI 的改版，沿用 AGPL-3.0（改版架成對外服務時要提供原始碼），只約束這個資料夾。其餘自寫內容僅供內部協作參考，對外散布前請先確認授權方式。
