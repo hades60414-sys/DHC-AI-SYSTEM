@@ -1,0 +1,13 @@
+{
+  "_說明": "版本更新清單：側欄「版本更新」視窗讀這個檔。新增一筆＝在 entries 最前面加一個物件（id 不重複，at 用「YYYY-MM-DD HH:mm」）。level：high＝重要、mid＝一般、low＝小修；kind：feature＝功能、ui＝UI、ux＝UX；detail 一行一件事。加上 \"pending\": true 的項目不會顯示。",
+  "entries": [
+    {
+      "id": "dhc-cli-first-release",
+      "at": "2026-10-14 12:00",
+      "level": "high",
+      "kind": "feature",
+      "title": "DHC CLI 首發",
+      "detail": "以 CloudCLI v1.37.3 為基礎的模組化分支。\n側欄專案／例行／查詢分頁、待辦、工具庫、白板、夜間排程等功能都保留。\n個人／團隊模式、遠端存取、AI Agent 與用途都可以在 dhc.config.json 設定。"
+    }
+  ]
+}

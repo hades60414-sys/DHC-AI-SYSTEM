@@ -1,0 +1,11 @@
+# Copy to wrangler.toml, then:
+#   npx wrangler secret put TUNNEL_ORIGIN    (https://<YOUR-TUNNEL-HOSTNAME>)
+#   npx wrangler secret put GATE_PASSWORD    (<YOUR-LONG-RANDOM-PASSWORD>)
+#   npx wrangler secret put COOKIE_SECRET    (<ANOTHER-LONG-RANDOM-STRING>)
+#   npx wrangler deploy
+name = "<YOUR-WORKER-NAME>"
+main = "gate.mjs"
+compatibility_date = "2025-01-01"
+
+# Optional: serve the gate on your own domain instead of <name>.<account>.workers.dev
+# routes = [{ pattern = "<YOUR-DOMAIN>", custom_domain = true }]
