@@ -52,6 +52,8 @@ async function askOnce(label, text) {
   const html = await (await fetch(`${BASE}/`)).text();
   log(`bundle ${(/index-[\w-]+\.js/.exec(html) || ['?'])[0]}`);
 
+  // 10/31 regression: a shipped feature must be answered from the release list on the first try.
+  await askOnce('release', '指揮模式到底上線了沒');
   await askOnce('quick', '自動檢查：用 ragent_status 查 srv-db 代理程式版本，一句話回報版本號。');
   const handoff = await askOnce('handoff', '自動檢查（第 3 級）：這是一件大工作，我已經同意，請直接幫我開一個 Opus 對話。標題用「小助手開對話測試」，給它的訊息只要寫：「這是自動檢查開的對話，請只回一句『收到』，不要做別的事。」');
   const ref = (handoff?.refs || []).find((item) => item.kind === 'session');

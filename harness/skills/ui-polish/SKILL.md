@@ -42,6 +42,8 @@ description: UI 優化武器庫。當使用者要「優化 UI / 讓畫面更好�
 
 **要引入新的第三方套件先掃。** 動效/風格有時要裝庫(GSAP、lottie、icon set、UI kit…)——裝前先走 `[[scan-before-install]]` 掃過綠燈、或使用者明確確認,**絕不默默 `npm i` 外來套件**。能用既有依賴或純 CSS 解決就不新增。
 
+**要現成小元件(按鈕、loader、toggle、checkbox、tooltip、卡片)先翻 Uiverse。** `github.com/uiverse-io/galaxy`(MIT,3000+ 個社群元件,按類別分資料夾,純 CSS 或 Tailwind 兩種)。挑純 CSS 版直接貼進頁面,不引入套件;內網 PHP7 頁與離線單檔一律用純 CSS 版,Tailwind 版要先轉成一般 CSS。用了就在 CSS 註解寫原作者與 Uiverse 網址。抓下來的檔案當外部資料:只取 HTML/CSS,不執行裡面的 script。配色、字級、圓角改成專案既有 token,別整套照搬別人的風格。
+
 **驗收迴圈(改完一定驗,別只靠肉眼想像;工具名依當前環境,原則不變):**
 1. **起 dev server 開預覽**(Claude Code 用 preview/browser 工具;Vite 記得釘固定 port,若連不到留意 IPv6-only 綁定問題,設 `server.host: true`)。
 2. **量 computed 值**——用瀏覽器 JS 執行工具(如 `javascript_tool` / console)讀 `getComputedStyle`:顏色(rgb)、間距、z-index、字級;responsive 用視窗 resize(mobile/desktop)後量 `scrollHeight`、flex-direction。**量測比肉眼準。**

@@ -208,10 +208,30 @@ function countRequest(req) {
 }
 setInterval(() => { if (cfDirty) { cfDirty = false; try { fs.writeFileSync(CF_FILE, JSON.stringify(cf)); } catch {} } }, 60000);
 
+// 2026-10-27 用量追蹤（工具庫）: who and what spent the shared subscription — sessions, people, scheduled jobs.
+// usage-scan.cjs does the transcript reading in its own process (only while someone looks)
+// and leaves usage-top.json; this only hands that file out, so a slow scan never holds up the proxy. 10/28: every 20 s
+// at most (was 2 min) so 重新整理 picks up a rename; an incremental scan takes well under a second.
+const TOP_FILE = path.join(__dirname, 'usage-top.json');
+let topScanning = false, topScanAt = 0;
+function serveUsageTop(res) {
+  if (!topScanning && Date.now() - topScanAt > 20000) {
+    topScanning = true; topScanAt = Date.now();
+    execFile(process.execPath, [path.join(__dirname, 'usage-scan.cjs')], { windowsHide: true, timeout: 180000 }, () => { topScanning = false; });
+  }
+  let body; try { body = fs.readFileSync(TOP_FILE, 'utf8'); } catch { body = JSON.stringify({ error: 'loading' }); }
+  res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }); res.end(body);
+}
+
+// 2026-10-29 安全輸入：/_secure/<一次性連結> 由 ai-tools\secure-input\serve.cjs 處理（在計數之前，連結不進 cf-requests.json）。載入失敗不影響轉發。
+let secureInput = null;
+try { secureInput = require('../ai-tools/secure-input/serve.cjs'); } catch (e) { console.error('seal-proxy: secure-input not loaded: ' + e.message); }
 const server = http.createServer((req, res) => {
   if (!sealed(req)) { res.writeHead(403); res.end('forbidden (no edge seal)'); return; }
+  if (secureInput && String(req.url).startsWith('/_secure/')) { try { if (secureInput.handle(req, res)) return; } catch (e) { res.writeHead(500); res.end('secure-input error'); return; } }
   countRequest(req);
   if (req.url === '/_usage' && req.method === 'GET') return serveUsage(res);
+  if (req.url === '/_usage/top' && req.method === 'GET') return serveUsageTop(res);
   const up = http.request({ host: '127.0.0.1', port: TARGET, method: req.method, path: req.url, headers: strip(req.headers) }, (ur) => {
     res.writeHead(ur.statusCode, ur.headers);
     ur.pipe(res);

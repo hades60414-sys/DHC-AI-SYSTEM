@@ -28,12 +28,26 @@ Text must be legible and correctly spelled.
 
 Ideogram prioritizes text clauses — put `direction.title` in **first sentence**.
 
+The legibility sentence above is the **only** one. The Typography Emphasis Rule below prepends emphasis, never a second copy of it — two legibility instructions in one prompt dilute both, and `dedupe` firing on every run is an adapter defect, not a prompt defect ([../prompts/optimizer.md](../prompts/optimizer.md)).
+
 ## Negative Prompt
 
 ```
 misspelled text, garbled letters, watermark, logo, stock photo badge,
 glossy advertisement, 3D render, neon, cluttered layout, low resolution
 ```
+
+## Optimizer Contract
+
+```yaml
+optimizer_contract:
+  sentence_budget: 4
+  negative_prompt: field
+  emphasis_order: title-first
+  clause_density: bound
+```
+
+**`title-first` overrides `ground_first`.** The title holds the first sentence; the ground clause moves to the second, never ahead of it. An optimizer that front-loads the ground here trades a legible masthead for a correct paper colour, which is the wrong trade on the one model chosen for its typography.
 
 ## VisionSpec / EditorialSpec → Prompt Mapping
 
@@ -54,7 +68,7 @@ glossy advertisement, 3D render, neon, cluttered layout, low resolution
 When `type_ratio > 0.15`, prepend:
 
 ```
-Typography-forward editorial design. Primary text: "{title}". Text must be sharp and readable.
+Typography-forward editorial design. Primary text: "{title}".
 ```
 
 ## Default Params

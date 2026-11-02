@@ -26,10 +26,10 @@ set "RC=%errorlevel%"
 chcp 65001 >nul
 echo %date% %time% [post] release notes exit %RC%>>"%LOG%"
 REM One-off checks queued by whoever asked for the restart: each post-restart-once*.cmd runs once, then moves to done.
-for %%F in ("D:TAScc-webpost-restart-once*.cmd") do (
+for %%F in ("D:\TAS\cc-web\post-restart-once*.cmd") do (
   echo %date% %time% [post] once %%~nxF>>"%LOG%"
   call "%%F" >>"%LOG%" 2>&1
   chcp 65001 >nul
-  if not exist "D:TAScc-webpost-restart-oncedone" mkdir "D:TAScc-webpost-restart-oncedone"
-  move /y "%%F" "D:TAScc-webpost-restart-oncedone\" >nul
+  if not exist "D:\TAS\cc-web\post-restart-once\done" mkdir "D:\TAS\cc-web\post-restart-once\done"
+  move /y "%%F" "D:\TAS\cc-web\post-restart-once\done\" >nul
 )

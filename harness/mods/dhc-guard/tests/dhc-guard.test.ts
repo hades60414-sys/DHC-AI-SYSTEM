@@ -52,7 +52,7 @@ test('MCP 遠端指令不受 Python 禁令影響', async ($, on) => {
   expect(out).toEqual({ result: 'ran' })
 })
 
-test('危險指令要使用者說「確認執行」，而且只放行一次', async ($, on) => {
+test('危險指令要使用者整句說「確認執行」；確認後同回合同工具同類都放行，別類照擋', async ($, on) => {
   on('tool.call', () => ({ result: 'ran' }))
   on('prompt.submit', ($, e) => ({ text: e.text }))
   on('turn.complete', () => ({ text: '' }))
@@ -65,15 +65,36 @@ test('危險指令要使用者說「確認執行」，而且只放行一次', as
   expect(notExact.deny).toContain('確認執行')
 
   await $.prompt.submit({ text: ' 確認執行 ' })
-  const other = await $.tool.call({ tool: 'Bash', command: 'rm -rf dist' })
-  expect(other.deny).toContain('確認執行')
-  // 換成別筆指令被擋後，原本確認的那筆也不再放行；要重新確認同一筆
-  await $.prompt.submit({ text: '確認執行' })
-  const second = await $.tool.call({ tool: 'Bash', command: 'rm -rf dist' })
-  expect(second).toEqual({ result: 'ran' })
+  const same = await $.tool.call({ tool: 'Bash', command: 'rm -rf build' })
+  expect(same).toEqual({ result: 'ran' })
+  const sameKind = await $.tool.call({ tool: 'Bash', command: 'rm -rf dist' })
+  expect(sameKind).toEqual({ result: 'ran' })
 
-  const third = await $.tool.call({ tool: 'Bash', command: 'rm -rf dist' })
-  expect(third.deny).toContain('確認執行')
+  const otherKind = await $.tool.call({ tool: 'Bash', command: 'git reset --hard HEAD~1' })
+  expect(otherKind.deny).toContain('git reset --hard')
+  const otherTool = await $.tool.call({ tool: 'PowerShell', command: 'rm -rf dist' })
+  expect(otherTool.deny).toContain('確認執行')
+})
+
+test('同類放行不能夾帶別類：組合指令裡有沒確認過的類別照擋', async ($, on) => {
+  on('tool.call', () => ({ result: 'ran' }))
+  on('prompt.submit', ($, e) => ({ text: e.text }))
+  await $.tool.call({ tool: 'Bash', command: 'rm -rf build' })
+  await $.prompt.submit({ text: '確認執行' })
+  const mixed = await $.tool.call({ tool: 'Bash', command: 'rm -rf dist && git reset --hard HEAD~1' })
+  expect(mixed.deny).toContain('git reset --hard')
+  const sql = await $.tool.call({ tool: 'Bash', command: 'sqlcmd -Q "DROP TABLE x" && rm -rf x' })
+  expect(sql.deny).toContain('DROP')
+  const pure = await $.tool.call({ tool: 'Bash', command: 'rm -rf dist' })
+  expect(pure).toEqual({ result: 'ran' })
+})
+
+test('沒有待確認的指令時，說「確認執行」不會放行任何東西', async ($, on) => {
+  on('tool.call', () => ({ result: 'ran' }))
+  on('prompt.submit', ($, e) => ({ text: e.text }))
+  await $.prompt.submit({ text: '確認執行' })
+  const out = await $.tool.call({ tool: 'Bash', command: 'rm -rf build' })
+  expect(out.deny).toContain('確認執行')
 })
 
 test('Monitor 受危險指令守門，Python 放行', async ($, on) => {
@@ -91,7 +112,10 @@ test('確認在回合結束後失效', async ($, on) => {
   on('prompt.submit', ($, e) => ({ text: e.text }))
   on('turn.complete', () => ({ text: '' }))
 
+  await $.tool.call({ tool: 'Bash', command: 'git push --force' })
   await $.prompt.submit({ text: '確認執行' })
+  const ok = await $.tool.call({ tool: 'Bash', command: 'git push --force' })
+  expect(ok).toEqual({ result: 'ran' })
   await $.turn.complete({ turnId: 't1', answer: '', durationMs: 1, isAborted: false, usage: null })
   const out = await $.tool.call({ tool: 'Bash', command: 'git push --force' })
   expect(out.deny).toContain('確認執行')

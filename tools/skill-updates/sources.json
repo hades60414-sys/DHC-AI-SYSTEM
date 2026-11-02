@@ -6,11 +6,11 @@
     { "name": "buddhist-method", "repo": "nai0om/buddhist-method", "pin": "745caa7", "paths": [] },
     { "name": "design-presentations（NESA-SLIDE）", "repo": "slidefirm/NESA-SLIDE", "pin": "4b18b52", "paths": [] },
     { "name": "lieflat-charts", "repo": "larashero3-dotcom/lieflat-charts", "pin": "475c9b6", "paths": [] },
-    { "name": "ui-ux-pro-max", "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "pin": "c87cdc226f85b28040c6f15c1d29b5684fd32121", "paths": [] },
-    { "name": "editorial-vision-studio", "repo": "Yu-0312/editorial-vision-studio", "pin": "0bb7aad07174be6c3fa6b9f81c83ad25edddb814", "paths": [] },
-    { "name": "mattpocock skills（tdd、code-review 等）", "repo": "mattpocock/skills", "pin": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76", "paths": [] },
-    { "name": "ponytail", "repo": "DietrichGebert/ponytail", "pin": "2ed6c52c9d7e5e56942508591085fd45dea277d3", "paths": [] },
-    { "name": "frontend-design（官方外掛）", "repo": "anthropics/claude-plugins-official", "pin": "3b600518a637", "paths": ["plugins/frontend-design/"] },
+    { "name": "ui-ux-pro-max", "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "pin": "3a13158ff1f32156cbe144108de48eda2ecaed9a", "paths": [] },
+    { "name": "editorial-vision-studio", "repo": "Yu-0312/editorial-vision-studio", "pin": "d94af1920c93820fa59ced2d08709d0172c4a704", "paths": [] },
+    { "name": "mattpocock skills（tdd、code-review 等）", "repo": "mattpocock/skills", "pin": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d", "paths": [] },
+    { "name": "ponytail", "repo": "DietrichGebert/ponytail", "pin": "96608e078b2d5ea607c5c3b8b5a54d1c1fba6846", "paths": [] },
+    { "name": "frontend-design（官方外掛）", "repo": "anthropics/claude-plugins-official", "pin": "a7ba5b93db0c7c8d17f3f1d25853adca79598a1a", "paths": ["plugins/frontend-design/"] },
     { "name": "gsap 參考（video-studio）", "repo": "greensock/gsap-skills", "pin": "aed9cfd3277740755f6bfc1155c7aa645403b760", "paths": [] }
   ]
 }

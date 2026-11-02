@@ -7,7 +7,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const HOME = process.env.USERPROFILE;
+// TAS moved to D:/TAS (10-20); cc-web sits beside cc-host and ai-tools.
+const HOME = path.resolve(__dirname, '..');
 const SOURCE = path.join(HOME, 'ai-tools', '_scans', 'src', 'claudecodeui', 'public', 'dhc-releases.json');
 const TARGETS = [
   path.join(HOME, 'cc-host', 'node_modules', '@cloudcli-ai', 'cloudcli', 'dist', 'dhc-releases.json'),

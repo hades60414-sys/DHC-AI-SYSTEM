@@ -74,10 +74,33 @@ direction:
   layout: poster | magazine-cover | gallery-print | zine | editorial-spread | campaign-poster | photo-abstract-diptych | brand-key-visual | product-editorial | website-hero | social-asset | moodboard | interface-asset | presentation-deck
   style: string  # swiss, kinfolk, muji, ...
   editorial_mode: premium | standard | compensation | reconstruction
-  abstraction_level: relationship-first | identity-cue | full-abstract   # HOW ABSTRACT
+  abstraction_level: relationship-first | identity-cue | full-abstract   # HOW LITERAL the subjects are
+                              # The axis is subject legibility, independent of whether a source photo
+                              # supplied the scene. On a photo run the scene facts come from
+                              # image_report.spatial; on a theme-only run they come from the
+                              # Planner-authored spatial_plan + intent.subject — the three values
+                              # mean the same thing either way
+                              # relationship-first — the scene's relational skeleton survives
+                              #   rendering: arrangement, intervals, density, hierarchy and
+                              #   occlusion; no object outlines do
+                              # identity-cue — the above, plus each subject's outer silhouette, so it
+                              #   still reads as itself; never what sits on its surface. On a
+                              #   no-source photographic run this is what keeps landmarks from
+                              #   going generic
+                              # full-abstract — neither arrangement nor outline survives; only the
+                              #   mood and rhythm of the theme do. Nothing is traceable to a shape
+  spatial_plan:               # the scene facts the compiled prompt must state — required, no default
+    arrangement: string       # from image_report.spatial when a photo was analyzed;
+    overlaps: [string]        # authored by the Planner from intent.subject on a theme-only run
+    relative_scale: string
+    projection: string        # ONE viewpoint, named. "Avoid perspective" is not a projection
+    ground_plane: string
+    light_direction: string
   render_mode: photographic | photo-plus-graphic | graphic | painterly | mixed   # WHAT MEDIUM — required, no default
   composition:
-    photo_ratio: 0.0-1.0      # 0 if no photo
+    photo_ratio: 0.0-1.0      # share of canvas that is photographic content, whatever its
+                              # provenance — a model-generated photograph counts; 0 only when
+                              # the canvas holds none (pure graphic / illustration canvases)
     abstract_ratio: 0.0-1.0
     type_ratio: 0.0-1.0
     whitespace_ratio: 0.0-1.0
@@ -108,7 +131,7 @@ recoveries: [string]          # module IDs: panter_mode, silhouette_boost, ...
 photo_policy:
   fidelity: required | optional | none     # required = never redraw source region
   reference_image: uploaded | none
-  source_region: upper | principal | full-bleed
+  source_region: upper | principal | full-bleed | null   # null whenever reference_image is none
 
 # --- Shared avoid list (model-agnostic) ---
 avoids:
@@ -129,15 +152,20 @@ target:
 ## Validation Rules
 
 - `design_tokens.ground` and `direction.render_mode` are **required with no default**. An unset value is a rejection, not a fallback — this is what stops every run drifting to ivory paper
-- `direction.render_mode` and `direction.abstraction_level` are independent: `render_mode` is the medium, `abstraction_level` is how far from the source it travels. A `photographic` image can still be `full-abstract`
+- `direction.render_mode` and `direction.abstraction_level` are independent: `render_mode` is the medium, `abstraction_level` is how literal the depicted subjects are. A `photographic` image can still be `full-abstract`
 - If `preset` is set, it resolves to a VisualMemory with `source: preset` and the same lock rules apply ([../presets/registry.md](../presets/registry.md))
-- `design_tokens.ground: full-bleed-photo` requires either `photo_policy.reference_image: uploaded` (a supplied photograph) or `direction.render_mode: photographic` (the model generates one). One of the two, never neither
+- `design_tokens.ground: full-bleed-photo` requires either `photo_policy.reference_image: uploaded` (a supplied photograph) or `direction.render_mode: photographic` (the model generates one). One of the two, never neither. The generated route is a legitimate `photo_ratio ≈ 1.0` run — the canvas is photographic even though no source photo exists ([direction.composition](#schema))
 - `design_tokens.ground` values `saturated` and `duotone` require the ground hue to be a member of `design_tokens.palette` ([../assets/ground.md](../assets/ground.md))
 - `style_gate.outcome` must be set before Art Direction runs. `commit` forbids offering candidates; `offer` requires it. There is no third behaviour
 - `style_gate.reason: preset_chosen` requires `style_gate.preset` and `preset` to be the same non-null id
 - `style_gate.reason: freeform` requires a non-null `style_gate.description`, and `art_direction.runner_up` must be null — a description commits to one reading
 - On `reason: freeform`, `design_tokens.ground` and `direction.render_mode` must each trace to a cue in the description or to the single permitted clarifying question ([../prompts/style-brief.md](../prompts/style-brief.md)). Neither may be inferred silently
-- If `direction.abstraction_level` is `relationship-first`, `image_report.spatial` must be non-null and the compiled prompt must restate `arrangement`, `ground_plane`, and `light_direction`. Relationships cannot be preserved if they were never recorded
+- `direction.spatial_plan` is **required on every run**, photo or theme-only. Its `projection`, `ground_plane`, and `light_direction` must appear in the compiled prompt. This is the field the space clauses trace to — without it they have no provenance, and [../prompts/optimizer.md](../prompts/optimizer.md) would strip the very clauses [../prompts/reviewer.md](../prompts/reviewer.md) rejects a prompt for lacking
+- On a photo run, `direction.spatial_plan` is copied from `image_report.spatial` verbatim — the Planner does not re-observe. On a theme-only run, `image_report` is null and the Planner authors `spatial_plan` from `intent.subject` ([../prompts/planner.md](../prompts/planner.md))
+- Spatial fields locked by an active memory or preset are then applied **over the copy, field by field**: a locked `projection: flat-elevation` overrides a photographed deep perspective, and that is the point of the lock — the lock is an authored decision, not a re-observation. Unlocked spatial fields keep their source, report or Planner authoring. Locked spatial fields must use the spec's own key names ([../spec/visual-memory.schema.md](visual-memory.schema.md))
+- If `direction.abstraction_level` is `relationship-first`, `direction.spatial_plan.arrangement`, `overlaps`, and `relative_scale` must be non-null and the compiled prompt must restate them. Relationships cannot be preserved if they were never recorded
+- `photo_policy.source_region` is `null` whenever `photo_policy.reference_image` is `none`. A region of a photograph that does not exist is not a value
+- `direction.editorial_mode` is set from the Editorial Score when the Analyzer ran. On a theme-only run there is no source photograph and therefore no score: `editorial_mode` is `standard`, and the Recovery Engine has no flags to act on, so `recoveries` is `[]`. Do not invent a score to reach a different mode ([../prompts/analyzer.md](../prompts/analyzer.md))
 - `direction.composition.form_types` counts **kinds** of form, never instances. It may reduce the vocabulary; it may not delete an element the arrangement depends on ([../assets/scene-construction.md](../assets/scene-construction.md))
 - `art_direction.thesis` is required and must be traceable to a photo fact, brand cue, or stated goal — a direction with no argument is decoration
 - `direction.layout` must appear in `intent.allowed_outputs` and must not appear in `intent.blocked_outputs`

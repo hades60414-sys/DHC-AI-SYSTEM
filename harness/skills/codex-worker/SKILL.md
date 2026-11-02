@@ -2,7 +2,6 @@
 name: codex-worker
 description: Delegate one independently ownable implementation or test surface to Codex for a non-trivial change with clear file ownership and acceptance checks. Do not use for tiny edits, sequential work, overlapping writes, or sensitive company data.
 allowed-tools: Bash Read
-disable-model-invocation: true
 ---
 
 # Codex Worker

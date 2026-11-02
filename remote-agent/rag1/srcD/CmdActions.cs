@@ -25,7 +25,7 @@ namespace DbAgent {
 public static class CmdActions {
     public static string LogFile = null;
     public const int DefaultTimeout = 600, MaxTimeout = 1800, MaxCmdChars = 8000, HeadChars = 3000, TailChars = 11000;
-    public static bool Handles(string action) { return action == "cmd-run"; }
+    public static bool Handles(string action) { return action == "cmd-run" || action == "secret-set"; }
 
     static readonly Regex[] Deny = new[] {
         @"\bformat(\.com)?\s+[a-z]:", @"\bshutdown\b", @"\b(restart|stop)-computer\b", @"\bdiskpart\b", @"\bbcdedit\b", @"\bcipher\b[^\r\n]*\s/w",
@@ -48,6 +48,7 @@ public static class CmdActions {
     }
 
     public static string Execute(string action, string prompt) {
+        if (action == "secret-set") return SecretSet(prompt);
         if (action != "cmd-run") throw new InvalidOperationException("Action not allowed");
         var d = Common.Decode(prompt);
         var bad = d.Keys.Where(k => k != "cmd" && k != "cwd" && k != "timeout_sec").ToList();
@@ -64,6 +65,23 @@ public static class CmdActions {
         return Run(cmd, cwd ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), timeout);
     }
 
+    // rag1v (2026-10-29): secure input. The value typed on the one-time page arrives here inside the signed, encrypted job and is
+    // stored as a user variable (same as setx). Only the name and the length are logged or returned; error messages never include the value.
+    internal static string SecretSet(string prompt) {
+        var d = Common.Decode(prompt); Common.Exact(d, "name,value");
+        var name = Common.S(d, "name"); var value = Common.S(d, "value");
+        bool secret = Common.IsSecretName(name);
+        if (!secret && !Common.AccountName.IsMatch(name)) throw new InvalidDataException("name must end in _PWD, _PASS, _TOKEN, _OTP or _USER (letters, digits, underscore)");
+        if (!Common.Storable(name)) throw new InvalidDataException("name is reserved for another tool (CLAUDE_, GH_, NPM_, RAGENT_ ...)");
+        // Masking matches the literal text, so values are printable ASCII (no codepage mix-ups) and masked ones at least 6 characters
+        // (a 4-digit value could be found by echoing every number and watching which one comes back [REDACTED]).
+        int min = secret ? 6 : 2;
+        if (value.Length < min || value.Length > 512 || value.Any(c => c < ' ' || c > '~')) throw new InvalidDataException("value must be " + min + "-512 printable ASCII characters");
+        if (secret) Common.SetSecret(name, value); else Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.User);
+        Log("secret-set " + name, "SET", 0, value.Length + " chars");
+        return Common.Encode(new { kind = "secret_set", name = name, stored = true, masked = secret, chars = value.Length });
+    }
+
     internal static string Run(string cmd, string cwd, int timeoutSec) {
         var oem = Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.OEMCodePage);
         var psi = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "cmd.exe"), "/d /s /c \"" + cmd + "\"") {
@@ -71,7 +89,7 @@ public static class CmdActions {
             StandardOutputEncoding = oem, StandardErrorEncoding = oem, WorkingDirectory = cwd };
         for (int i = 0; i < Common.CredentialKeys.Length && i < Common.Secrets.Length; i++)
             if (!string.IsNullOrEmpty(Common.Secrets[i])) psi.EnvironmentVariables[Common.CredentialKeys[i]] = Common.Secrets[i];
-        foreach (var k in new[] { "SRC_USER", "DST_USER", "MktData_USER", "EKB_USER" }) {   // v3.5b: account names set with setx after the agent started
+        foreach (var k in new[] { "SRC_USER", "DST_USER", "MktData_USER", "EKB_USER" }.Concat(Common.UserVariables(Common.AccountName)).Distinct(StringComparer.OrdinalIgnoreCase)) {   // v3.5b: account names set with setx after the agent started; rag1v: any *_USER
             var u = Environment.GetEnvironmentVariable(k) ?? Environment.GetEnvironmentVariable(k, EnvironmentVariableTarget.User); if (!string.IsNullOrEmpty(u)) psi.EnvironmentVariables[k] = u; }
         var sw = Stopwatch.StartNew(); bool timedOut = false;
         using (var p = Process.Start(psi)) {

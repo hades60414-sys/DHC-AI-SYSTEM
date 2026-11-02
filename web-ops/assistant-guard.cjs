@@ -64,6 +64,16 @@ function mailAudit(tool, command) {
   try { fs.appendFileSync(path.join(ROOT, 'mail-audit.log'), line + '\n'); } catch {}
 }
 const DENY_TOOLS =/^mcp__.*__(ragent_self_update|ragent_doc_index|ragent_sandbox)$/;
+// 10-28 交易時段硬擋：平日台北時間 08:30–14:00 不碰正式機 srv-src／srv-db2（含經 srv-src 連結伺服器 DBLINK2 查）。
+// 確認、按卡、cards-off 都不放行。ASSISTANT_GUARD_NOW（ISO 時間）只給測試用來固定時鐘。
+const PROD_DB = /\b10\.255\.0\.11\b|\b10\.255\.0\.30\b|\bDBLINK2\b/i;
+function inTradingHours() {
+  const now = process.env.ASSISTANT_GUARD_NOW ? new Date(process.env.ASSISTANT_GUARD_NOW) : new Date();
+  const tw = new Date(now.getTime() + 8 * 3600e3); // 台灣沒有日光節約，固定 UTC+8
+  const day = tw.getUTCDay();
+  const hm = tw.getUTCHours() * 100 + tw.getUTCMinutes();
+  return day >= 1 && day <= 5 && hm >= 830 && hm < 1400;
+}
 
 function log(line) {
   try {
@@ -153,6 +163,9 @@ process.stdin.on('end', () => {
   const command = String(args.command || args.cmd || '');
   // 10-27 起 srv-main 可跑 Python，不再擋
   if (command && (tool === 'Bash' || tool === 'PowerShell' || /__ragent_cmd$/.test(tool)) && MAIL_READ.test(command)) mailAudit(tool, command);
+  if (command && (tool === 'Bash' || tool === 'PowerShell' || /__ragent_cmd$/.test(tool)) && PROD_DB.test(command) && inTradingHours()) {
+    deny('交易時段（平日台北時間 08:30–14:00）不連正式機 srv-src／srv-db2。請改查 srv-db 複本並講複本日期，或等 14:00 後再查正式機', true);
+  }
   if (command && (tool === 'Bash' || tool === 'PowerShell' || /__ragent_cmd$/.test(tool))) {
     const hit = RISKY_COMMAND.find((re) => re.test(command));
     if (hit && !released && (tool === 'Bash' || tool === 'PowerShell') && selfPairOk(command)) {

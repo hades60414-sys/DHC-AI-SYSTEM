@@ -4,7 +4,7 @@
 
 - `dhc-guard`：
   - 本機 python 偵測函式還留在 `rules.js`，但 2026-10-27 起不再攔（register.js 已拿掉呼叫）；要恢復就在 register.js 接回。
-  - 危險指令（rm -r、force push、git reset --hard、git clean、Remove-Item -Recurse、rmdir /s、DROP、TRUNCATE、DELETE 不帶 WHERE，也包含 MCP 的 ragent_sql／ragent_cmd）先擋下，使用者本人回覆「確認執行」後才放行一次，回合結束就失效。待確認的指紋存在 `$.store`（依 session、15 分鐘失效），網頁版每則訊息換程序也接得上（10-24 修；以前只放記憶體，網頁版確認永遠不生效）。
+  - 危險指令（rm -r、force push、git reset --hard、git clean、Remove-Item -Recurse、rmdir /s、DROP、TRUNCATE、DELETE 不帶 WHERE，也包含 MCP 的 ragent_sql／ragent_cmd）先擋下，使用者本人整句回覆「確認執行」後放行；10-28 起同一回合內同一工具、同一類（一筆指令命中的每一類都要確認過，不能夾帶別類）也放行，免得一批同類操作要確認好幾次；回合結束就失效。待確認的指紋存在 `$.store`（依 session、15 分鐘失效），網頁版每則訊息換程序也接得上（10-24 修；以前只放記憶體，網頁版確認永遠不生效）。
   - 不使用 `$.fs`、`$.process`、`$.http`；只用 `$.session.id` 與 `$.store`。改完原始碼要複製到 `C:\Users\demo\.claude\plugins\cache\dhc-mods\dhc-guard\0.1.0\hooks`（正式載入的是這份）。
   - settings.json 原本的 deny 規則（例如 `Bash(rm *)`）仍然優先；mod 放行之後，這些規則照樣會擋。
 

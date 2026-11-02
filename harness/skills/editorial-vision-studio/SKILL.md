@@ -47,9 +47,11 @@ Intent → Style Gate                   VisionSpec / EditorialSpec
       → Recovery             →
       → Compiler → VisionSpec
                                  SHARED POST-LAYER
-                                 Reviewer → Generate → Evaluator → Iteration
-                                                                       │
-                                 one spec mutation, re-enter Compiler ◄┘
+                                 Reviewer → Optimizer → Generate
+                                          → Evaluator → Iteration
+                                                             │
+                                 one spec mutation,          │
+                                 re-enter Compiler ◄─────────┘
                                  (max 3 passes)
 ```
 
@@ -81,7 +83,9 @@ VisionSpec             → [spec/editorial-spec.schema.md](spec/editorial-spec.s
     ↓
 Model Adapter          → [adapters/registry.md](adapters/registry.md)  ← swappable
     ↓
-Prompt Reviewer        → [prompts/reviewer.md](prompts/reviewer.md)
+Prompt Reviewer        → [prompts/reviewer.md](prompts/reviewer.md)  ← is it legal?
+    ↓
+Prompt Optimizer       → [prompts/optimizer.md](prompts/optimizer.md)  ← is it well said?
     ↓
 Image Generation
     ↓
@@ -198,6 +202,8 @@ Key rules (full matrix in [prompts/planner.md](prompts/planner.md)):
 - Street + human story → Documentary Zine
 - Food/object + minimal → Product Editorial
 
+The Planner also fills `direction.spatial_plan` — projection, shared ground plane, light direction, arrangement. On a photo run it is a verbatim copy of `image_report.spatial`; on a **theme-only run the Planner authors it from `intent.subject`**. Spatial fields locked by an active preset or memory are applied over the result field by field — a locked `projection: flat-elevation` is an authored decision that overrides what the photograph shows. It is required either way: [prompts/reviewer.md](prompts/reviewer.md) rejects a prompt with no named projection whether or not a photograph existed, and without the field those clauses have no provenance for [prompts/optimizer.md](prompts/optimizer.md) to protect.
+
 If user specifies `style: kinfolk`, load [styles/kinfolk.md](styles/kinfolk.md) DNA.
 
 ## Step 5: Recovery Engine
@@ -248,6 +254,22 @@ Examples:
 
 Auto-correct incompatible pairings.
 
+## Step 7.5: Prompt Optimizer
+
+The Reviewer answers *is this prompt legal*. It cannot fix a prompt that is legal but weakly worded — the ground clause buried in sentence four, a spec number softened to "a small accent", the same instruction stated twice.
+
+Half a step because it decides nothing. **Every clause it emits must trace to a field the spec already holds**; a clause with no spec field behind it is a rejection back to the Compiler, not an invention. It never sets a ground, style, subject, layout, palette, or type scale.
+
+Seven ordered ops: `provenance_strip` · `ground_first` · `concretize` · `bind_numbers` · `dedupe` · `route_negatives` · `compress`. Most gain comes from `concretize` and `bind_numbers` — a model renders nouns and numbers, never an adjective about taste.
+
+This does **not** break the "mutate the spec, never the prompt string" rule in [prompts/iteration.md](prompts/iteration.md). That rule forbids **hand patches after generation**. The Optimizer is deterministic, pre-generation, and recorded: same spec + same adapter + same `ruleset_version` produces the same string, so the manifest still replays.
+
+**No op firing is the normal outcome.** The same op firing twice means the adapter emits that defect every time — fix `adapters/{model}.md`, not the string.
+
+Variant mode emits 2–3 prompts from **one** spec, differing only on `clause_density`, `specificity`, and `emphasis_order`. A variant that differs on any spec field is a second direction, not a variant. Offer it only when the user asks to compare wordings, when the model is `generic`, or when a prompt-attributed dimension failed last run.
+
+Read [prompts/optimizer.md](prompts/optimizer.md).
+
 ## Step 8: Quality Evaluator
 
 After generation, score a **quality vector** — not one number. Ten weighted dimensions: subject, composition, focal_point, palette, typography, texture, style_coherence, photo_fidelity, intent_fit, platform_fit. Each 0.00–1.00; inapplicable dimensions are `null`, never 0.
@@ -289,7 +311,7 @@ Enum values are contract tokens, never prompt words — every adapter resolves t
 
 An unset value is a **rejection, not a fallback**. This matters more than it looks: before these fields existed, an undecided ground fell through to warm ivory paper on every run, because that was the most-repeated value in the repo. A field with no default cannot be skipped.
 
-`render_mode` is not `abstraction_level`. Medium and distance-from-source are independent — a `photographic` image can still be `full-abstract`.
+`render_mode` is not `abstraction_level`. Medium and subject literalness are independent — a `photographic` image can still be `full-abstract`.
 
 ## Presets
 
@@ -303,7 +325,7 @@ A preset is a shipped [VisualMemory](spec/visual-memory.schema.md) with `source:
 
 The [Style Gate](prompts/style-gate.md) offers these as a numbered menu at the start of a run; `preset: ivory-postcard` is the shortcut that skips the menu, for automation and series work. Three different grounds is deliberate — it is what gives the candidate-diversity rule something to draw on. Registry and authoring guide: [presets/registry.md](presets/registry.md).
 
-Unlike a series memory, a preset **may lock `composition`, `aspect_ratio`, and `layout`**: a preset is avowedly a template, which is what it is for.
+Unlike a series memory, a preset **may lock `composition`, `aspect_ratio`, `layout`, and — field by field, under the spec's own key names — `spatial_plan`**: a preset is avowedly a template, which is what it is for. Locked spatial fields override the photographed values; unlocked fields still come from the photo or the Planner.
 
 ## Visual Memory & Series
 
@@ -340,6 +362,7 @@ This is the **Editorial Score** — an input measure of the source photo, produc
 | Editorial Score | Mode |
 |-----------------|------|
 | 90+ | Premium Editorial — refined extraction, minimal recovery |
+| *(no photo)* | Theme-only: no score exists. `editorial_mode: standard`, `recoveries: []` — never invent a score |
 | 70–89 | Standard Editorial |
 | 50–69 | Compensation Mode — apply Recovery stack |
 | <50 | Concept Reconstruction — abstract reinterpretation |
@@ -353,6 +376,7 @@ Match the requested depth. Default to a concise direction summary plus `Generati
 - Include a generated image only when an image-generation tool is available and the user asks for generation; otherwise return the model-ready prompt.
 - Include Quality Grade and evaluator notes after generating, or when the user requests review.
 - Include the full quality vector only when the user asks why, or when a dimension failed.
+- Include the optimizer op log only when the user asks what changed, or when it reverted. In variant mode show the prompts, never the op log — the user is choosing wordings, not reviewing edits.
 - Include the VisualManifest only on request, or when the run belongs to a series.
 - Present Art Direction candidates as a 3-line table — name, thesis, trade-off — never as raw YAML.
 
@@ -380,10 +404,11 @@ User: "同一套視覺，做東京街景" → load the Visual Memory, run Analyz
 - Blindly copy fixed 60/30/10 layout — adapt proportions to subject
 - Mix style languages without Reviewer pass
 - Overload typography or decorative elements
+- Let the Optimizer add a clause no spec field backs, or lengthen a prompt to strengthen it
 
 **Always:**
 - Preserve the source's arrangement, overlaps, and relative scale — abstraction removes detail, not relationships
-- Name one projection, one ground plane, one light direction; give every grounded object a contact shadow
+- Name one projection, one ground plane, one light direction in `direction.spatial_plan`; give every grounded object a contact shadow
 - Preserve visual identity of source photo when one is provided
 - Make every abstract mark traceable to a photo fact, theme fact, brand cue, or stated goal
 - Keep prompts imageable and concrete
@@ -392,46 +417,11 @@ User: "同一套視覺，做東京街景" → load the Visual Memory, run Analyz
 - Fix one layer per iteration, and stop at three
 - Fork a Visual Memory rather than mutating a lock to rescue one image
 
-## Style & Layout Reference
+## File Index
 
-| Asset module | File |
-|--------------|------|
-| Ground & Render Mode | [assets/ground.md](assets/ground.md) |
-| Scene construction (space) | [assets/scene-construction.md](assets/scene-construction.md) |
-| Texture permission | [assets/texture.md](assets/texture.md) |
-| Palette | [assets/palette.md](assets/palette.md) |
-| Typography | [assets/typography.md](assets/typography.md) |
-
-| Style | File |
-|-------|------|
-| Swiss | [styles/swiss.md](styles/swiss.md) |
-| Kinfolk | [styles/kinfolk.md](styles/kinfolk.md) |
-| MUJI | [styles/muji.md](styles/muji.md) |
-| Brutalist | [styles/brutalist.md](styles/brutalist.md) |
-| Wallpaper* | [styles/wallpaper.md](styles/wallpaper.md) |
-| Apartamento | [styles/apartamento.md](styles/apartamento.md) |
-| Purple Magazine | [styles/purple.md](styles/purple.md) |
-| POPEYE | [styles/popeye.md](styles/popeye.md) |
-| Monocle | [styles/monocle.md](styles/monocle.md) |
-| COS | [styles/cos.md](styles/cos.md) |
-| Period Travel Poster | [styles/travel-poster.md](styles/travel-poster.md) |
-
-| Layout | File |
-|--------|------|
-| Editorial Poster | [layouts/poster.md](layouts/poster.md) |
-| Magazine Cover | [layouts/magazine-cover.md](layouts/magazine-cover.md) |
-| Gallery Print | [layouts/gallery-print.md](layouts/gallery-print.md) |
-| Zine | [layouts/zine.md](layouts/zine.md) |
-| Editorial Spread | [layouts/editorial-spread.md](layouts/editorial-spread.md) |
-| Campaign Poster | [layouts/campaign-poster.md](layouts/campaign-poster.md) |
-| Brand Key Visual | [layouts/brand-key-visual.md](layouts/brand-key-visual.md) |
-| Product Editorial | [layouts/product-editorial.md](layouts/product-editorial.md) |
-| Website Hero | [layouts/website-hero.md](layouts/website-hero.md) |
-| Social Asset | [layouts/social-asset.md](layouts/social-asset.md) |
-| Moodboard | [layouts/moodboard.md](layouts/moodboard.md) |
-| Interface Asset | [layouts/interface-asset.md](layouts/interface-asset.md) |
-| Photo-Abstract Diptych | [layouts/photo-abstract-diptych.md](layouts/photo-abstract-diptych.md) |
-| Presentation Deck | [layouts/presentation-deck.md](layouts/presentation-deck.md) |
+Every style, layout, asset module, engine prompt and contract is listed in
+[reference/file-index.md](reference/file-index.md). Open it when you need a file
+that the current step does not already name.
 
 ## Extending the Engine
 
@@ -444,6 +434,7 @@ User: "同一套視覺，做東京街景" → load the Visual Memory, run Analyz
 | New image model | Add `adapters/foo.md` + register | **No** |
 | New intent family | Edit `prompts/intent.md` | Yes (minimal) |
 | New QC dimension | Edit `prompts/evaluator.md` + map a layer in `prompts/iteration.md` | Yes (minimal) |
+| New prompt-wording op | Add a row to `prompts/optimizer.md` + bump `ruleset_version` | **No** |
 | New lockable DNA field | Edit `spec/visual-memory.schema.md` + enforce in `prompts/reviewer.md` | Yes (minimal) |
 
 See [adapters/_template.md](adapters/_template.md) for new models.
@@ -451,32 +442,6 @@ See [adapters/_template.md](adapters/_template.md) for new models.
 ## Extending Styles
 
 Add new magazines/brands by creating `styles/your-style.md` with Style DNA table + compiler clauses. No need to rewrite SKILL.md.
-
-## Engine Reference
-
-| Layer | File |
-|-------|------|
-| Intent Engine | [prompts/intent.md](prompts/intent.md) |
-| Style Gate | [prompts/style-gate.md](prompts/style-gate.md) |
-| Style Brief | [prompts/style-brief.md](prompts/style-brief.md) |
-| Visual Analyzer | [prompts/analyzer.md](prompts/analyzer.md) |
-| Visual Language Engine | [prompts/visual-language.md](prompts/visual-language.md) |
-| Art Direction Engine | [prompts/art-direction.md](prompts/art-direction.md) |
-| Visual Planner | [prompts/planner.md](prompts/planner.md) |
-| Recovery Engine | [prompts/recovery.md](prompts/recovery.md) |
-| Prompt Compiler | [prompts/compiler.md](prompts/compiler.md) |
-| Prompt Reviewer | [prompts/reviewer.md](prompts/reviewer.md) |
-| Quality Evaluator | [prompts/evaluator.md](prompts/evaluator.md) |
-| Iteration Engine | [prompts/iteration.md](prompts/iteration.md) |
-| Visual Memory | [prompts/visual-memory.md](prompts/visual-memory.md) |
-| Series Planner | [prompts/series.md](prompts/series.md) |
-| Preset Registry | [presets/registry.md](presets/registry.md) |
-
-| Contract | File |
-|----------|------|
-| VisionSpec / EditorialSpec | [spec/editorial-spec.schema.md](spec/editorial-spec.schema.md) |
-| VisualManifest | [spec/visual-manifest.schema.md](spec/visual-manifest.schema.md) |
-| VisualMemory | [spec/visual-memory.schema.md](spec/visual-memory.schema.md) |
 
 ## Agent Config
 

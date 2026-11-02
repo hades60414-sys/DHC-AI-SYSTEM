@@ -1,7 +1,7 @@
 @echo off
 REM Restart only the CloudCLI node process of DHC CLI (tunnel / seal-proxy / watchdog untouched).
 REM start-cc-web.cmd's loop relaunches CloudCLI ~5s after the process exits, picking up new dist-server files.
-REM Running sessions are aborted by this - check nothing is mid-run first (node %USERPROFILE%\cc-web\runstate.js).
+REM Running sessions are aborted by this - check nothing is mid-run first (node D:\TAS\cc-web\idle-check.cjs).
 setlocal
 REM 2026-10-18: when called by restart-when-idle (RESTART_REQUIRE_IDLE=1), re-check right before the kill and exit 2 if a claude/codex run exists.
 REM Direct callers (deid-cutover, deploy-nightqueue, ...) do not set it and behave as before.
@@ -29,10 +29,10 @@ goto wait
 echo [OK] CloudCLI is back.
 REM 2026-09-27: the live frontend is whatever the clone last built (every deploy copies clone dist -> cc-host dist),
 REM so re-copying it after a restart can never roll the UI back. Staged copies under cc-web\stage-* are history only.
-set "CLONE_DIST=%USERPROFILE%\ai-tools\_scans\src\claudecodeui\dist"
+set "CLONE_DIST=D:\TAS\ai-tools\_scans\src\claudecodeui\dist"
 if exist "%CLONE_DIST%\index.html" (
-  xcopy /E /Y /Q "%CLONE_DIST%" "%USERPROFILE%\cc-host\node_modules\@cloudcli-ai\cloudcli\dist\" >nul
+  xcopy /E /Y /Q "%CLONE_DIST%" "D:\TAS\cc-host\node_modules\@cloudcli-ai\cloudcli\dist\" >nul
   echo [OK] frontend bundle re-synced from the clone build - users reload the page.
 )
 REM 2026-10-13: release notes marked "pending": "restart" go public only now, stamped with this restart time.
-node "%USERPROFILE%\cc-web\release-notes.cjs" restarted
+node "D:\TAS\cc-web\release-notes.cjs" restarted

@@ -52,18 +52,38 @@ const seen = new Set();
 // 暫時性失敗（另一個控制程式正在用、逾時、檔案被佔用）不算看過，下一輪再試；其他失敗（簽章、格式、不是這份工作）才標成看過
 const transient = msg => /mutex|IOException|ETIMEDOUT|timed out|killed|being used/i.test(msg);
 
-async function waitReport(limitMs) {
+// 2026-10-29：排隊時別的 MCP 會順手收走這份報告，LastResult 接著又被下一份蓋掉，送出的人就拿到別人的結果。
+// 所以每份結果依自己的 seq 另存一份（誰收到都存），送出的人帶 wantSeq 只領自己那份。
+const RESULTS = path.join(STATE_DIR, 'results');
+let mine = 0, mineJob = '';
+function stash() {
+  const raw = state().LastResult; if (!raw) return;
+  try {
+    const seq = JSON.parse(raw).seq; if (!seq) return;
+    fs.mkdirSync(RESULTS, { recursive: true });
+    fs.writeFileSync(path.join(RESULTS, `${seq}.json`), raw);
+  } catch (e) { log('stash failed', e.message); }
+}
+// 重新配對後 seq 會從頭算，舊檔同名；jobId 對得上才算自己的
+const stashed = seq => { try { const r = JSON.parse(fs.readFileSync(path.join(RESULTS, `${seq}.json`), 'utf8')); return r.jobId === mineJob ? r : null; } catch { return null; } };
+
+async function waitReport(limitMs, wantSeq) {
   const t0 = Date.now();
   for (;;) {
-    for (const f of listAssets(REPORT, submittedAt - 60000).filter(f => !seen.has(f))) {
+    // 2026-10-30：送出的 MCP 在報告回來前就結束時，新開的 MCP 只看最近 60 分鐘，舊報告永遠收不到、一直誤報離線。
+    // 有待收工作就從狀態檔修改時間（＝送出時間）往後找。
+    const pendingSince = state().PendingJob ? fs.statSync(STATE_FILE).mtimeMs : Infinity;
+    for (const f of listAssets(REPORT, Math.min(submittedAt, pendingSince) - 60000).filter(f => !seen.has(f))) {
       if (Date.now() - t0 >= limitMs) return null;
       try {
         const out = await ctl('-Command', 'receive', '-File', path.join(ASSETS, f));
-        seen.add(f);
-        if (out && !out.startsWith('Duplicate')) return JSON.parse(state().LastResult);
+        seen.add(f); stash();
+        if (out && !out.startsWith('Duplicate') && !wantSeq) return JSON.parse(state().LastResult);
       } catch (e) { if (!transient(e.message)) seen.add(f); log('receive skipped', f, e.message); }
     }
-    if (!state().PendingJob) return JSON.parse(state().LastResult || 'null');
+    stash();
+    if (wantSeq) { const r = stashed(wantSeq); if (r) return r; }
+    else if (!state().PendingJob) return JSON.parse(state().LastResult || 'null');
     if (Date.now() - t0 >= limitMs) return null;
     await sleep(1500);
   }
@@ -77,23 +97,36 @@ function stalePending() {
   return Date.now() - since > (STALE_MS[s.PendingAction] || 15 * 60000) ? { seq: s.Seq, action: s.PendingAction, since } : null;
 }
 const offlineText = p => `${LABEL} 從 ${new Date(p.since).toLocaleString('zh-TW', { hour12: false })} 起沒有回應：seq ${p.seq}（${p.action}）送出後一直沒收到結果，${LABEL} 可能離線（電腦睡眠、重開機或沒有人登入）。請稍後再試；要恢復需要有人登入 ${LABEL}。`;
+// 2026-10-29 使用者：主機一次只跑一件，別的對話在用時改成排隊（原本等 60 秒就失敗）。最多排 10 分鐘；卡太久的照舊只等 10 秒就報離線。
+// 兩個 MCP 同時排到時，控制程式在鎖裡拒收第二份（One outstanding job），慢的那個回去繼續排。
+const QUEUE_MS = 10 * 60000;
 async function submit(action, prompt, waitSec) {
-  // 別人的工作還在等結果時先幫忙收（任何一個 MCP 都能收），最多等 60 秒再放棄；卡太久的只等 10 秒，收不到就報離線
-  if (state().PendingJob) {
-    const p = stalePending();
-    await waitReport(p ? 10000 : 60000);
-    if (p && state().PendingJob) throw new Error(offlineText(p));
-  }
-  const s = state();
-  if (s.PendingJob) throw new Error(`還有一份工作在等結果（seq ${s.Seq}，${s.PendingAction}）。先呼叫 ragent_job_result。`);
+  const q0 = Date.now(); mine = 0; mineJob = '';
   const args = ['-Command', 'submit', '-Action', action];
-  let tmp = null;
-  if (prompt !== undefined) { tmp = path.join(STATE_DIR, `mcp-prompt-${process.pid}.json`); fs.writeFileSync(tmp, JSON.stringify(prompt)); args.push('-PromptFile', tmp); }
-  try { await ctlRetry(...args); } finally { if (tmp) try { fs.writeFileSync(tmp, ''); } catch {} }
+  // 2026-10-29 安全審查：題目檔只在交給控制程式的那一刻存在（安全輸入的值也走這裡），排隊期間不留在硬碟上。
+  const tmp = prompt !== undefined ? path.join(STATE_DIR, `mcp-prompt-${process.pid}.json`) : null;
+  if (tmp) args.push('-PromptFile', tmp);
+  {
+    for (;;) {
+      if (state().PendingJob) {
+        const p = stalePending();
+        await waitReport(p ? 10000 : Math.max(1500, Math.min(60000, QUEUE_MS - (Date.now() - q0))));
+        if (p && state().PendingJob) throw new Error(offlineText(p));
+      }
+      const s = state();
+      if (s.PendingJob) {
+        if (Date.now() - q0 < QUEUE_MS) continue;
+        throw new Error(`${LABEL} 一直在忙：排了 10 分鐘，前一份工作（seq ${s.Seq}，${s.PendingAction}）還沒做完。稍後再送，或先呼叫 ragent_job_result。`);
+      }
+      try { if (tmp) fs.writeFileSync(tmp, JSON.stringify(prompt)); await ctlRetry(...args); ({ Seq: mine, PendingJob: mineJob } = state()); break; }
+      catch (e) { if (!/outstanding job/i.test(e.message) || Date.now() - q0 >= QUEUE_MS) throw e; }
+      finally { if (tmp) try { fs.unlinkSync(tmp); } catch {} }
+    }
+  }
   submittedAt = Date.now();
   await ctlRetry('-Command', 'publish-inbox');
-  const t0 = Date.now(), r = await waitReport(waitSec * 1000);
-  return r ? { report: r, roundtrip_ms: Date.now() - t0 } : { pending: true, seq: state().Seq };
+  const t0 = Date.now(), r = await waitReport(waitSec * 1000, mine);
+  return r ? { report: r, roundtrip_ms: Date.now() - t0 } : { pending: true, seq: mine };
 }
 
 // ---------- 結果整理成白話 ----------
@@ -168,7 +201,7 @@ const TOOLS = [
   { name: 'ragent_job_result', description: '取回還在等的那份工作的結果（沒有等待中的工作時，回傳上一份結果）。',
     inputSchema: { type: 'object', properties: { wait_seconds: { type: 'number', minimum: 5, maximum: 600, description: '最多等幾秒（預設 90）' } }, additionalProperties: false },
     run: async a => {
-      const p = stalePending(), r = await waitReport(p ? 10000 : waitOf(a) * 1000);
+      const p = stalePending(), r = await waitReport(p ? 10000 : waitOf(a) * 1000, mine || undefined);
       if (r) return formatReport(r, null);
       return p && state().PendingJob ? { text: offlineText(p), error: true } : { text: `還沒有結果（seq ${state().Seq}）。可以再呼叫一次。` };
     } },
@@ -333,6 +366,19 @@ if (AGENT === 'ragent' || process.env.RAGENT_CMD === '1') TOOLS.push({ name: 'ra
     const spec = { cmd: a.cmd }; if (a.cwd) spec.cwd = a.cwd; if (a.timeout_sec) spec.timeout_sec = Math.round(a.timeout_sec);
     const r = await submit('cmd-run', spec, a.wait_seconds ? waitOf(a) : Math.min(600, (spec.timeout_sec || 600) + 60));
     return r.pending ? { text: `已送出（seq ${r.seq}），稍後呼叫 ragent_job_result。` } : formatReport(r.report, r.roundtrip_ms);
+  } });
+// 2026-10-29 安全輸入（仿 ChatGPT 私密登入表單）：使用者在一次性網頁填的帳密，直接存成那台機器的使用者環境變數（代理程式 rag1v 起）。
+// 只給 ai-toolssecure-inputserve.cjs 用：它啟動本程式時才設 RAGENT_SECRET_SET=1。.mcp.json 不設，模型看不到也叫不到這個工具，值不會進對話。
+if (process.env.RAGENT_SECRET_SET === '1') TOOLS.push({ name: 'ragent_secret_set',
+  description: '把一個帳密存成 srv-db 的使用者環境變數（只限 *_PWD/_PASS/_TOKEN/_OTP/_USER）。回報只有名稱與字數。',
+  inputSchema: { type: 'object', properties: { name: { type: 'string', pattern: '^[A-Za-z][A-Za-z0-9_]{0,40}_(PWD|PASS|TOKEN|OTP|USER)$' }, value: { type: 'string', minLength: 2, maxLength: 512 }, wait_seconds: { type: 'number', minimum: 5, maximum: 600 } }, required: ['name', 'value'], additionalProperties: false },
+  run: async a => {
+    if (typeof a.name !== 'string' || !/^[A-Za-z][A-Za-z0-9_]{0,40}_(PWD|PASS|TOKEN|OTP|USER)$/.test(a.name)) bad('name 要以 _PWD、_PASS、_TOKEN、_OTP 或 _USER 結尾');
+    if (/^(CLAUDE|ANTHROPIC|OPENAI|GH|GITHUB|GIT|NODE|NPM|HF|HUGGINGFACE|AWS|AZURE|GOOGLE|CLOUDFLARE|CF|RAGENT|TASUI)_/i.test(a.name)) bad('這個名稱是別的工具在用的，不能存');
+    const min = /_USER$/.test(a.name) ? 2 : 6;   // 遮蔽是比對原文：只收可列印 ASCII，密碼至少 6 字（4 位數可用逐一 echo 試出來）
+    if (typeof a.value !== 'string' || a.value.length < min || a.value.length > 512 || /[^\x20-\x7e]/.test(a.value)) bad(`值要 ${min}–512 個可列印英數符號`);
+    const r = await submit('secret-set', { name: a.name, value: a.value }, waitOf(a));
+    return r.pending ? { text: `已送出（seq ${r.seq}），稍後呼叫 ragent_job_result。`, pending: true } : formatReport(r.report, r.roundtrip_ms);
   } });
 if (LABEL !== 'srv-db') for (const t of TOOLS) t.description = t.description.split('srv-db').join(LABEL);
 

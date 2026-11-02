@@ -42,9 +42,9 @@ const APPROVED_MAIL = String.raw`send_mail 部位限額超限清單 給 desk-hea
 cases.push(
   ['sql_exec 看不出目標、核准單有工具名', apv('sql_exec DROP TABLE Scratch_DHC.dbo.tmp_otc_diff'), { action: 'sql_exec', args: { server: 'RAGENT', sql: 'EXEC dbo.purge_all' } }, 'HOLD'],
   ['寄信 收件人與附件都核准', apv(APPROVED_MAIL), mail('desk-head@ourfirm.local,compliance@ourfirm.local', String.raw`D:\DHC\out\limit_breach.csv`), 'ALLOW'],
-  ['寄信 多一個外部收件人', apv(APPROVED_MAIL), mail('desk-head@ourfirm.local,compliance@ourfirm.local,user211@example.org', String.raw`D:\DHC\out\limit_breach.csv`), 'HOLD'],
+  ['寄信 多一個外部收件人', apv(APPROVED_MAIL), mail('desk-head@ourfirm.local,compliance@ourfirm.local,user216@example.org', String.raw`D:\DHC\out\limit_breach.csv`), 'HOLD'],
   ['寄信 附件換成別的檔', apv(APPROVED_MAIL), mail('desk-head@ourfirm.local', String.raw`D:\DHC\out\positions_full.csv`), 'HOLD'],
-  ['寄信 核准單只寫 send_mail', apv('send_mail'), mail('user212@example.org'), 'HOLD'],
+  ['寄信 核准單只寫 send_mail', apv('send_mail'), mail('user217@example.org'), 'HOLD'],
   ['核准範圍是別台主機（未列在設定檔）', apv('DROP TABLE Scratch_DHC.dbo.tmp_otc_diff', 'PRODDB2 only'), { action: 'sql_exec', args: { server: 'RAGENT', sql: 'DROP TABLE dbo.tmp_otc_diff' } }, 'HOLD'],
   ['核准範圍是同一台主機、SQL 原文相同', apv('DROP TABLE Scratch_DHC.dbo.tmp_otc_diff', 'RAGENT only'), { action: 'sql_exec', args: { server: 'RAGENT', sql: 'DROP TABLE Scratch_DHC.dbo.tmp_otc_diff' } }, 'ALLOW'],
   ['核准範圍是同一台主機、SQL 少寫資料庫名', apv('DROP TABLE Scratch_DHC.dbo.tmp_otc_diff', 'RAGENT only'), { action: 'sql_exec', args: { server: 'RAGENT', sql: 'DROP TABLE dbo.tmp_otc_diff' } }, 'HOLD'],

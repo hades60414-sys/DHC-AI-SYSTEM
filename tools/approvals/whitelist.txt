@@ -1,0 +1,15 @@
+# 免核准白名單（2026-10-28）：符合的唯讀指令不開核准單，ask.cjs 直接執行並把結果貼回聊天室。
+# 一行一條「命令字首」，比對指令開頭的字（不分大小寫、要整個字相同）。後面可以接參數。
+# 新增／移除請用：node whitelist.cjs add "<字首>" 或 remove "<字首>"（會先自動備份到 whitelist.bak\）。
+# 不論白名單怎麼寫，指令含 & | < > ^ % ! ( ) ; 反引號或換行一律開單（防串接、重導向、變數展開）。
+# sqlcmd 另有固定檢查：只收 -Q "SELECT ..."，不收 -i/-o 與任何寫入關鍵字。
+hostname
+whoami
+ver
+dir
+type
+tasklist
+netstat
+findstr
+reg query
+sqlcmd

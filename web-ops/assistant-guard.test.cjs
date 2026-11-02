@@ -101,4 +101,29 @@ expect('cards off: rm runs', !guard('Bash', { command: 'rm a.txt' }, { ASSISTANT
 expect('cards off: protected edit runs', !guard('Edit', { file_path: 'C:\\Users\\x\\.claude\\settings.json' }, {}).includes('deny'));
 expect('cards off: python allowed', !guard('Bash', { command: 'python x.py' }, {}).includes('deny'));
 fs.unlinkSync(offFlag);
+
+// 10-28 交易時段硬擋：時鐘用 ASSISTANT_GUARD_NOW 固定（UTC），判斷用台北時間。2026-10-28 是週三。
+const q41 = { cmd: 'sqlcmd -S 10.255.0.11 -U %SRC_USER% -P %SRC_PWD% -d MarketData -W -Q "SELECT TOP 5 * FROM DailyQuote"' };
+const at = (iso, tool, input, extra = {}) => guard(tool, input, { ASSISTANT_GUARD_NOW: iso, ...extra });
+const denied = (out) => out.includes('"deny"') && out.includes('交易時段');
+expect('trading: Wed 08:29 Taipei srv-src allowed', !at('2026-10-28T00:29:00Z', 'mcp__ragent__ragent_cmd', q41).includes('deny'));
+expect('trading: Wed 08:30 Taipei srv-src blocked', denied(at('2026-10-28T00:30:00Z', 'mcp__ragent__ragent_cmd', q41)));
+expect('trading: Wed 13:59 Taipei srv-src blocked', denied(at('2026-10-28T05:59:00Z', 'mcp__ragent__ragent_cmd', q41)));
+expect('trading: Wed 14:00 Taipei srv-src allowed', !at('2026-10-28T06:00:00Z', 'mcp__ragent__ragent_cmd', q41).includes('deny'));
+expect('trading: Taipei clock, not UTC (Mon 08:45 Taipei = 00:45Z)', denied(at('2026-11-02T00:45:00Z', 'mcp__ragent__ragent_cmd', q41)));
+expect('trading: Taipei clock, not UTC (Wed 14:30 Taipei = 06:30Z)', !at('2026-10-28T06:30:00Z', 'mcp__ragent__ragent_cmd', q41).includes('deny'));
+expect('trading: Sat 10:00 Taipei allowed', !at('2026-10-31T02:00:00Z', 'mcp__ragent__ragent_cmd', q41).includes('deny'));
+expect('trading: Sun 10:00 Taipei allowed', !at('2026-11-01T02:00:00Z', 'mcp__ragent__ragent_cmd', q41).includes('deny'));
+expect('trading: srv-db2 IP blocked', denied(at('2026-10-28T02:00:00Z', 'mcp__rag1__ragent_cmd', { cmd: 'sqlcmd -S 10.255.0.30 -Q "SELECT 1"' })));
+expect('trading: DBLINK2 via srv-src linked server blocked', denied(at('2026-10-28T02:00:00Z', 'mcp__ragent__ragent_cmd', { cmd: 'sqlcmd -S x -Q "SELECT TOP 5 * FROM [DBLINK2].PL.dbo.t"' })));
+expect('trading: local Bash to srv-src blocked', denied(at('2026-10-28T02:00:00Z', 'Bash', { command: 'Test-NetConnection 10.255.0.11 -Port 1433' })));
+expect('trading: confirmed does not release', denied(guard('mcp__ragent__ragent_cmd', q41, { ASSISTANT_GUARD_NOW: '2026-10-28T02:00:00Z', ASSISTANT_CONFIRMED: '1' })));
+fs.writeFileSync(offFlag, '');
+expect('trading: cards-off does not release', denied(at('2026-10-28T02:00:00Z', 'mcp__ragent__ragent_cmd', q41)));
+fs.unlinkSync(offFlag);
+expect('trading: srv-db localhost sqlcmd allowed', !at('2026-10-28T02:00:00Z', 'mcp__ragent__ragent_cmd', { cmd: 'sqlcmd -S localhost -Q "SELECT MAX(日期) FROM MarketData.dbo.DailyQuote"' }).includes('deny'));
+expect('trading: structured srv-db sql allowed', !at('2026-10-28T02:00:00Z', 'mcp__ragent__ragent_sql', { action: 'select', spec: {} }).includes('deny'));
+expect('trading: plain ls allowed', !at('2026-10-28T02:00:00Z', 'Bash', { command: 'ls -la' }).includes('deny'));
+expect('trading: other 172.24.26.x host allowed', !at('2026-10-28T02:00:00Z', 'Bash', { command: 'curl http://10.255.0.99/' }).includes('deny'));
+expect('trading: .410 is not srv-src', !at('2026-10-28T02:00:00Z', 'Bash', { command: 'ping 10.255.0.99' }).includes('deny'));
 process.exitCode = failed ? 1 : 0;

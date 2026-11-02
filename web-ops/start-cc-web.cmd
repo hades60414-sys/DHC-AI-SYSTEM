@@ -39,6 +39,8 @@ call "%CC_BIN%\cloudcli.cmd" start >> "D:\TAS\cc-web\server.log" 2>&1
 echo.
 echo [CC Web UI] server exited (%ERRORLEVEL%). Restarting in 5s, Ctrl+C to stop.
 timeout /t 5 >nul
+REM 2026-10-29: voice call uses the fast whisper (task TAS-WhisperFast, 127.0.0.1:8179). Set inside the loop because this file is running; edits above :loop would shift its read offset. Boot launches get it from the user env (setx).
+set "VOICE_CALL_STT_BASE_URL=http://127.0.0.1:8179"
 REM 2026-10-18: before each relaunch, move server.log aside once it passes 50MB (server.log.1 is overwritten).
 if exist "D:\TAS\cc-web\server.log" for %%A in ("D:\TAS\cc-web\server.log") do if %%~zA GTR 52428800 move /y "D:\TAS\cc-web\server.log" "D:\TAS\cc-web\server.log.1" >nul
 REM 2026-10-24: server.log is free here (CloudCLI just exited), so rotate it and the other logs over 5MB (keeps 3 .old each).

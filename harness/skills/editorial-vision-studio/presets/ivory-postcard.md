@@ -1,6 +1,6 @@
 # Ivory Postcard — Preset
 
-The repo's original hardcoded look, sealed as a preset: a photograph reconstructed as a minimal editorial illustration on ivory paper — three to five simplified symbolic forms, flat opaque paint, and a large quiet field.
+The repo's original hardcoded look, sealed as a preset: a photograph reconstructed as a reduced editorial illustration on ivory paper — three to five simplified symbolic forms, flat opaque paint, and a large quiet field.
 
 This is **not** a photo filter. The workflow reselects the subject, deletes detail, and rebuilds the composition.
 
@@ -26,15 +26,18 @@ locked:
   typography: "one small fine serif title at the lower margin, or none"
   texture_tier: FLAT
   atmosphere: quiet, still, contemplative
+  spatial_plan:                         # locked spatial fields — keys match direction.spatial_plan;
+                                        # they override the photo's own projection, ground, and light
+    projection: flat-elevation          # one viewpoint, held across every object
+    ground_plane: one shared surface    # everything stands on it
+    light_direction: single direction, flat contact shadow on every object
   composition:
     subject_scale: small
     subject_position: upper-centre
     whitespace_ratio: 0.55              # minimum, not a target
     form_types: 3-5                     # KINDS of form, repeated as the scene needs — not a cap on objects
-    projection: flat-elevation          # one viewpoint, held across every object
-    ground_plane: shared                # everything stands on one surface
-    light: single direction, flat contact shadow on every object
-    relations: preserved                # positions, relative scale, overlaps survive the reduction
+                                        # arrangement / overlaps / relative_scale stay unlocked — they
+                                        # come verbatim from image_report.spatial (see Photo Policy)
 
 blocked_layouts: [zine]            # PRINT tier would break the flat ivory ground
 
@@ -69,7 +72,7 @@ Note that **deep recession** is the avoid, not projection itself. A viewpoint-le
 ## Compiler anchor
 
 ```
-Minimal editorial illustration on a warm ivory paper ground, flat and uniform,
+Editorial illustration on a warm ivory paper ground, flat and uniform,
 no grain or stain. Rebuild the scene using three to five kinds of simplified
 form, repeated as often as the scene needs; keep the arrangement the
 photograph had — objects that clustered still cluster, overlaps and relative

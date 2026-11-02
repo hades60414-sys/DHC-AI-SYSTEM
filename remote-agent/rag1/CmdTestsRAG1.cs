@@ -62,6 +62,37 @@ public static class CmdTests {
             bool threw = false; try { Run(badSpec); } catch (InvalidDataException) { threw = true; }
             Check("bad spec rejected: " + Common.Encode(badSpec), threw);
         }
+        // rag1v secure input: secret-set stores a user variable, masks it, hands it to the next command, and never echoes or logs the value.
+        var sn = "AIWTEST" + Guid.NewGuid().ToString("N").Substring(0, 8) + "_PWD"; var un = sn.Replace("_PWD", "_USER"); const string sv = "Zq\"9<x>&'Pw";
+        try {
+            Check("secret-set wired", AgentCore.ActionAllowed("secret-set") && AgentCore.UsesPrompt("secret-set") && AgentCore.Names.Contains("secret-set"));
+            var raw = CmdActions.Execute("secret-set", Common.Encode(new Dictionary<string, object> { { "name", sn }, { "value", sv } }));
+            var sr = Common.Decode(raw);
+            Check("secret-set reply has name and length only", (bool)sr["stored"] && (bool)sr["masked"] && (int)sr["chars"] == sv.Length && !raw.Contains("Zq") && !raw.Contains("Pw"), raw);
+            Check("secret-set stored as user variable", Environment.GetEnvironmentVariable(sn, EnvironmentVariableTarget.User) == sv);
+            Check("new name is a credential key", Common.CredentialKeys.Contains(sn));
+            r = Run(new { cmd = "echo got=%" + sn + "%" });
+            var shown = Common.Safe(Common.Encode(r));
+            Check("stored secret reaches the child and is redacted", shown.Contains("got=[REDACTED]") && !shown.Contains("Zq"), shown);
+            CmdActions.Execute("secret-set", Common.Encode(new Dictionary<string, object> { { "name", sn }, { "value", "N3wValue#2" } }));
+            shown = Common.Safe("old " + sv + " new N3wValue#2");
+            Check("replaced secret: old and new values both masked", !shown.Contains("Zq") && !shown.Contains("N3w"), shown);
+            raw = CmdActions.Execute("secret-set", Common.Encode(new Dictionary<string, object> { { "name", un }, { "value", "alice01" } }));
+            r = Run(new { cmd = "echo u=%" + un + "%" });
+            Check("_USER stored unmasked and handed to the child", ((string)r["stdout"]).Contains("u=alice01") && raw.Contains("\"masked\":false"), Common.Encode(r));
+            foreach (var bad in new[] { new Dictionary<string, object> { { "name", "PATH" }, { "value", "abcd" } }, new Dictionary<string, object> { { "name", sn }, { "value", "ab" } },
+                new Dictionary<string, object> { { "name", sn }, { "value", "ab\ncd" } }, new Dictionary<string, object> { { "name", sn }, { "value", "abcd" }, { "x", 1 } },
+                new Dictionary<string, object> { { "name", "X_PWD;set" }, { "value", "abcdef" } }, new Dictionary<string, object> { { "name", "GH_TOKEN" }, { "value", "abcdef" } },
+                new Dictionary<string, object> { { "name", "CLAUDE_CODE_OAUTH_TOKEN" }, { "value", "abcdef" } }, new Dictionary<string, object> { { "name", sn }, { "value", "abcd" } },
+                new Dictionary<string, object> { { "name", sn }, { "value", "abc中文def" } } }) {
+                string msg = null; try { CmdActions.Execute("secret-set", Common.Encode(bad)); } catch (InvalidDataException e) { msg = e.Message; }
+                Check("secret-set rejects " + Common.Encode(bad).Replace("\n", "\\n"), msg != null && !msg.Contains("abcd") && !msg.Contains("ab\n"), msg);
+            }
+            var slog = File.ReadAllText(CmdActions.LogFile);
+            Check("log has name and length, not the value", slog.Contains("secret-set " + sn) && slog.Contains(sv.Length + " chars") && !slog.Contains("Zq") && !slog.Contains("N3w") && !slog.Contains("alice01"), slog);
+        } finally {
+            Environment.SetEnvironmentVariable(sn, null, EnvironmentVariableTarget.User); Environment.SetEnvironmentVariable(un, null, EnvironmentVariableTarget.User);
+        }
         var log = File.ReadAllText(CmdActions.LogFile);
         Check("log has EXIT, TIMEOUT, BLOCKED", log.Contains("EXIT 0") && log.Contains("TIMEOUT") && log.Contains("BLOCKED"));
         Console.WriteLine("RESULT passed=" + pass + " failed=" + fail);

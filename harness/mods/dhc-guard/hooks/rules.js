@@ -144,22 +144,29 @@ const DEL_NOFROM_UPPER = new RegExp(String.raw`\bDELETE\s+(?:TOP\s*\(\s*\d+\s*\)
 const DEL_NOFROM_START = new RegExp(String.raw`^\s*["']?DELETE\s+(?:TOP\s*\(\s*\d+\s*\)\s*)?` + TARGET, 'i')
 const UPD = new RegExp(String.raw`\bUPDATE\s+(?:TOP\s*\(\s*\d+\s*\)\s*)?` + TARGET + String.raw`\s+SET\b`, 'i')
 
-function sqlRisky(s) {
-  for (const [re, label] of SQL_RISKY) if (re.test(s)) return label
+function sqlRisky(s, out) {
+  for (const [re, label] of SQL_RISKY) if (re.test(s)) out.add(label)
   for (const stmt of s.split(/;|^\s*GO\s*$/im)) {
     if (/\bWHERE\b/i.test(stmt)) continue
-    if (DEL_FROM.test(stmt) || DEL_NOFROM_UPPER.test(stmt) || DEL_NOFROM_START.test(stmt)) return 'DELETE 沒有 WHERE'
-    if (UPD.test(stmt)) return 'UPDATE 沒有 WHERE'
+    if (DEL_FROM.test(stmt) || DEL_NOFROM_UPPER.test(stmt) || DEL_NOFROM_START.test(stmt)) out.add('DELETE 沒有 WHERE')
+    if (UPD.test(stmt)) out.add('UPDATE 沒有 WHERE')
   }
-  return null
+}
+
+// 一筆指令命中的所有類別（同類放行時要確認沒有夾帶別類）
+export function findAllRisky(text) {
+  const s = String(text || '')
+  const sh = splitFlags(s)
+  const out = new Set()
+  for (const [re, label] of SHELL_RISKY) if (re.test(sh)) out.add(label)
+  // 原文與去註解版各查一次，任一命中就擋（DROP/**/TABLE、WHERE 只在註解裡）
+  sqlRisky(s, out)
+  sqlRisky(stripSql(s), out)
+  return [...out]
 }
 
 export function findRisky(text) {
-  const s = String(text || '')
-  const sh = splitFlags(s)
-  for (const [re, label] of SHELL_RISKY) if (re.test(sh)) return label
-  // 原文與去註解版各查一次，任一命中就擋（DROP/**/TABLE、WHERE 只在註解裡）
-  return sqlRisky(s) || sqlRisky(stripSql(s))
+  return findAllRisky(text)[0] || null
 }
 
 // MCP 工具的參數名稱不固定，把所有字串值串起來檢查
@@ -172,9 +179,9 @@ export function inputText(e) {
 
 export const CONFIRM_WORD = '確認執行'
 
-// 使用者訊息整句（去頭尾空白）剛好等於確認字才算
+// 使用者訊息整句（去頭尾空白）剛好等於確認字才算；網頁版會在開頭自動加「【名字】」，先拿掉這一個標籤再比（20261029）
 export function isConfirm(text) {
-  return String(text || '').trim() === CONFIRM_WORD
+  return String(text || '').trim().replace(/^【[^【】\s]{1,20}】\s*/, '').trim() === CONFIRM_WORD
 }
 
 // 指令雜湊：工具名＋指令全文的 SHA-256（mods 環境有 crypto.subtle）

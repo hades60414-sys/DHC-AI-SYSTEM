@@ -2,7 +2,6 @@
 name: codex-verifier
 description: Ask Codex for an independent adversarial review when security, financial or numeric logic, DB/schema migrations, releases, deployment, or a subtle bug needs evidence-backed verification. Do not use for routine low-risk edits or sensitive company data.
 allowed-tools: Bash Read
-disable-model-invocation: true
 ---
 
 # Codex Verifier

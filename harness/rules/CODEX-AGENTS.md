@@ -29,6 +29,11 @@ Lean behavioral rules. Merge with project-specific notes. For trivial tasks, use
 
 Working when: diffs contain only requested changes, fewer rewrites from overcomplication, questions come before mistakes - not after.
 
+## Shared memory with Claude Code
+
+- Claude Code on this machine keeps notes you cannot otherwise see. The shared ones live in `D:\TAS\shared-memory\`: read `INDEX.md` at the start of a substantial task and open any card that matches the work (machines, hosts, agents, deployments, past root causes).
+- When you learn something Claude should know next time (a root cause, a machine quirk, a corrected assumption), write a card in `D:\TAS\shared-memory\cards\` and add one line to `INDEX.md`, following `README.md`. No credentials, data rows, customer/position/P&L values, internal regulations, or personal names.
+
 ## Context Management Policy (Codex / ASTRA)
 
 - ASTRA is the primary PM, architect, and final decision maker for architecture, implementation direction, integration, and merge recommendations, within user authorization and platform rules. Workers research or execute bounded tasks; they do not transfer project ownership. ASTRA may override any worker or routing choice.

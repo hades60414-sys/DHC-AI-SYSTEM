@@ -19,6 +19,8 @@ param(
     [ValidateRange(30, 1800)]
     [int]$TimeoutSeconds = 600,
 
+    [string]$Model,
+
     [switch]$ResolveOnly
 )
 
@@ -54,30 +56,32 @@ $roleConfig = @{
     scout = @{
         model = "gpt-5.6-luna"
         effort = "medium"
-        sandbox = "read-only"
+        sandbox = "danger-full-access"
         context = "Read-only scout. Locate and trace the requested behavior. Return concise conclusions with file:line evidence. Do not edit, delegate, or broaden scope."
     }
     worker = @{
         model = "gpt-5.6-terra"
         effort = "high"
-        sandbox = "workspace-write"
+        sandbox = "danger-full-access"
         context = "Scoped implementation worker. Own only the assigned files or surface. Make the smallest complete change, run focused checks, and report the diff and evidence. Do not delegate or expand scope."
     }
     verifier = @{
-        model = "gpt-5.6-sol"
+        model = "gpt-6-astra"
         effort = "high"
-        sandbox = "read-only"
+        sandbox = "danger-full-access"
         context = "Adversarial verifier. Assume the claim is unproven. Try to refute it with concrete evidence, rank material findings, and state what remains unverified. Do not edit or delegate."
     }
     pm = @{
         model = "gpt-5.6-sol"
         effort = "high"
-        sandbox = "read-only"
+        sandbox = "danger-full-access"
         context = "Standing planning lead for a non-FABLE Claude session. Return a decision-ready plan in at most eight bullets: goal, material assumptions, ordered steps with acceptance checks, risks, and a stop condition. Prefer the smallest plan that satisfies the goal. Do not edit files, delegate, or request a second planning round."
     }
 }
 
 $cfg = $roleConfig[$Role]
+# Explicit -Model wins over the role default (e.g. gpt-6-astra for cross-vendor review seats).
+if ($Model) { $cfg = $cfg.Clone(); $cfg.model = $Model }
 
 # Effective reasoning effort: explicit -Effort wins over the role default.
 $effectiveEffort = if ($Effort) { $Effort } else { $cfg.effort }
@@ -108,6 +112,27 @@ if ($ResolveOnly) {
     exit 0
 }
 
+# Every Codex request goes through the local de-identification proxy (D:\TAS\ai-tools\codex-deid), same as Claude Code.
+# Windows sandboxes cannot start from the session-0 host, so the proxy, not the sandbox, is the boundary. No proxy, no run.
+$deidDir = "D:\TAS\ai-tools\codex-deid"
+$deidUrl = "http://127.0.0.1:3004"
+function Test-Deid { try { (Invoke-RestMethod -Uri "$deidUrl/_deid/health" -TimeoutSec 3).ok -eq $true } catch { $false } }
+if (-not (Test-Deid)) {
+    Start-Process -FilePath "node" -ArgumentList "server.cjs" -WorkingDirectory $deidDir -WindowStyle Hidden | Out-Null
+    for ($i = 0; $i -lt 10 -and -not (Test-Deid); $i++) { Start-Sleep -Milliseconds 500 }
+}
+if (-not (Test-Deid)) {
+    [ordered]@{
+        status = "error"
+        role = $Role
+        model = $cfg.model
+        result = ""
+        exit_code = 3
+        error = "De-identification proxy at $deidUrl is not answering; Codex was not started. Check $deidDir."
+    } | ConvertTo-Json -Compress
+    exit 3
+}
+
 $fullPrompt = "[Role]`n$($cfg.context)`n`n[Task]`n$Prompt`n`nReturn one concise, self-contained result for the orchestrator."
 $argumentParts = @(
     "exec",
@@ -117,7 +142,9 @@ $argumentParts = @(
     "-m", $cfg.model,
     "-c", "model_reasoning_effort=$effectiveEffort",
     "-c", "service_tier=$ServiceTier",
-    "-s", $cfg.sandbox
+    "-s", $cfg.sandbox,
+    "-c", "model_provider=deid",
+    "-c", "model_providers.deid={name=\`"deid\`",base_url=\`"$deidUrl/backend-api/codex\`",wire_api=\`"responses\`",requires_openai_auth=true}"
 )
 # New Codex CLI treats --approve-for-me and -s as mutually exclusive (exit 2); use approval_policy=never instead.
 if ($Role -eq "worker") { $argumentParts += @("-c", "approval_policy=never") }
@@ -166,6 +193,7 @@ $stdout = $stdoutTask.Result
 $stderr = $stderrTask.Result
 $messages = New-Object System.Collections.Generic.List[string]
 $sawTurnCompleted = $false
+$usage = $null
 $streamError = $null
 
 foreach ($line in ($stdout -split "`r?`n")) {
@@ -175,10 +203,19 @@ foreach ($line in ($stdout -split "`r?`n")) {
         $messages.Add([string]$event.item.text)
     } elseif ($event.type -eq "turn.completed") {
         $sawTurnCompleted = $true
+        if ($event.usage) { $usage = $event.usage }
     } elseif ($event.type -match "(error|failed)$") {
         if ($event.message) { $streamError = [string]$event.message }
         elseif ($event.error) { $streamError = [string]$event.error }
     }
+}
+
+# Token usage per run for the DHC AI System sidebar split meter (Claude / Codex / Gemini). Best effort, never fails the run.
+if ($usage) {
+    try {
+        $rec = [ordered]@{ t = (Get-Date).ToUniversalTime().ToString("o"); vendor = "codex"; via = "bridge"; role = $Role; model = $cfg.model; input = [int64]$usage.input_tokens; cached = [int64]$usage.cached_input_tokens; output = [int64]$usage.output_tokens } | ConvertTo-Json -Compress
+        [System.IO.File]::AppendAllText("D:\TAS\cc-web\offload-usage.jsonl", $rec + "`n")
+    } catch {}
 }
 
 if ($process.ExitCode -eq 0 -and $sawTurnCompleted -and $messages.Count -gt 0) {

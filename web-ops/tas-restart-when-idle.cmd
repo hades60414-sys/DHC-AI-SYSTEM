@@ -1,7 +1,8 @@
 @echo off
 REM srv-main: restart CloudCLI once no chat turn is running, then ask 中台小助手 once (assistant-verify).
-REM restart-when-idle.cmd still points at %USERPROFILE%\cc-web from srv-old; on srv-main everything lives in D:\TAS\cc-web.
-REM Idle = runstate.js reports ANY_RUNNING=false on two checks 30 s apart. Gives up after 6 hours.
+REM restart-when-idle.cmd pointed at %USERPROFILE%\cc-web from srv-old until 2026-10-31; now it uses D:\TAS\cc-web too.
+REM Idle = idle-check.cjs exits 0 (no chat run, background task or assistant reply) on two checks 30 s apart. Gives up after 6 hours.
+REM 2026-11-01: was runstate.js, which only watches the 12 newest sessions; a batch of claude -p runs pushed a busy chat out and it got restarted mid-turn.
 REM Start it from a one-off scheduled task so the restart does not kill the chat that started it.
 chcp 65001 >nul
 setlocal
@@ -11,7 +12,7 @@ set /a checks=0
 echo %date% %time% waiting for idle>>"%LOG%"
 :check
 set /a checks+=1
-node D:\TAS\cc-web\runstate.js | findstr /c:"ANY_RUNNING=false" >nul
+node D:\TAS\cc-web\idle-check.cjs >nul 2>&1
 if %errorlevel%==0 (set /a idle+=1) else (set /a idle=0)
 if %idle% geq 2 goto restart
 if %checks% geq 720 (echo %date% %time% [GAVE UP] never idle for 6 hours>>"%LOG%" & exit /b 1)

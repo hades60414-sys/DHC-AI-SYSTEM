@@ -129,6 +129,13 @@ try { $cs = Get-ScheduledTaskInfo -TaskName 'CC-ColdSync' -ErrorAction Stop; $r.
 if ($r.coldsync_last_result -ne $null) { Log ("CC-ColdSync last result: " + $r.coldsync_last_result) }
 if ($r.coldsync_last_result -ne $null -and $r.coldsync_last_result -ne 0 -and $r.coldsync_last_result -ne 267011) { Alert 'morning-coldsync-failed' (U '\u51B7\u8A18\u61B6\u540C\u6B65 (CC-ColdSync) \u5931\u6557') ((U '\u6392\u7A0B\u4E0A\u6B21\u7D50\u679C\u78BC {0}\uFF0C\u8ACB\u770B stage-nas\\cold-mirror\\sched.log\u3002') -f $r.coldsync_last_result) }
 
+# 3d) DR backup to srv-nas (stage-nas\dr-backup, task TAS-DrBackup, weekly Sun 20:01 since 2026-11-01). Warn when the last verified push or its snapshot is older than 8 days.
+try { $dr = Get-Content -Raw -Encoding UTF8 'D:\TAS\backup\dr\push-status.json' | ConvertFrom-Json } catch { $dr = $null }
+$drOk = $dr -and $dr.ok -and (((Get-Date) - [DateTime]::Parse($dr.at)).TotalHours -lt 192) -and ([string]$dr.snapshot -ge (Get-Date).AddDays(-8).ToString('yyyyMMdd'))
+$r.dr_backup = $(if ($dr) { 'ok=' + $dr.ok + ' at=' + $dr.at + ' snapshot=' + $dr.snapshot } else { 'no status' })
+Log ('dr backup: ' + $r.dr_backup)
+if (-not $drOk) { Alert 'morning-dr-stale' (U '\u707D\u5099\u5099\u4EFD\u8D85\u904E 1 \u9031\u6C92\u6709\u6210\u529F\u9001\u5230 srv-nas') ((U '\u4E0A\u6B21\u72C0\u614B\uFF1A{0}\u3002\u770B D:\\TAS\\backup\\dr\\dr-push.log\uFF0C\u624B\u52D5\u91CD\u8DD1 stage-nas\\dr-backup\\dr-nightly.cmd') -f $(if ($dr -and $dr.at) { 'ok=' + $dr.ok + ' ' + $dr.at } else { '-' })) }
+
 # 4) Claude login on this machine (report only: signing in again needs a person -> cc-hosts\claude-relogin.cmd). 2026-10-12.
 # The login runs out about 30 days after the last sign-in; Claude Code then empties the tokens and every DHC CLI turn fails.
 $r.claude_login = 'unknown'

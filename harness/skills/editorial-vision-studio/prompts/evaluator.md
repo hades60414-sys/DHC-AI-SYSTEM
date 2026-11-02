@@ -18,7 +18,7 @@ Run **after** image generation (or on prompt-only requests, evaluate prompt fide
 
 ## Prompt-Only Evaluation
 
-When user skips generation, score the compiled prompt:
+Score the compiled prompt. Used in two places: when the user skips generation, and as the scorer [optimizer.md](optimizer.md) reads before and after its ops — that layer applies rewrites but owns no rubric of its own, so this table is the single scale for prompt text.
 
 | Dimension | Max | Criteria |
 |-----------|-----|----------|
@@ -30,6 +30,8 @@ When user skips generation, score the compiled prompt:
 
 This 100-point total uses the same grade bands as the Quality Score below. There is no quality vector without a generated image.
 
+A low score here is a **wording** failure, not a decision failure: route it to [optimizer.md](optimizer.md), which rewrites expression within the existing spec. Only escalate to [iteration.md](iteration.md) when the Optimizer reports `rejected_to_compiler` — that is the signal the spec itself is missing a field.
+
 ## Quality Vector
 
 A single grade cannot be acted on. Score **every dimension separately** — the lowest failing one is what [iteration.md](iteration.md) fixes.
@@ -37,7 +39,7 @@ A single grade cannot be acted on. Score **every dimension separately** — the 
 | Dimension | Weight | Scores |
 |-----------|--------|--------|
 | `subject` | 0.15 | Subject reads immediately; silhouette and scale hold |
-| `composition` | 0.15 | Planner ratios respected within ±10%; negative space preserved. **Spatial coherence**: one projection, one ground plane, one light direction, contact shadows present, and the source's arrangement, overlaps, and relative scale intact ([../assets/scene-construction.md](../assets/scene-construction.md)) |
+| `composition` | 0.15 | Planner ratios respected within ±10%; negative space preserved. **Spatial coherence**: one projection, one ground plane, one light direction, contact shadows present, and the scene's arrangement, overlaps, and relative scale intact — from the source photo when one was analyzed, else from the authored `spatial_plan` ([../assets/scene-construction.md](../assets/scene-construction.md)) |
 | `focal_point` | 0.10 | One unambiguous entry point; anchor visible at thumbnail scale |
 | `palette` | 0.10 | Palette count respected; contrast separation adequate; no drift hues |
 | `typography` | 0.10 | Present when specified, absent when not; within style DNA caps; legible |
@@ -95,8 +97,8 @@ Each row names the dimension that should have caught it and the layer that owns 
 | Missing Panter anchor | `focal_point` | Recovery — add `color_anchor` ([recovery/focus.md](../recovery/focus.md)) |
 | Texture on a CLEAN layout | `texture` | Compiler — correct `texture_tier` per [assets/texture.md](../assets/texture.md) |
 | Ground came out paper-white when the spec said otherwise | `texture` | Compiler — restate `ground` as the first clause |
-| Objects float; no contact shadow; two viewpoints in one object | `composition` | Planner — set projection, ground plane, and light in `direction.composition` |
-| Source cluster came back as a row of isolated objects | `composition` | Planner — `relationship-first`, and restate the arrangement from `image_report.spatial` |
+| Objects float; no contact shadow; two viewpoints in one object | `composition` | Planner — set projection, ground plane, and light direction in `direction.spatial_plan` |
+| Source cluster came back as a row of isolated objects | `composition` | Planner — `relationship-first`, and restate the arrangement from `direction.spatial_plan` |
 | `painterly` returned as clean vector shapes | `texture` | Compiler — add the mark-making clause from [../assets/scene-construction.md](../assets/scene-construction.md) |
 | Layout overcrowded | `typography` | Planner — reduce type scale within style DNA caps |
 | Missing web copy-safe area | `platform_fit` | Planner — re-apply [layouts/website-hero.md](../layouts/website-hero.md) |

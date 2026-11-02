@@ -3,7 +3,7 @@
 const fs = require("fs"), path = require("path"), crypto = require("crypto"), { execFileSync } = require("child_process");
 const cfgName = process.argv[2] || "rag1";
 const relDir = process.argv[3] || `release-${cfgName}`;   // e.g. release-rag1d-rag1 for the D build
-if (!["rag1", "rag1r", "pcmgr", "pcmain", "userD", "userF", "userB", "userC", "userE", "userA"].includes(cfgName)) throw new Error("config must be rag1, rag1r, pcmgr or pcmain");
+if (!["rag1", "rag1r", "pcmgr", "pcmain", "userD", "userF", "userB", "userC", "userE", "userA", "pc55"].includes(cfgName)) throw new Error("config must be rag1, rag1r, pcmgr or pcmain");
 const here = __dirname;
 const cfg = JSON.parse(fs.readFileSync(path.join(here, `config-${cfgName}`, "release.json"), "utf8"));
 const exe = fs.readFileSync(path.join(here, relDir, "dbclone-agent-v1.exe"));

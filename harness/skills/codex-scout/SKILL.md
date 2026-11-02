@@ -2,7 +2,6 @@
 name: codex-scout
 description: Delegate broad read-only repository reconnaissance to Codex when tracing behavior across 3+ files, comparing multiple configs, locating dispersed usages, or testing competing hypotheses. Do not use for a one-file lookup or sensitive company data.
 allowed-tools: Bash Read
-disable-model-invocation: true
 ---
 
 # Codex Scout

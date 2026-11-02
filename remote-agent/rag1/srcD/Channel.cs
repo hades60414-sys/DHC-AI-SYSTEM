@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
@@ -21,10 +22,26 @@ public sealed class InputRejected : Exception { public InputRejected(string mess
 public static class Common {
     // v2 (2026-09-29): prompt budget raised from 2048 for Qwen3.5-4B at 8192 context (512 output tokens reserved). Keep prompts <=2048 if rolled back to Gemma 4096.
     public const int MaxWire = 262144, MaxSummary = 24000, MaxPromptBytes = 12288;
-    public const string AgentVersion = "v3.1-20261025-rag1u";
+    public const string AgentVersion = "v3.1-20261029-rag1v";
     public static string[] Secrets = new string[0];
     // rag1o: EKB_PWD for the EKB browser probe (cmd-run).
-    public static readonly string[] CredentialKeys = new[]{"SRC_PWD","DST_PWD","MktData_PWD","SQLCMDPASSWORD","EKB_PWD"};
+    static readonly string[] FixedKeys = new[]{"SRC_PWD","DST_PWD","MktData_PWD","SQLCMDPASSWORD","EKB_PWD"};
+    // rag1v (2026-10-29): secure input. Any user variable named *_PWD/_PASS/_TOKEN/_OTP is a credential too (masked, cleared at start,
+    // handed to cmd-run children), so a name stored through secret-set needs no agent rebuild. *_USER names are handed over unmasked.
+    public static readonly Regex SecretName = new Regex(@"^[A-Za-z][A-Za-z0-9_]{0,40}_(PWD|PASS|TOKEN|OTP)$", RegexOptions.CultureInvariant);
+    public static readonly Regex AccountName = new Regex(@"^[A-Za-z][A-Za-z0-9_]{0,40}_USER$", RegexOptions.CultureInvariant);
+    public static string[] CredentialKeys = FixedKeys;
+    // rag1v review: secret-set must not replace variables other tools read (Claude/GitHub/npm/cloud tokens, this channel's own settings).
+    static readonly Regex ToolVariable = new Regex(@"^(CLAUDE|ANTHROPIC|OPENAI|GH|GITHUB|GIT|NODE|NPM|HF|HUGGINGFACE|AWS|AZURE|GOOGLE|CLOUDFLARE|CF|RAGENT|TASUI)_", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    public static bool Storable(string k) { return !ToolVariable.IsMatch(k); }
+    public static bool IsSecretName(string k) { return SecretName.IsMatch(k) || FixedKeys.Contains(k); }
+    public static string[] UserVariables(Regex pattern) {
+        var names = new List<string>();
+        foreach (var t in new[]{EnvironmentVariableTarget.Process, EnvironmentVariableTarget.User})
+            foreach (System.Collections.DictionaryEntry e in Environment.GetEnvironmentVariables(t)) { var k=(string)e.Key; if (pattern.IsMatch(k) && !names.Contains(k,StringComparer.OrdinalIgnoreCase)) names.Add(k); }
+        return names.ToArray();
+    }
+    static string[] FindKeys() { return FixedKeys.Concat(UserVariables(SecretName).Where(k=>!FixedKeys.Contains(k,StringComparer.OrdinalIgnoreCase))).ToArray(); }
     public static JavaScriptSerializer Json() { return new JavaScriptSerializer { MaxJsonLength = MaxWire, RecursionLimit = 16 }; }
     public static string Encode(object value) { return Json().Serialize(value); }
     public static Dictionary<string,object> Decode(string value) {
@@ -46,20 +63,37 @@ public static class Common {
     public static bool Same(X509Certificate2 a,X509Certificate2 b) { return a.RawData.SequenceEqual(b.RawData); }
     public static string Safe(string s) {
         // rag1o (from srv-db v3.2): results arrive JSON-encoded, so a secret containing " \ < > & ' or control characters must also be matched in its escaped form.
-        foreach(var secret in Secrets) if(!string.IsNullOrEmpty(secret)) {string e=Encode(secret);s=s.Replace(secret,"[REDACTED]").Replace(e.Substring(1,e.Length-2),"[REDACTED]");}
+        foreach(var secret in Masked()) if(!string.IsNullOrEmpty(secret)) {string e=Encode(secret);s=s.Replace(secret,"[REDACTED]").Replace(e.Substring(1,e.Length-2),"[REDACTED]");}
         return s.Length <= MaxSummary ? s : s.Substring(0,MaxSummary-14)+"...[TRUNCATED]";
     }
     public static void ClearCredentials() {
         // rag1o (from srv-db v3.5b): also read the user-level value (setx) so credentials set before a restart are picked up.
+        CredentialKeys = FindKeys();
         Secrets = CredentialKeys.Select(k=>Environment.GetEnvironmentVariable(k)??Environment.GetEnvironmentVariable(k,EnvironmentVariableTarget.User)).ToArray();
         foreach(var k in CredentialKeys) Environment.SetEnvironmentVariable(k,null);
     }
     // rag1o: fill empty slots from user-level values set with setx after the agent started, so no restart is needed.
     public static void RefreshSecrets() {
-        var s=new string[CredentialKeys.Length];
-        for(int i=0;i<s.Length;i++) s[i]=(i<Secrets.Length&&!string.IsNullOrEmpty(Secrets[i]))?Secrets[i]:Environment.GetEnvironmentVariable(CredentialKeys[i],EnvironmentVariableTarget.User);
-        Secrets=s;
+        var old=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+        for(int i=0;i<CredentialKeys.Length&&i<Secrets.Length;i++) if(!string.IsNullOrEmpty(Secrets[i])) old[CredentialKeys[i]]=Secrets[i];
+        var keys=FindKeys(); var s=new string[keys.Length]; string v;
+        for(int i=0;i<s.Length;i++) s[i]=old.TryGetValue(keys[i],out v)?v:Environment.GetEnvironmentVariable(keys[i],EnvironmentVariableTarget.User);
+        CredentialKeys=keys; Secrets=s;
     }
+    // rag1v: store one credential as a user variable (same as setx) and use it from the next command on. The old value stays masked.
+    public static void SetSecret(string name,string value) {
+        RefreshSecrets();
+        int i=Array.FindIndex(CredentialKeys,k=>string.Equals(k,name,StringComparison.OrdinalIgnoreCase));
+        string previous=i>=0?Secrets[i]:null;
+        Environment.SetEnvironmentVariable(name,value,EnvironmentVariableTarget.User);
+        RefreshSecrets();
+        i=Array.FindIndex(CredentialKeys,k=>string.Equals(k,name,StringComparison.OrdinalIgnoreCase));
+        if(i<0) throw new InvalidOperationException("Stored variable was not found again");
+        Secrets[i]=value;
+        if(!string.IsNullOrEmpty(previous)&&previous!=value) { Retired.Add(previous); }
+    }
+    static readonly List<string> Retired = new List<string>();
+    static IEnumerable<string> Masked() { return Secrets.Concat(Retired); }
     public static string Read(string path) {
         var f=new FileInfo(path); if(!f.Exists || f.Length>MaxWire) throw new InvalidDataException("Missing/oversized local file: "+Path.GetFileName(path));
         return File.ReadAllText(path,Encoding.UTF8);
@@ -169,7 +203,7 @@ public sealed class AgentCore {
     public AgentCore(Config c,X509Certificate2 cert,AgentState s,Action<AgentState> persist) { cfg=c;device=cert;State=s;save=persist;s.Validate(c,cert.Thumbprint); }
     public static bool ActionAllowed(string action) { return new[]{"health","model-info","gemma-smoke","reason","reason-json","fixture-roundtrip","fixture-break","file-info","list-dir","file-hash","doc-qa","doc-retrieve","doc-index","doc-list","doc-export","stop","self-update"}.Contains(action) || CmdActions.Handles(action); }
     public static bool UsesPrompt(string action) { return action=="reason" || action=="reason-json" || action=="doc-qa" || action=="doc-retrieve" || action=="doc-index" || action=="doc-export" || action=="self-update" || ReadOnlyFiles.Handles(action) || CmdActions.Handles(action); }
-    public static string Names { get { return "health,model-info,gemma-smoke,reason,reason-json,fixture-roundtrip,fixture-break,file-info,list-dir,file-hash,doc-qa,doc-retrieve,doc-index,doc-list,cmd-run,stop"; } }
+    public static string Names { get { return "health,model-info,gemma-smoke,reason,reason-json,fixture-roundtrip,fixture-break,file-info,list-dir,file-hash,doc-qa,doc-retrieve,doc-index,doc-list,cmd-run,secret-set,stop"; } }
     void Finish(string status,string summary) {
         var report=cfg.Message("report"); report["seq"]=State.Seq;report["jobId"]=State.LastJob;report["phase"]="final";report["action"]=State.Action;
         report["executionState"]=status;report["acceptance"]="NOT_INDEPENDENTLY_VERIFIED";report["summary"]=Common.Safe(summary);report["createdUtc"]=Common.Now();report["commandSha256"]=State.CommandHash;

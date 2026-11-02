@@ -22,6 +22,7 @@ const DB = process.env.AUTO_RESUME_DB || 'D:/TAS/cc-web/data/auth.db';
 const STATE = path.join(__dirname, 'auto-resume-state.json');
 const SKIP = path.join(__dirname, 'auto-resume-skip.txt');
 const LOG = path.join(__dirname, 'auto-resume.log');
+const TAKEOVER_STATE = 'D:/TAS/ai-tools/agy/takeover-state.json';
 const MSG = '額度已恢復。請接著完成剛才因為用量上限被中斷的工作（就是我上一則訊息要的事），不用重頭解釋。';
 const LIMIT_RE = /hit your (?:session |usage )?limit\s*·\s*resets (\d{1,2})(?::(\d{2}))?\s*(am|pm)/i;
 const BOOT_MSG = '主機剛才意外重開（藍屏或斷電），這個對話被中斷了。請先確認上一步做到哪（檔案、測試、子代理可能只做一半），再從斷點接著做完，不用重頭解釋。';
@@ -154,7 +155,13 @@ function send(sessionId, model, permissionMode, content) {
     // 2026-10-18: record before sending (an overlapping or crashed run must not send twice); failures retry up to 3 times.
     const n = (state['n:' + c.uuid] || 0) + 1;
     state['n:' + c.uuid] = n; state[c.uuid] = 'sending'; saveState();
-    const r = await send(row.session_id, row.model || 'default', c.permissionMode, c.boot ? BOOT_MSG : MSG);
+    // 2026-10-30: Gemini may have covered this limit window (ai-tools/agy/gemini-takeover.cjs); point Claude at its report.
+    let takeover = {};
+    try { takeover = JSON.parse(fs.readFileSync(TAKEOVER_STATE, 'utf8'))[c.uuid] || {}; } catch {}
+    const msg = c.boot ? BOOT_MSG : takeover.report
+      ? `${MSG}\n\n⚠️【額度暫代過：${takeover.model || 'Gemini'}】額度用完期間由它接手做了一段（狀態：${takeover.status}），報告在 ${takeover.report}。使用者還不信任暫代模型的判斷：\n1. 先讀報告，把每個改動跟 .bak-gemini 備份逐一比對、實際跑驗證；有錯就修正或還原。\n2. 你這次回覆的開頭要先列「暫代模型做了什麼／核對結果（對、錯、已修、已還原）」，讓使用者分得出哪些是暫代模型做的。\n3. 之後再接著做原本的工作。`
+      : MSG;
+    const r = await send(row.session_id, row.model || 'default', c.permissionMode, msg);
     log(`resume ${label}: ${r} (attempt ${n})`);
     state[c.uuid] = r.startsWith('failed') || r.startsWith('ws error') ? (n >= 3 ? 'failed' : 'retry') : 'resumed';
     saveState();

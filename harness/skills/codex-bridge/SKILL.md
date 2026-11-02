@@ -13,7 +13,7 @@ The broker resolves the real desktop CLI, enforces a timeout, uses ephemeral Cod
 
 - `scout`: Luna/medium/read-only.
 - `worker`: Terra/high/workspace-write with reviewed approvals.
-- `verifier`: Sol/high/read-only.
+- `verifier`: Astra (gpt-6-astra)/high/read-only. Any role takes `-Model <id>` to override its default.
 - `pm`: Sol/high/read-only. Mandatory planning lead for substantive work when Claude is not explicitly FABLE (`claude-fable-5`) or the model is unknown; returns at most eight ordered bullets with acceptance checks. Tracks model state, not session: a mid-session switch away from FABLE (quota, fallback, blocked feature, manual `/model`) re-arms it.
 
 `-Effort low|medium|high|xhigh|max|ultra` overrides the role default for one call; `-ServiceTier default|priority` sets the speed tier. Both are passed explicitly to Codex, so a later `config.toml` change cannot silently alter bridge behavior. `priority` is roughly 1.5x speed at increased usage, so it stays opt-in per call and never a default. Luna has no `ultra`; asking for it fails with exit code 2 instead of silently downgrading.

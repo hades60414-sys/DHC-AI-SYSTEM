@@ -53,7 +53,7 @@ check('python 不擋', PY_ALLOW, findLocalPython, false)
 check('危險 擋', RISKY_BLOCK, findRisky, true)
 check('危險 不擋', RISKY_ALLOW, findRisky, false)
 
-const conf = [['確認執行', true], ['  確認執行\n', true], ['　確認執行　', true], ['好，確認執行', false], ['確認執行吧', false], ['請貼 SOP：確認執行後…', false], ['', false]]
+const conf = [['確認執行', true], ['  確認執行\n', true], ['　確認執行　', true], ['好，確認執行', false], ['確認執行吧', false], ['請貼 SOP：確認執行後…', false], ['', false], ['【同事G】確認執行', true], ['【同事E】 確認執行', true], ['【同事G】好，確認執行', false], ['【同事G】確認執行吧', false], ['【A】【B】確認執行', false], ['【同事G】', false]]
 let cok = 0
 for (const [t, want] of conf) { if (isConfirm(t) === want) cok++; else { fail++; console.log('  FAIL [confirm] ' + JSON.stringify(t)) } }
 console.log('確認字整句比對: ' + cok + '/' + conf.length)

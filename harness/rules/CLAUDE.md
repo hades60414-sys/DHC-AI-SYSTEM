@@ -9,7 +9,12 @@
 
 ## GPT / Codex delegation
 
-- Off since 2026-10-01 (user decision: Opus 5.5 leads planning and execution). Do not route planning, research, implementation, or review to any GPT model; `codex-bridge`, `codex-scout`, `codex-worker`, `codex-verifier`, and `chatgpt-bridge` are disabled. Independent checks use Claude subagents (`verifier`, `scout`) or local tools. The previous rules are archived in the harness package at `docs/archive/codex-delegation-rules-20261001.md`; restore them only when the user asks.
+- Subagent lanes back on since 2026-10-31 (user: use the srv-main Codex as a subagent). Claude still leads planning; there is no Codex PM gate (`codex-bridge -Role pm` and `chatgpt-bridge` stay disabled). The old full rules are archived in `docs/archive/codex-delegation-rules-20261001.md`.
+- Use `codex-scout` for broad read-only tracing, `codex-worker` for one independently owned implementation surface, and `codex-verifier` for an independent second opinion on security, money/numeric logic, DB/schema, releases, or subtle bugs. At most two concurrent lanes, with disjoint ownership. Claude subagents (`scout`, `verifier`) remain a valid choice. Read-only tracing across 3+ files goes to `codex-scout` first, so Claude quota stays free (2026-10-31: Opus is 83% of usage); stay on Claude when the material is outside the information boundary below.
+- Critic and review panels (`interrogate`, the `tas-taste` critics, arena cross-judges, `verifier`-style second opinions) run Opus 5.5 plus one Astra seat (`codex-verifier`, gpt-6-astra) for cross-vendor coverage; Sonnet 5.5 is the cheap third seat. No Fable in any review role. When the material is outside the information boundary below, drop the Astra seat and say so.
+- Claude owns scope, synthesis, conflicts, and final verification; a Codex success message is not proof. Do not repeat delegated searches.
+- Prompts go to OpenAI. Never delegate credentials, secrets, customer/order/position/flow data, company DB row values, or internal regulations. Code and schema summaries may be delegated only within the active information boundary.
+- If the bridge fails, report the exact gap and continue inline only when safe.
 
 For market data, positions, P&L, risk, company databases, or backtests, read `MIDOFFICE.md` and the matching company/domain skill before acting. Skip them for unrelated work.
 
