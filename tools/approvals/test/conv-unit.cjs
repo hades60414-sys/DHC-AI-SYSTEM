@@ -1,0 +1,33 @@
+// 在場時先說好（convApproval）單元測試：用假對話紀錄檔（WAKE_PROJECTS 指到暫存夾），不碰真的對話、不執行任何指令
+const fs = require('node:fs'), path = require('node:path'), os = require('node:os');
+const ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'conv-unit-'));
+process.env.WAKE_PROJECTS = ROOT;
+const { convApproval } = require('../wake.cjs');
+fs.mkdirSync(path.join(ROOT, 'p'));
+const T0 = Date.parse('2026-11-03T00:00:00Z'), at = (s) => new Date(T0 + s * 1000).toISOString();
+const A = (s, text) => ({ type: 'assistant', timestamp: at(s), message: { content: [{ type: 'text', text }] } });
+const U = (s, text) => ({ type: 'user', timestamp: at(s), message: { content: text } });
+const TR = (s) => ({ type: 'user', timestamp: at(s), message: { content: [{ type: 'tool_result', content: 'x' }] } });
+let n = 0, bad = 0;
+const t = (name, lines, want, id = 'abc123') => {
+  const sid = 's' + (n++);
+  fs.writeFileSync(path.join(ROOT, 'p', sid + '.jsonl'), lines.map((l) => JSON.stringify(l)).join('\n'));
+  const got = !!convApproval({ id, origin: sid, created: at(0) });
+  if (got !== want) bad++; console.log(got === want ? 'OK ' : 'BAD', name, '→', got);
+};
+const shown = A(5, '要在 srv-rag 建排程，核准單 abc123，回 OK 就做。');
+t('列出單號、回 OK', [shown, U(10, 'OK')], true);
+t('列出單號、回「OK都做」', [shown, U(10, 'OK都做')], true);
+t('列出單號、回「同意 abc123」長句', [shown, U(10, '同意 abc123，順便幫我看一下 log 有沒有錯')], true);
+t('沒列出單號（偷開單）', [A(5, '我開了一張單，回 OK 就做。'), U(10, 'OK')], false);
+t('回的是別的事', [shown, U(10, '先不要，等明天')], false);
+t('逐項回答', [shown, U(10, '1可以 2先不要')], false);
+t('先問一句、AI 再列單號後回 OK', [shown, U(10, '這是什麼？'), A(15, 'abc123 是建排程'), U(20, 'OK')], true);
+t('問了一句、AI 沒再列單號就回 OK', [shown, U(10, '這是什麼？'), A(15, '是建排程'), U(20, 'OK')], false);
+t('開單前的 OK 不算', [U(-10, 'OK'), shown], false);
+t('續接／系統訊息不算使用者', [shown, U(10, '【核准後續接】OK'), U(11, '<task-notification>OK')], false);
+t('工具結果不算使用者', [shown, TR(8), U(10, 'OK')], true);
+t('子代理的訊息不算', [shown, { ...U(10, 'OK'), isSidechain: true }], false);
+t('別張單號的同意', [A(5, '核准單 abc123 和 def456'), U(10, '同意 def456')], false);
+fs.rmSync(ROOT, { recursive: true, force: true });
+console.log(bad ? `FAIL ${bad}` : 'ALL PASS'); process.exitCode = bad ? 1 : 0;

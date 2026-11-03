@@ -74,6 +74,14 @@ statechart-whiteboard skill (2026-10-25, own): `skills/statechart-whiteboard` co
 
 Upgrade batch (2026-11-02): pstack 0.9.102/`356c6e0` → **0.9.114/`fa55f4e`**; ui-ux-pro-max, editorial-vision-studio, mattpocock 6 skills, ponytail 6 skills, frontend-design pins updated as above. Scan: two security-reviewer passes, pstack SAFE-WITH-NOTES, others SAFE. pstack: only SessionStart hook registered (unchanged), `session hook: off` verified 0 bytes (control without sheet 998 bytes); cache identical to scanned tree; new `pstack:statechart` (bundled TS port) can `mise install` Java + sha256-pinned tla2tools only when `TLA2TOOLS` unset (set here), overlaps local `skills/statechart`. ponytail: upstream added `hooks/band` (reads all `~/.claude/projects/**/*.jsonl`, writes CSV with prompt openings to `~/.config/ponytail/band/`, optional https webhook) — **not installed**; `ponytail-help` mentions `/ponytail band`, inert here. Backups: `D:TAS	mpskillupd-1102ackup`, `replaced-v2`, `~/.claude/backups/harness-sync-20261102-085916`.
 
+## dyoshikawa/rulesync（2026-11-02 審查，已安裝於 D:\TAS\ai-tools\rulesync，專案層用）
+- 來源：https://github.com/dyoshikawa/rulesync @ e65728c，npm rulesync@43.4.2（MIT），`npm install --ignore-scripts --save-exact`，相依套件無安裝腳本，npm audit 0。人工靜態審查由 Codex verifier（gpt-6-astra）讀碼：判 C（權限偏大、可用但有條件），無遙測、無自動更新、無混淆。
+- 不用：`init`（預設給 Codex danger-full-access＋外部 MCP）、`--delete`（會刪非它建立的 skills／Claude 排程）、`--global`（與 sync-harness.ps1 搶 ~/.claude、~/.codex）、`fetch/install/update`（連 GitHub／npm）。
+- 用法：`D:\TAS\ai-tools\rulesync\codex-ready.cmd <專案>`，CLAUDE.md＋.claude\skills → AGENTS.md＋.agents\skills；實測中文路徑、重跑更新兩邊都過。
+
+## yuzushi-dev/session-handoff（2026-11-02 審查，未安裝）
+- 來源：https://github.com/yuzushi-dev/session-handoff @ 6201b90（MIT）。Codex verifier 讀碼判 C。遙測預設關（靜態確認）；但 `SESSION_HANDOFF_*=typesafe` 會把對話內容送 api.typesafe.ai、第一次啟動自動 `setup --yes` 換掉 CLI 啟動程式、需要 POSIX shell／fcntl，原生 Windows 不能跑。
+- 改用 Codex 規則現成的 `.astra/HANDOFF.md` 當交接檔，Claude 規則（rules/AGENTS.md）加一行讀寫約定。
 
 ## 本 repo 直接收錄的第三方外掛（vendor/）
 

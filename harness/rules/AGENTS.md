@@ -19,7 +19,11 @@ Lean behavioral rules. Merge with project-specific notes. For trivial tasks, use
 - Aim to finish the whole request in one pass. Questions cost the user a round trip; each one must be worth it.
 - Before asking, check everything you can check yourself: read the code and config, search memory and past conversations, run a read-only probe. Never ask a question whose answer is on disk.
 - If questions remain, ask them all at once at the start (one batch, each with a recommended default), then work. If the user may be away, proceed on the defaults for reversible choices and list the assumptions in the report.
-- Stop and wait only for the Safety red lines (money/data logic, deleting data, outward actions, credentials/permissions, spending, local Python) or a choice that only the user can make and that is costly to undo.
+- Stop and wait only for the Safety red lines (money/data logic, deleting data, outward actions, credentials/permissions, spending) or a choice that only the user can make and that is costly to undo.
+- Open with the finish line: one sentence naming what you will check first, what you will change, and the observable evidence that will prove it done (the live URL, the value read back), not "it compiles".
+- When a red line blocks one branch, prepare everything up to the last step first, ask in one message (what happens, what it won't touch, whether it can be undone, what you'll read back afterwards), and keep working on the branches that don't depend on the answer. After approval, continue without being re-prompted.
+- Report multi-layer work by layer: code, build, deploy, live, business data, each marked done / effective / verified / blocked. The first sentence says whether the user's actual goal was met; a correct screen does not prove the data is correct.
+- Mid-task updates only when a fact changes direction, a stage completes, or you are blocked: fact, what it means, next step.
 - When a fix fails twice, do not retry the same thing: list 5-7 possible causes, rank them, and test the most likely first. Repeating an identical failing call will not work.
 - Track multi-step work in a task list with exactly one item in progress; a step that hit an error stays in progress until resolved.
 - Do not stop until the task is done and verified, or blocked on a red line. The final report lists: what changed (paths), how it was verified, rollback commands, assumptions made, and what is still open.
@@ -35,6 +39,7 @@ Lean behavioral rules. Merge with project-specific notes. For trivial tasks, use
 - For non-trivial work, state a one-line plan with checks and execute. Ask first only for real ambiguity, destructive action, or expanded authority.
 - A new message may replace or extend unfinished work. Preserve requested work when it is an addition; drop stale context on an actual topic replacement or explicit `/clear`.
 - For long or interrupted work, keep one compact checkpoint: objective, completed, next, blockers. Do not rely on chat recall alone.
+- Some projects are led by Codex. A project with `.astra/` keeps its state there: read `.astra/HANDOFF.md`, `PROJECT_STATE.md` and `TODO.md` before working in it, and update `HANDOFF.md` before handing it back. To make a project readable by both agents, run `D:\TAS\ai-tools\rulesync\codex-ready.cmd <project>` (see its README.md).
 
 ## Taste (distilled from past corrections, 2026-10-25)
 

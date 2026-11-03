@@ -1,12 +1,10 @@
 // TAS Worker. One script, deployed under many names in the TAS Cloudflare account.
-// ROLE=front: the browser entrance. Only the deployment whose SELF equals KV 'current' serves the app (cookie gate ->
-//   current quick tunnel -> srv-main CloudCLI); every older front shows the wave page pointing at KV 'current_url'.
-//   tas-rotate.cjs deploys a new front each week and flips 'current'.
+// ROLE=front: all retained front doors show the same library/password gate. tas-rotate.cjs deploys a new front weekly
+//   and publishes 'current'; only that one serves the app, old ones send a logged-in browser on to it (gate.mjs).
 // ROLE=mailbox: fixed URL baked into the remote agents. No UI: only agent uploads/downloads, /health, /_where, /_tunnel-update.
 // KV 'target' holds the trycloudflare URL; the srv-main watchdog POSTs it to /_tunnel-update with EDGE_SEAL.
 // WebSocket: upstream 101 responses must be returned as-is (re-wrapping drops the socket).
 import { gate, crossOrigin, timingSafeEq, isOpenPath, isAgentUpload } from './gate.mjs';
-import movedHtml from './moved.html';
 
 async function handleTunnelUpdate(req, env) {
   if (req.method !== 'POST') return new Response('method', { status: 405 });
@@ -47,13 +45,6 @@ async function where(env) {
     headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', ...noStore },
   });
 }
-async function moved(env) {
-  const url = (await kv(env, 'current_url')) || '#';
-  const safe = /^https:\/\/[a-z0-9.-]+\/?$/.test(url) ? url : '#';
-  return new Response(movedHtml.replace('{{URL}}', safe), {
-    headers: { 'content-type': 'text/html; charset=utf-8', 'x-robots-tag': 'noindex', ...noStore },
-  });
-}
 async function forward(req, env, url, ip) {
   const target = await kv(env, 'target');
   if (!target) return new Response('TAS offline (target not set)', { status: 503 });
@@ -87,14 +78,11 @@ async function mailbox(req, env, url, ip) {
 }
 
 async function front(req, env, url, ip) {
-  if (env.SELF !== await kv(env, 'current')) {
-    if (url.pathname === '/_where') return where(env);
-    if (req.method === 'GET' && !req.headers.get('upgrade')) return moved(env);
-    return new Response('moved', { status: 410, headers: noStore });
-  }
+  const old = env.SELF !== await kv(env, 'current');
+  if (url.pathname === '/_where' && old) return where(env);
   const foreign = crossOrigin(req, url);
   if (foreign) return foreign;
-  const blocked = await gate(req, env, url, ip, limited);
+  const blocked = await gate(req, env, url, ip, limited, old ? (await kv(env, 'current_url')) || null : null);
   if (blocked) return blocked;
   if (url.pathname === '/api/auth/login' && req.method === 'POST') {
     if (await limited(env, 'login:' + ip)) return new Response('too many login attempts, wait a minute', { status: 429 });

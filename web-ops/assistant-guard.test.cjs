@@ -93,6 +93,15 @@ const backups = path.join(home, '.cloudcli', 'assistant', 'backups');
 const backedUp = fs.existsSync(backups) && JSON.stringify(fs.readdirSync(backups, { recursive: true })).includes('existing.txt');
 console.log(`${backedUp ? 'ok  ' : 'FAIL'} existing file copied before edit`);
 if (!backedUp) failed += 1;
+// 11/02 收據＋復原: a call's edits are listed with their backups; a new file has none.
+const editDir = fs.mkdtempSync(path.join(os.tmpdir(), 'guard-edit-'));
+const oldFile = path.join(editDir, 'old.txt');
+fs.writeFileSync(oldFile, 'before');
+guard('Edit', { file_path: oldFile, old_string: 'before', new_string: 'after' }, { ASSISTANT_CALL_ID: 'call-edit' });
+guard('Write', { file_path: path.join(editDir, 'new.txt'), content: 'x' }, { ASSISTANT_CALL_ID: 'call-edit' });
+const editsFile = path.join(home, '.cloudcli', 'assistant', 'edits', 'call-edit.jsonl');
+const edits = fs.existsSync(editsFile) ? fs.readFileSync(editsFile, 'utf8').trim().split('\n').map((line) => JSON.parse(line)) : [];
+expect('edits listed per call with backup', edits.length === 2 && edits[0].file === oldFile && fs.readFileSync(edits[0].backup, 'utf8') === 'before' && edits[1].backup === null);
 // Cards off: held actions run without a card; Python stays blocked.
 const offFlag = path.join(home, '.cloudcli', 'assistant', 'cards-off');
 fs.writeFileSync(offFlag, '');

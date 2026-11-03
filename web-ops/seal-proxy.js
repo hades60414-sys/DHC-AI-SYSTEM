@@ -226,22 +226,81 @@ function serveUsageTop(res) {
 // 2026-10-29 安全輸入：/_secure/<一次性連結> 由 ai-tools\secure-input\serve.cjs 處理（在計數之前，連結不進 cf-requests.json）。載入失敗不影響轉發。
 let secureInput = null;
 try { secureInput = require('../ai-tools/secure-input/serve.cjs'); } catch (e) { console.error('seal-proxy: secure-input not loaded: ' + e.message); }
+
+// 2026-11-02 個資遮罩（使用者：一律遮罩，不依 IP 區分）: everything going to a browser passes pii-mask.cjs. Text and
+// JSON are masked, binary downloads that carry personal data are refused, and writes carrying an already-masked value
+// are refused so the web editor cannot save the masked copy over the real file. Only the browser side goes through
+// here; 127.0.0.1:3001 on srv-main itself still shows the full data.
+const pii = require('./pii-mask.cjs');
+const SCAN_LIMIT = 100 * 1024 * 1024;
+const STATIC_CODE = /javascript|css|font|wasm/i;
+const TEXTY = /^(text\/|application\/(json|xml|[\w.+-]*\+json|x-ndjson|x-www-form-urlencoded))/i;
+const refuse = (res, status, message) => { res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' }); res.end(message); };
+const collect = (stream, limit, cb) => {
+  const parts = []; let size = 0, over = false;
+  stream.on('data', (c) => { if (over) return; size += c.length; if (size > limit) { over = true; parts.length = 0; } else parts.push(c); });
+  stream.on('end', () => cb(over ? null : Buffer.concat(parts)));
+};
+
+function sendMasked(req, res, ur) {
+  const ct = String(ur.headers['content-type'] || '');
+  const noBody = req.method === 'HEAD' || ur.statusCode === 204 || ur.statusCode === 304;
+  // .b64 / .cms.b64.txt are the remote agents' encrypted envelopes and update packages: one starred character would break them.
+  const machinePayload = /\.b64(\.txt)?$/i.test(String(req.url).split('?')[0]);
+  if (noBody || machinePayload || String(req.url).startsWith('/assets/') || STATIC_CODE.test(ct)) { res.writeHead(ur.statusCode, ur.headers); ur.pipe(res); return; }
+  if (/text\/event-stream/i.test(ct)) {
+    // Events are line based: mask whole lines, hold back the unfinished tail.
+    res.writeHead(ur.statusCode, ur.headers);
+    let tail = '';
+    ur.on('data', (c) => { const s = tail + c.toString('latin1'); const cut = s.lastIndexOf('\n') + 1; tail = s.slice(cut); if (cut) res.write(Buffer.from(pii.maskText(s.slice(0, cut)).text, 'latin1')); });
+    ur.on('end', () => res.end(tail ? Buffer.from(pii.maskText(tail).text, 'latin1') : undefined));
+    return;
+  }
+  collect(ur, SCAN_LIMIT, (body) => {
+    if (!body) return refuse(res, 403, '這個檔案太大，無法檢查是否含個資，所以不從網頁傳出。請在內網直接取用。');
+    const headers = { ...ur.headers };
+    delete headers['transfer-encoding'];
+    if (TEXTY.test(ct) || !ct) {
+      // Latin-1 round-trips every byte, so Big5 or UTF-8 text comes back unchanged except for the masked digits.
+      const out = Buffer.from(pii.maskJsonish(body.toString('latin1')).text, 'latin1');
+      headers['content-length'] = String(out.length);
+      res.writeHead(ur.statusCode, headers); res.end(out);
+      return;
+    }
+    if (pii.binaryHasPii(body)) return refuse(res, 403, '這個檔案含有個資（身分證、居留證、信用卡或手機號碼），不從網頁傳出。請在內網直接取用。');
+    headers['content-length'] = String(body.length);
+    res.writeHead(ur.statusCode, headers); res.end(body);
+  });
+}
+
+function forward(req, res, body) {
+  const headers = strip(req.headers);
+  delete headers['accept-encoding']; // plain bodies, so they can be read and masked
+  if (body) { headers['content-length'] = String(body.length); delete headers['transfer-encoding']; }
+  const up = http.request({ host: '127.0.0.1', port: TARGET, method: req.method, path: req.url, headers }, (ur) => sendMasked(req, res, ur));
+  up.on('error', (e) => {
+    if (res.headersSent) return res.destroy();
+    res.writeHead(502); res.end('upstream error: ' + e.message);
+  });
+  res.on('close', () => up.destroy());
+  if (body) up.end(body); else req.pipe(up);
+}
+
 const server = http.createServer((req, res) => {
   if (!sealed(req)) { res.writeHead(403); res.end('forbidden (no edge seal)'); return; }
   if (secureInput && String(req.url).startsWith('/_secure/')) { try { if (secureInput.handle(req, res)) return; } catch (e) { res.writeHead(500); res.end('secure-input error'); return; } }
   countRequest(req);
   if (req.url === '/_usage' && req.method === 'GET') return serveUsage(res);
   if (req.url === '/_usage/top' && req.method === 'GET') return serveUsageTop(res);
-  const up = http.request({ host: '127.0.0.1', port: TARGET, method: req.method, path: req.url, headers: strip(req.headers) }, (ur) => {
-    res.writeHead(ur.statusCode, ur.headers);
-    ur.pipe(res);
+  const writes = !['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !String(req.url).startsWith('/api/user/drafts');
+  if (!writes || !TEXTY.test(String(req.headers['content-type'] || ''))) return forward(req, res, null);
+  collect(req, SCAN_LIMIT, (body) => {
+    if (body && pii.hasMaskedPii(body.toString('latin1'))) {
+      return refuse(res, 409, '內容含有遮罩過的個資（例如 A12****789），存回去會蓋掉原本的資料，所以沒有存。請到 srv-main 本機修改。');
+    }
+    if (!body) return refuse(res, 413, '內容太大。');
+    forward(req, res, body);
   });
-  up.on('error', (e) => {
-    if (res.headersSent) return res.destroy();
-    res.writeHead(502); res.end('upstream error: ' + e.message);
-  });
-  res.on('close', () => up.destroy());
-  req.pipe(up);
 });
 
 server.on('upgrade', (req, socket, head) => {
@@ -249,11 +308,15 @@ server.on('upgrade', (req, socket, head) => {
   countRequest(req);
   const up = net.connect(TARGET, '127.0.0.1', () => {
     const headers = strip(req.headers);
+    delete headers['sec-websocket-extensions']; // no per-message deflate: frames stay plain so they can be masked
     let raw = `${req.method} ${req.url} HTTP/1.1\r\n`;
     for (const [k, v] of Object.entries(headers)) raw += `${k}: ${Array.isArray(v) ? v.join(', ') : v}\r\n`;
     up.write(raw + '\r\n');
     if (head && head.length) up.write(head);
-    socket.pipe(up).pipe(socket);
+    socket.pipe(up);
+    const mask = pii.createWsMasker();
+    up.on('data', (c) => { for (const part of mask(c)) socket.write(part); });
+    up.on('end', () => socket.end());
   });
   up.on('error', () => socket.destroy());
   socket.on('error', () => up.destroy());

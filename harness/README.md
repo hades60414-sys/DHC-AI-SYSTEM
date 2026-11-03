@@ -9,7 +9,7 @@
 | `rules/` | `CLAUDE.md`（入口）、`AGENTS.md`（做事紀律）、`MIDOFFICE.md`（中台紅線，碰到市場資料、損益、風險時才讀）、`pstack-models.md`（pstack 外掛的模型分工）、`CODEX-AGENTS.md`（給 Codex 的版本） |
 | `skills/` | 約 50 個 skill，一覽與用途見 [SKILLS.md](../SKILLS.md) |
 | `agents/` | 9 個子代理：`scout`（找檔案）、`executor`／`mech-executor`（實作）、`verifier`（獨立驗證）、`observer`（提點子）、`plan-verifier`、`security-reviewer`／`security-executor`、`Explore` |
-| `hooks/` | 四支 hook：金鑰攔截、對外傳輸紀錄、自建前提醒、繁中回覆檢查 |
+| `hooks/` | 九支 hook：金鑰攔截、對外傳輸紀錄、自建前提醒、繁中回覆檢查、回合預算、回合結束守門、REA 提醒、計畫性暫停、時限續做；`install-hooks.cjs` 另把 `tools/` 下的提示詞注入警示、對話召回、Gemini 接手三支一起註冊，和原機設定相同 |
 | `mods/dhc-guard/` | 危險指令確認閘（要回「確認執行」才放行） |
 | `ops/` | `sync-harness.ps1`（安裝／同步）、`healthcheck.ps1`（檢查）、`install-hooks.cjs`（自動合併 hooks 設定）、`uninstall-harness.ps1`（解除安裝） |
 | `docs/` | 設計筆記與安全掃描紀錄；`archive/` 是停用規則的封存 |

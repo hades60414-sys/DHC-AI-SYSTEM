@@ -20,6 +20,9 @@ set "RC=%errorlevel%"
 REM node can leave the console on another code page; the Chinese %date% then fails to echo (verify line went missing 10-21).
 chcp 65001 >nul
 echo %date% %time% verify exit %RC%>>"%LOG%"
+REM 11-02: conversations paused by drain.cjs start get one continue message each (drain.log).
+if exist "D:\TAS\cc-web\drain.json" node D:\TAS\cc-web\drain.cjs resume >>"%LOG%" 2>&1
+chcp 65001 >nul
 set "USERPROFILE=D:\TAS"
 node D:\TAS\cc-web\release-notes.cjs restarted >>"%LOG%" 2>&1
 set "RC=%errorlevel%"

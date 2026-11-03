@@ -12,7 +12,7 @@
 8. 回報「已做／已刪／已停」附能重跑的證據，看實際結果而不是指令或狀態欄；刪完驗證、回退用的備份逐一確認存在。【已成文】出處：verify-evidence-and-deletions、orphan-background-shells
 9. 測試結果怪時先懷疑測試環境與工具（工具改寫字串、PATH 被蓋、殺到自己），分清是腳本錯還是環境錯，再動腳本。【v2 新增】出處：cmd-script-testing-pitfalls
 10. 能回退的事直接做：先備份，做完附證據和回退指令，寫進自主紀錄。【已成文】出處：autonomy-levels、Harness CLAUDE「核准與自主」
-11. 紅線先問提需求的那個人：算錢／資料邏輯、刪資料、對外送出、帳密權限、花錢、本機 Python。【已成文】出處：autonomy-levels
+11. 紅線先問提需求的那個人：算錢／資料邏輯、刪資料、對外送出、帳密權限、花錢（本機 Python 11-03 起不算紅線，srv-old 除外）。【已成文】出處：autonomy-levels
 12. 不要默默等，也不要誤傷：確定只有自己在跑就直接做；會讓服務斷線的動作先查誰在跑（含背景子代理），有人在跑就講清楚是誰、問要不要等。【只在卡片】出處：restart-directly、unattended-scheduled-runs
 13. 要常駐的程序交給工作排程器當父程序；無人值守的 AI 排程不可靠，重要工作白天做，排了隔天必查並照實報。【只在卡片】出處：cc-hosts-launch-via-schtasks、unattended-scheduled-runs
 14. 密碼不經聊天、不寫進檔案，只講變數名，驗證只看存在不印值。【只在卡片】出處：password-env-vars

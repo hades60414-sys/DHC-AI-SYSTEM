@@ -2,6 +2,7 @@
 // Password = env.GATE_PW + Taipei-time hhddmm (hour, day, month); a correct login sets a 30-day cookie signed with env.GATE_KEY.
 // Cookie-based on purpose: a Basic-auth gate collides with the app's own Authorization: Bearer header.
 // Missing GATE_PW or GATE_KEY means nobody gets in (fail closed).
+import { libraryHtml } from './library.mjs';
 const enc = new TextEncoder();
 const MAX_AGE = 30 * 24 * 3600;
 const HOUR = 3600e3;
@@ -61,15 +62,8 @@ export function isOpenPath(method, path) {
 }
 
 const esc = (s) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-function page(next, error, status) {
-  const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>TAS</title>
-<style>body{font-family:system-ui,sans-serif;background:#111;color:#eee;display:grid;place-items:center;min-height:100vh;margin:0}
-form{display:grid;gap:12px;width:min(20rem,86vw)}input,button{font-size:16px;padding:10px;border-radius:6px;border:1px solid #444;background:#1c1c1c;color:#eee}
-button{background:#eee;color:#111;cursor:pointer}p{margin:0;color:#f88;font-size:14px}</style></head>
-<body><form method="post" action="/_gate"><input type="hidden" name="next" value="${esc(next)}">
-<input type="password" name="pw" placeholder="通行密碼" autofocus autocomplete="off" required>
-<button type="submit">進入</button>${error ? `<p>${esc(error)}</p>` : ''}</form></body></html>`;
+function page(next, error, status, query = '') {
+  const html = libraryHtml({ next, error, query });
   return new Response(html, { status, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
 }
 
@@ -148,29 +142,53 @@ export function crossOrigin(req, url) {
   return new Response('cross-origin request refused', { status: 403, headers: { 'cache-control': 'no-store' } });
 }
 
+// Weekly move (2026-11-03): an old front never serves the app. After a correct password, or with its old cookie, it
+// sends the browser to the current front with a 60-second pass, which the current front swaps for its own cookie.
+// The current URL appears only after login, so the library page still gives nothing away. All fronts share GATE_KEY.
+const PASS_TTL = 60;
+export async function makePass(key, ms) {
+  const exp = Math.floor(ms / 1000) + PASS_TTL;
+  return `${exp}.${await sign(key, 'pass:' + exp)}`;
+}
+async function passOk(key, t, ms) {
+  const m = /^(\d{1,12})\.([0-9a-f]{64})$/.exec(t || '');
+  if (!key || !m || Number(m[1]) * 1000 <= ms) return false;
+  return timingSafeEq(m[2], await sign(key, 'pass:' + m[1]));
+}
+const moved = async (moveTo, key, now, next) => new Response(null, { status: 302, headers: {
+  location: `${moveTo}/_gate/pass?t=${await makePass(key, now)}&next=${encodeURIComponent(next)}`, 'cache-control': 'no-store' } });
+const loggedIn = async (key, now, location) => new Response(null, { status: 302, headers: {
+  location, 'cache-control': 'no-store',
+  'set-cookie': `tas_gate=${await makeCookie(key, now)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${MAX_AGE}` } });
+
 // Returns a Response when the request must not be forwarded, null when it may pass.
-export async function gate(req, env, url, ip, limited) {
+// moveTo: the current front's URL when this front is an old one, otherwise null.
+export async function gate(req, env, url, ip, limited, moveTo = null) {
   const now = Date.now();
+  if (url.pathname === '/_gate/pass' && req.method === 'GET') {
+    const next = safeNext(url.searchParams.get('next'));
+    if (!moveTo && await passOk(env.GATE_KEY, url.searchParams.get('t'), now)) return loggedIn(env.GATE_KEY, now, next);
+    return new Response(null, { status: 302, headers: { location: '/_gate?next=' + encodeURIComponent(next), 'cache-control': 'no-store' } });
+  }
   if (url.pathname === '/_gate') {
     if (req.method !== 'POST') return page(safeNext(url.searchParams.get('next')), '', 200);
-    if (await limited(env, 'gate:' + ip)) return page('/', '嘗試太多次，請一分鐘後再試', 429);
+    if (await limited(env, 'gate:' + ip)) return page('/', '查詢太頻繁，請一分鐘後再試', 429);
     let form;
-    try { form = await req.formData(); } catch { return page('/', '密碼不對', 401); }
+    try { form = await req.formData(); } catch { return page('/', '無法處理查詢，請重新輸入', 401); }
     const next = safeNext(form.get('next'));
     const ok = !!env.GATE_KEY && passwordOk(env.GATE_PW, form.get('pw'), now);
     await logLogin(env, ok, req, ip, now);
-    if (!ok) return page(next, '密碼不對', 401);
-    return new Response(null, {
-      status: 302,
-      headers: {
-        location: next,
-        'cache-control': 'no-store',
-        'set-cookie': `tas_gate=${await makeCookie(env.GATE_KEY, now)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${MAX_AGE}`,
-      },
-    });
+    if (!ok) return page(next, '', 401, form.get('pw'));
+    return moveTo ? moved(moveTo, env.GATE_KEY, now, next) : loggedIn(env.GATE_KEY, now, next);
   }
   if (isOpenPath(req.method, url.pathname)) return null;
-  if (await cookieOk(env.GATE_KEY, req.headers.get('cookie'), now)) return url.pathname === '/_gate/log' ? logPage(env) : null;
+  if (await cookieOk(env.GATE_KEY, req.headers.get('cookie'), now)) {
+    if (moveTo) {
+      if (req.method === 'GET' && (req.headers.get('accept') || '').includes('text/html')) return moved(moveTo, env.GATE_KEY, now, url.pathname + url.search);
+      return new Response('this entrance has moved; reload the page', { status: 410, headers: { 'cache-control': 'no-store' } });
+    }
+    return url.pathname === '/_gate/log' ? logPage(env) : null;
+  }
   // Uploads without the cookie get a per-IP limit (audit 2026-10-18 #3); agents retry a refused report on their next loop.
   if (req.method === 'POST' && url.pathname === '/api/assets/files' && await limited(env, 'up:' + ip)) {
     return new Response('too many uploads, wait a minute', { status: 429, headers: { 'cache-control': 'no-store' } });

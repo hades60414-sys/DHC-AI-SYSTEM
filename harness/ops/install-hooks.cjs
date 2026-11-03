@@ -17,15 +17,33 @@ const srcDir = path.join(__dirname, '..', 'hooks');
 const modsDir = path.join(__dirname, '..', 'mods');
 const OUTBOUND = 'WebFetch|WebSearch|Bash|PowerShell|SendMessage|PushNotification|RemoteTrigger|DesignSync|mcp__.*';
 
+const TOOLS = path.join(__dirname, '..', '..', 'tools');
+const INJECT = 'Read|WebFetch|WebSearch|Bash|PowerShell|Grep|Task|Agent|mcp__.*';
+// Same registrations as the source machine. Names ending in .js are copied to ~/.claude/hooks;
+// tools/... entries run in place from this repo. Every hook lets the call through on any error.
 const PLAN = [
+  ['PreToolUse', '*', 'drain-guard.js'],
   ['PreToolUse', OUTBOUND, 'egress-log.js'],
   ['PreToolUse', OUTBOUND, 'secret-guard.js'],
   ['PreToolUse', 'Write', 'build-check.js'],
   ['PostToolUse', OUTBOUND, 'egress-log.js'],
+  ['PostToolUse', '.*', 'zh-reply-guard.js'],
+  ['PostToolUse', '.*', 'gemini-takeover/hooks/handoff-hook.cjs'],
+  ['PostToolUse', '.*', 'turn-budget.js'],
+  ['PostToolUse', INJECT, 'prompt-injection/guard.cjs'],
+  ['UserPromptSubmit', null, 'conversation-search/recall-hook.cjs'],
+  ['UserPromptSubmit', null, 'zh-reply-guard.js'],
+  ['UserPromptSubmit', null, 'rea-check.js'],
+  ['UserPromptSubmit', null, 'gemini-takeover/hooks/handoff-hook.cjs'],
+  ['UserPromptSubmit', null, 'turn-budget.js'],
+  ['UserPromptSubmit', null, 'keepgoing-detect.js'],
   ['Stop', null, 'zh-reply-guard.js'],
+  ['Stop', null, 'turn-end-guard.js'],
+  ['PostToolUseFailure', '.*', 'turn-budget.js'],
 ].filter(([, , f]) => !(f === 'zh-reply-guard.js' && args.has('--no-zh')));
-const OURS = ['egress-log.js', 'secret-guard.js', 'build-check.js', 'zh-reply-guard.js'];
-const command = (f) => `node "${path.join(hooksDir, f).split(path.sep).join('/')}"`;
+const OURS = [...new Set(PLAN.map(([, , f]) => f)), 'zh-reply-guard.js'];
+const isTool = (f) => f.includes('/');
+const command = (f) => `node "${(isTool(f) ? path.join(TOOLS, f) : path.join(hooksDir, f)).split(path.sep).join('/')}"`;
 const mentions = (h, f) => typeof h.command === 'string' && h.command.includes(f);
 
 const before = fs.existsSync(settingsPath) ? fs.readFileSync(settingsPath, 'utf8') : '{}';
@@ -46,7 +64,7 @@ if (REMOVE) {
   if (s.enabledPlugins?.['dhc-guard@dhc-mods'] !== undefined) { delete s.enabledPlugins['dhc-guard@dhc-mods']; log.push('remove dhc-guard plugin'); }
   if (s.extraKnownMarketplaces?.['dhc-mods']) { delete s.extraKnownMarketplaces['dhc-mods']; log.push('remove dhc-mods marketplace'); }
 } else {
-  for (const f of new Set(PLAN.map(([, , f]) => f))) {
+  for (const f of new Set(PLAN.map(([, , f]) => f).filter((f) => !isTool(f)))) {
     const from = path.join(srcDir, f), to = path.join(hooksDir, f);
     const same = fs.existsSync(to) && fs.readFileSync(to).equals(fs.readFileSync(from));
     if (same) continue;

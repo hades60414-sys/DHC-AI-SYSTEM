@@ -59,13 +59,23 @@ async function askOnce(label, text) {
   const ref = (handoff?.refs || []).find((item) => item.kind === 'session');
   log(`[handoff] ${ref ? `SESSION ${ref.id}` : 'NO SESSION LINK'}`);
   if (!ref) return;
-  // The test conversation only proves the handoff works; once it has answered, archive it so it doesn't sit in anyone's list.
+  // Mark it as AI-opened so the sidebar shows 中台小助理's face (same key as stage-nas\launch-session\launch.cjs).
+  const marks = (await api('GET', '/api/user/preferences')).json?.preferences?.['dhc.botSessions'] ?? [];
+  await api('PATCH', '/api/user/preferences', { 'dhc.botSessions': [...new Set([...marks, ref.id])] });
+  // The test conversation only proves the handoff works; archive it once the run has ended.
+  // Archiving mid-run gets undone when the run finishes, so wait for a real assistant reply and for the run to stop.
   let answered = false;
-  for (let i = 0; i < 24 && !answered; i += 1) {
+  let running = true;
+  for (let i = 0; i < 36 && (!answered || running); i += 1) {
     await sleep(5000);
-    const history = (await api('GET', `/api/providers/sessions/${ref.id}/messages`)).text;
-    answered = history.includes('收到');
+    const msgs = (await api('GET', `/api/providers/sessions/${ref.id}/messages`)).json?.data?.messages ?? [];
+    answered = msgs.some((message) => message.role === 'assistant' && String(message.content).includes('收到'));
+    const live = (await api('GET', '/api/providers/sessions/running')).json?.data ?? {};
+    running = [...(live.sessions ?? []), ...(live.background ?? [])].some((item) => item.sessionId === ref.id);
   }
-  const archive = await api('DELETE', `/api/providers/sessions/${ref.id}`);
-  log(`[handoff] ${answered ? 'ANSWERED' : 'NO ANSWER in 120s'}; archive ${archive.status} ${archive.text.slice(0, 120)}`);
+  let archive = await api('DELETE', `/api/providers/sessions/${ref.id}`);
+  await sleep(15000);
+  const still = (await api('GET', `/api/providers/sessions/running`)).json?.data?.sessions ?? [];
+  const recheck = await api('DELETE', `/api/providers/sessions/${ref.id}`);
+  log(`[handoff] ${answered ? 'ANSWERED' : 'NO ANSWER in 180s'}${running ? ' (still running)' : ''}; archive ${archive.status} recheck ${recheck.status} ${recheck.text.slice(0, 120)}${still.some((item) => item.sessionId === ref.id) ? ' RUNNING-AFTER-ARCHIVE' : ''}`);
 })().catch((error) => log(`RESULT FAIL (script) ${error.message}`));

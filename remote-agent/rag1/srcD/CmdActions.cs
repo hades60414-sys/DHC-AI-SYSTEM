@@ -82,6 +82,18 @@ public static class CmdActions {
         return Common.Encode(new { kind = "secret_set", name = name, stored = true, masked = secret, chars = value.Length });
     }
 
+    // pcmainb (3+1, 2026-11-02): the srv-main agent that srv-old controls runs only these fixed scripts; no command text is accepted.
+    static readonly string[] FixedScripts = { "probe", "restart-all" };
+    const string FixedDir = @"D:\TAS\cc-hosts\pcmainb";
+    public static string ExecuteFixed(string action, string prompt) {
+        if (action != "cmd-run") throw new InvalidOperationException("Action not allowed on this agent");
+        var d = Common.Decode(prompt);
+        var name = d.ContainsKey("cmd") ? (d["cmd"] as string ?? "").Trim() : "";
+        if (d.Keys.Any(k => k != "cmd" && k != "timeout_sec" && k != "cwd") || !FixedScripts.Contains(name)) throw new InvalidDataException("This agent runs only: " + string.Join(", ", FixedScripts));
+        Log("fixed " + name, "RUN", 0, "");
+        return Run(Path.Combine(FixedDir, name + ".cmd"), FixedDir, 600);
+    }
+
     internal static string Run(string cmd, string cwd, int timeoutSec) {
         var oem = Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.OEMCodePage);
         var psi = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "cmd.exe"), "/d /s /c \"" + cmd + "\"") {

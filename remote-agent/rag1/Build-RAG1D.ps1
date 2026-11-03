@@ -1,4 +1,4 @@
-param([ValidateSet('rag1','rag1r','pcmgr','pcmain','userD','userF','userB','userC','userE','userA','pc55')][string]$Config = 'rag1', [string]$OutDir, [string]$KeyDir)
+param([ValidateSet('rag1','rag1r','pcmgr','pcmain','userD','userF','userB','userC','userE','userA','pc55','pc18','pcmainb')][string]$Config = 'rag1', [string]$OutDir, [string]$KeyDir)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 # RAG1 D build (2026-10-01): same as Build-RAG1.ps1 but sources from .srcD, output release-rag1d-<Config>. RAG1 build (2026-10-01): frozen v3.1 sources in .\src (asset names follow agentId) + config-<Config>\release.json.

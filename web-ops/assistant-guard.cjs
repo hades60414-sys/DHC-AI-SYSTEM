@@ -118,14 +118,24 @@ function deny(reason, hard = false) {
   answer('deny', `${reason}。這屬於刪改或不可逆／對外的動作：先在回覆裡講清楚要做什麼、影響哪些檔案或資料，請對方在聊天室回「確認執行」後再做。`);
 }
 
+// 11/02 收據＋復原: each edited file of a call goes to edits/<call>.jsonl with its backup (null = the call created it).
+function noteEdit(file, target) {
+  if (!callId || !file) return;
+  try {
+    fs.mkdirSync(path.join(ROOT, 'edits'), { recursive: true });
+    fs.appendFileSync(path.join(ROOT, 'edits', `${callId}.jsonl`), JSON.stringify({ file: path.resolve(file), backup: target }) + '\n');
+  } catch {}
+}
+
 function backup(file) {
   try {
-    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return;
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return noteEdit(file, null);
     const target = path.join(ROOT, 'backups', stamp, path.resolve(file).replace(/^([a-z]):/i, '$1'));
-    if (fs.existsSync(target)) return;
+    if (fs.existsSync(target)) return noteEdit(file, target);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.copyFileSync(file, target);
     log(`BACKUP ${file} -> ${target}`);
+    noteEdit(file, target);
   } catch (error) {
     deny(`改檔前備份 ${file} 失敗（${error.message}）`);
   }

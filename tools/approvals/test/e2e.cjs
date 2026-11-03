@@ -7,7 +7,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const run = (args) => { try { return { ok: true, out: execFileSync(NODE, args, { cwd: path.join(__dirname, '..'), encoding: 'utf8', stdio: 'pipe' }) }; } catch (e) { return { ok: false, out: String(e.stderr || e.message) }; } };
 const api = async (m, u, b) => (await fetch(BASE + u, { method: m, headers: { 'Content-Type': 'application/json' }, body: b ? JSON.stringify(b) : undefined })).json();
 (async () => {
-  const a = run(['ask.cjs', '--machine', 'rag1', '--cmd-file', 'test/cmd-ok.txt', '--why', '端對端測試', '--rollback', '無（只印字）', '--room', ROOM]);
+  const a = run(['ask.cjs', '--machine', 'rag1', '--cmd-file', 'test/cmd-ok.txt', '--why', '端對端測試', '--rollback', '無（只印字）', '--room', ROOM, '--no-resume']);
   const id = (a.out.match(/核准單 ([0-9a-f]{6})/) || [])[1]; console.log('開單', a.ok, id);
   const early = run(['run.cjs', id]); console.log('沒按就跑 → 應拒', !early.ok, early.out.trim());
   const t = L.load(id);
