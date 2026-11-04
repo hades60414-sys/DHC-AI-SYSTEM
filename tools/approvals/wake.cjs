@@ -5,7 +5,7 @@
 const fs = require('node:fs'), path = require('node:path');
 const L = require('./lib.cjs');
 
-const PROJECTS = process.env.WAKE_PROJECTS || 'C:/Users/demo/.claude/projects'; // WAKE_PROJECTS：測試夾具用
+const PROJECTS = process.env.WAKE_PROJECTS || path.join(require('node:os').homedir(), '.claude', 'projects');
 const GIVE_UP_MS = 6 * 3600e3;
 
 function transcript(id) {

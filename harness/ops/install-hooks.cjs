@@ -4,6 +4,7 @@
 //   node install-hooks.cjs                    copy hooks\*.js to ~/.claude/hooks and merge them into settings.json
 //   node install-hooks.cjs --guard            also register the dhc-guard mod (dangerous commands need "確認執行")
 //   node install-hooks.cjs --no-zh            leave out zh-reply-guard (it makes Claude rewrite English replies in Chinese)
+//   node install-hooks.cjs --gemini           opt in after configuring the external takeover service
 //   node install-hooks.cjs --remove           take all of the above back out of settings.json
 // settings.json is backed up to settings.json.bak-<time> before any write; existing hooks are kept.
 const fs = require('fs'), path = require('path'), os = require('os');
@@ -40,8 +41,9 @@ const PLAN = [
   ['Stop', null, 'zh-reply-guard.js'],
   ['Stop', null, 'turn-end-guard.js'],
   ['PostToolUseFailure', '.*', 'turn-budget.js'],
-].filter(([, , f]) => !(f === 'zh-reply-guard.js' && args.has('--no-zh')));
-const OURS = [...new Set(PLAN.map(([, , f]) => f)), 'zh-reply-guard.js'];
+].filter(([, , f]) => !(f === 'zh-reply-guard.js' && args.has('--no-zh')) &&
+  (f !== 'gemini-takeover/hooks/handoff-hook.cjs' || args.has('--gemini')));
+const OURS = [...new Set(PLAN.map(([, , f]) => f)), 'zh-reply-guard.js', 'gemini-takeover/hooks/handoff-hook.cjs'];
 const isTool = (f) => f.includes('/');
 const command = (f) => `node "${(isTool(f) ? path.join(TOOLS, f) : path.join(hooksDir, f)).split(path.sep).join('/')}"`;
 const mentions = (h, f) => typeof h.command === 'string' && h.command.includes(f);
@@ -64,7 +66,15 @@ if (REMOVE) {
   if (s.enabledPlugins?.['dhc-guard@dhc-mods'] !== undefined) { delete s.enabledPlugins['dhc-guard@dhc-mods']; log.push('remove dhc-guard plugin'); }
   if (s.extraKnownMarketplaces?.['dhc-mods']) { delete s.extraKnownMarketplaces['dhc-mods']; log.push('remove dhc-mods marketplace'); }
 } else {
-  for (const f of new Set(PLAN.map(([, , f]) => f).filter((f) => !isTool(f)))) {
+  const configPath = path.join(claudeDir, 'das-hooks.json');
+  if (!fs.existsSync(configPath)) {
+    log.push('create das-hooks.json (workspace automation disabled until configured)');
+    if (!CHECK) {
+      fs.mkdirSync(claudeDir, { recursive: true });
+      fs.writeFileSync(configPath, JSON.stringify({ toolsRoot: TOOLS, workspaces: [], keepgoingEnabled: false, drainRoot: '' }, null, 2) + '\n');
+    }
+  }
+  for (const f of new Set([...PLAN.map(([, , f]) => f).filter((f) => !isTool(f)), 'das-config.js'])) {
     const from = path.join(srcDir, f), to = path.join(hooksDir, f);
     const same = fs.existsSync(to) && fs.readFileSync(to).equals(fs.readFileSync(from));
     if (same) continue;

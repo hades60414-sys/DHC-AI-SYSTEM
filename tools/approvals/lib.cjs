@@ -6,7 +6,7 @@ const DIR = path.join(__dirname, 'tickets');
 const LOG = path.join(__dirname, 'approvals.log');
 const BASE = process.env.NUDGE_BASE || 'http://127.0.0.1:3001';
 const ASSISTANT = 'dhc-assistant';
-const MCP_JSON = 'D:/TAS/Claude Code專案/Harness優化/.mcp.json';
+const MCP_JSON = process.env.APPROVALS_MCP_CONFIG;
 const TTL_MS = 24 * 3600 * 1000;
 
 const sha = (machine, cmd) => crypto.createHash('sha256').update(machine + '\n' + cmd).digest('hex');
@@ -16,6 +16,7 @@ const save = (t) => { fs.mkdirSync(DIR, { recursive: true }); fs.writeFileSync(t
 const log = (line) => fs.appendFileSync(LOG, `${new Date().toISOString()}\t${line}\n`, 'utf8');
 
 function servers() {
+  if (!MCP_JSON) throw new Error('Set APPROVALS_MCP_CONFIG to your local MCP configuration file.');
   return JSON.parse(fs.readFileSync(MCP_JSON, 'utf8')).mcpServers;
 }
 const NAMES = { rag1: 'srv-rag' }; // 使用者叫 RAG1 為 srv-rag

@@ -33,7 +33,7 @@
 </td>
 <td align="center">
 <h3>モバイル体験</h3>
-<img src="../public/screenshots/mobile-chat.png" alt="モバイルインターフェース" width="250">
+<p>Upstream screenshot omitted: it contains a personal home-directory path.</p>
 <br>
 <em>タッチ操作に対応したレスポンシブなモバイルデザイン</em>
 </td>

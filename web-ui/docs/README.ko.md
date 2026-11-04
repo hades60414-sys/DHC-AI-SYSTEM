@@ -33,7 +33,7 @@
 </td>
 <td align="center">
 <h3>모바일 경험</h3>
-<img src="../public/screenshots/mobile-chat.png" alt="모바일 인터페이스" width="250">
+<p>Upstream screenshot omitted: it contains a personal home-directory path.</p>
 <br>
 <em>터치 내비게이션이 포함된 반응형 모바일 디자인</em>
 </td>

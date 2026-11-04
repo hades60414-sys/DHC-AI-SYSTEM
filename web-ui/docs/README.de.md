@@ -33,7 +33,7 @@
 </td>
 <td align="center">
 <h3>Mobile-Erfahrung</h3>
-<img src="../public/screenshots/mobile-chat.png" alt="Mobile-Oberfläche" width="250">
+<p>Upstream screenshot omitted: it contains a personal home-directory path.</p>
 <br>
 <em>Responsives mobiles Design mit Touch-Navigation</em>
 </td>

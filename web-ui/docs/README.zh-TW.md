@@ -33,7 +33,7 @@
 </td>
 <td align="center">
 <h3>行動裝置體驗</h3>
-<img src="../public/screenshots/mobile-chat.png" alt="行動裝置介面" width="250">
+<p>Upstream screenshot omitted: it contains a personal home-directory path.</p>
 <br>
 <em>具有觸控導覽的響應式行動裝置設計</em>
 </td>

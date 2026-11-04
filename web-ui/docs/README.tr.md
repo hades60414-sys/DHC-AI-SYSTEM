@@ -33,7 +33,7 @@
 </td>
 <td align="center">
 <h3>Mobil Deneyim</h3>
-<img src="../public/screenshots/mobile-chat.png" alt="Mobil Arayüz" width="250">
+<p>Upstream screenshot omitted: it contains a personal home-directory path.</p>
 <br>
 <em>Dokunma gezinmesiyle duyarlı mobil tasarım</em>
 </td>

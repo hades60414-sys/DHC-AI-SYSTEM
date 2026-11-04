@@ -8,6 +8,8 @@ DAS 源自某證券中台團隊在一台共用主機上運作 Claude Code 的整
 
 ## 內容
 
+**2026-11-04 補充：** [自主執行蒸餾](docs/AUTONOMY.md) 已納入兩套規則；hook 改用本機 `das-hooks.json`，Codex-only 檢查不再誤查 Claude。Gemini 自動交工改為選裝，所需白名單提供空白範本。完整掃描範圍、發現與限制見 [包裝檢查報告](docs/PACKAGE_AUDIT.md)。
+
 | 資料夾 | 是什麼 | 適合誰 | 入口 |
 |---|---|---|---|
 | `harness/` | 規則（CLAUDE.md／AGENTS.md）、約 50 個 skills（一覽見 [SKILLS.md](SKILLS.md)）、9 個子代理、hooks、`dhc-guard` 危險指令攔截 mod、同步與健康檢查腳本 | 每個人 | [harness/README.md](harness/README.md) |
@@ -20,7 +22,7 @@ DAS 源自某證券中台團隊在一台共用主機上運作 Claude Code 的整
 | `vendor/` | 原樣附上的第三方外掛：pstack、ctx-handoff（MIT）、frontend-design（Apache-2.0），授權檔在各資料夾 | 想要完整工作流程的人 | [SKILLS.md](SKILLS.md) |
 | `scripts/` | `scan-sensitive.mjs`：上傳前的敏感字掃描 | 分享前每個人 | 見下方 |
 
-網頁版本身（CloudCLI 的 fork，AGPL-3.0）另有獨立 repo「DHC CLI」，這裡只放它旁邊的服務。
+網頁版本身（CloudCLI 的 fork，AGPL-3.0）另有獨立 repo「DHC CLI」，本 repo 也在 `web-ui/` 收錄一份快照；`web-ops/` 放其周邊服務。
 
 ## 怎麼用
 

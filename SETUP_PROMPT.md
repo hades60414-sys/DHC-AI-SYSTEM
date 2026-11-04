@@ -51,7 +51,7 @@
 
 ## 第 4 步：驗證，然後教我用
 
-1. B／C 跑 `harness\ops\healthcheck.ps1`（有用 Codex 加 `-Target All`），最後一行要是 `RESULT: OK`。只印 Ollama 的 INFO 可以忽略；其他失敗要修好或講清楚。
+1. B／C 跑 `harness\ops\healthcheck.ps1`，`-Target` 與安裝時一致：Claude、Codex 或 All；最後一行要是 `RESULT: OK`。只印 Ollama 的 INFO 可以忽略；其他失敗要修好或講清楚。舊版 Codex PM bridge 為選裝，只有已配置者才加 `-CheckCodexBridge`。
 2. 有裝護欄就請我開一個新 session，把 `安裝說明.md` 第 2 步「試試看」的兩句給我直接貼，確認會被擋下。
 3. 依我的工作類別，給我 **3 句可以直接複製的第一句話**（例如「把這份 Excel 的每日損益畫成趨勢圖」），每句說會用到哪個 skill。
 4. 最後用五行以內告訴我：裝了什麼、備份在哪、怎麼還原（一句指令或步驟）、還沒做的事。

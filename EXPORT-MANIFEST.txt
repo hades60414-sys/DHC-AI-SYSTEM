@@ -19,6 +19,7 @@ harness/docs/midoffice-design.md
 harness/hooks-src/build-check.js
 harness/hooks-src/rea-check.js
 harness/hooks/build-check.js
+harness/hooks/das-config.js
 harness/hooks/drain-guard.js
 harness/hooks/egress-log.js
 harness/hooks/keepgoing-detect.js
@@ -567,6 +568,7 @@ tools/gemini-takeover/gemini-takeover.cjs
 tools/gemini-takeover/handoff.cjs
 tools/gemini-takeover/hooks/handoff-hook.cjs
 tools/gemini-takeover/login.cjs
+tools/gemini-takeover/takeover-whitelist.example.txt
 tools/gemini-takeover/usage.cjs
 tools/local_agent/README.md
 tools/local_agent/try.cjs

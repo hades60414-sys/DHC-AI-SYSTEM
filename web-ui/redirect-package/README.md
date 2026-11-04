@@ -46,7 +46,7 @@
 </td>
 <td align="center">
 <h3>Mobile Experience</h3>
-<img src="https://raw.githubusercontent.com/siteboon/claudecodeui/main/public/screenshots/mobile-chat.png" alt="Mobile Interface" width="250">
+<p>Upstream screenshot omitted: it contains a personal home-directory path.</p>
 <br>
 <em>Responsive mobile design with touch navigation</em>
 </td>

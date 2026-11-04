@@ -33,7 +33,7 @@
 </td>
 <td align="center">
 <h3>Мобильный режим</h3>
-<img src="../public/screenshots/mobile-chat.png" alt="Mobile Interface" width="250">
+<p>Upstream screenshot omitted: it contains a personal home-directory path.</p>
 <br>
 <em>Адаптивный мобильный дизайн с сенсорной навигацией</em>
 </td>

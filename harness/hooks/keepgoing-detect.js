@@ -1,6 +1,6 @@
 // 時限續做的登記（UserPromptSubmit，2026-11-03）：使用者訊息像「到 8 點前隨便你」「再試兩小時」就登記時限，
-// 之後由 D:\TAS\ai-tools\approvals\keepgoing.cjs（watch 每分鐘）在時限內、對話閒著時叫醒它接著做。
-// 說「停／先停／不用做了」就取消。只用在主使用者的工作區（Harness優化）。
+// 需先配置 das-hooks.json 的 toolsRoot、workspaces、keepgoingEnabled，並設好 approvals/watch。
+// 說「停／先停／不用做了」就取消；未啟用時不登記，也不承諾自動叫醒。
 const NUM = { 一: 1, 兩: 2, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 半: 0.5 };
 const TW = 8 * 3600e3;
 
@@ -28,9 +28,10 @@ if (require.main === module) {
   process.stdin.on('data', (c) => (input += c)).on('end', () => {
     try {
       const e = JSON.parse(input);
-      if (!/Harness優化/.test(e.cwd || '') || !e.session_id) return;
+      const C = require('./das-config.js'), config = C.load();
+      if (!config.keepgoingEnabled || !config.toolsRoot || !C.applies(e.cwd, config) || !e.session_id) return;
       const r = parse(e.prompt); if (!r) return;
-      const K = require('D:/TAS/ai-tools/approvals/keepgoing.cjs');
+      const K = require(require('path').join(config.toolsRoot, 'approvals', 'keepgoing.cjs'));
       let note;
       if (r.cancel) note = K.stop(e.session_id, '使用者說停') ? '已取消這個對話的時限續做。' : null;
       else {

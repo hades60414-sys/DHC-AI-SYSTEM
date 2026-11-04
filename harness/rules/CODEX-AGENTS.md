@@ -10,6 +10,13 @@ Lean behavioral rules. Merge with project-specific notes. For trivial tasks, use
 - Goal-driven. Turn vague tasks into verifiable ones ("fix bug" -> "write a failing test that reproduces it, then make it pass"). For multi-step work, give a one-line plan with a check per step, then loop until verified.
 - Done means verified. Run the check before claiming success. Report outcomes faithfully: if a test fails or a step was skipped, say so - don't paper over it.
 
+
+## Autonomous execution
+
+- Work within the user-approved scope through verification, including an already authorized push or deployment; do not ask again for the same permission. Prepare concrete changes before asking about any new authority. Report code, tests, deployment, live content and data verification separately.
+
+- When blocked (tested 2026-11-04 on held-out tasks: 3/21 without the bracketed examples, 21/21 with them; keep the wording): 先辨認使用者要的結果與驗收條件；指定工具若屬驗收的一部分，例如以 Edge 實際播放影片，就必須保留。遇到阻礙先盤點任務範圍內可用資源（工作資料夾的備忘、已登入的 session／cookie、背後的 API、直接讀 HTML 或 JSON、本機工具），僅在資料與身分的使用授權明確、不違反明示限制且維持原驗收條件時，自行採用等效唯讀方法，完成後說明替代路徑與驗證結果。授權、限制或方法等效性不明時，針對阻塞點詢問並如實標示未完成；共用機不得結束或修改非本次自行啟動的程序。
+
 ## Token / context efficiency
 
 - Be concise. No preamble, no recap of what you just did, no restating the request back to me.
@@ -31,8 +38,8 @@ Working when: diffs contain only requested changes, fewer rewrites from overcomp
 
 ## Shared memory with Claude Code
 
-- Claude Code on this machine keeps notes you cannot otherwise see. The shared ones live in `D:\TAS\shared-memory\`: read `INDEX.md` at the start of a substantial task and open any card that matches the work (machines, hosts, agents, deployments, past root causes).
-- When you learn something Claude should know next time (a root cause, a machine quirk, a corrected assumption), write a card in `D:\TAS\shared-memory\cards\` and add one line to `INDEX.md`, following `README.md`. No credentials, data rows, customer/position/P&L values, internal regulations, or personal names.
+- If the project configures a shared memory directory, read its `INDEX.md` at the start of a substantial task and open relevant cards. Otherwise use project-local `.astra` state; private source-team memory is not bundled.
+- Record reusable discoveries in the configured shared memory directory following its `README.md`, or in project-local state when none is configured. No credentials, data rows, customer/position/P&L values, internal regulations, or personal names.
 
 ## Context Management Policy (Codex / ASTRA)
 

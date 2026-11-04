@@ -1,0 +1,3 @@
+# Copy to takeover-whitelist.txt only after configuring and validating your takeover service.
+# One authorized workspace path per line. Empty means no workspace is enabled.
+# D:/Work/ExampleProject

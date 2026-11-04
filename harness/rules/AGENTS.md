@@ -16,6 +16,8 @@ Lean behavioral rules. Merge with project-specific notes. For trivial tasks, use
 
 ## One-shot execution (adapted from OpenHands, 2026-10-25)
 
+- When blocked (tested 2026-11-04 on held-out tasks: 3/21 without the bracketed examples, 21/21 with them; keep the wording): 先辨認使用者要的結果與驗收條件；指定工具若屬驗收的一部分，例如以 Edge 實際播放影片，就必須保留。遇到阻礙先盤點任務範圍內可用資源（工作資料夾的備忘、已登入的 session／cookie、背後的 API、直接讀 HTML 或 JSON、本機工具），僅在資料與身分的使用授權明確、不違反明示限制且維持原驗收條件時，自行採用等效唯讀方法，完成後說明替代路徑與驗證結果。授權、限制或方法等效性不明時，針對阻塞點詢問並如實標示未完成；共用機不得結束或修改非本次自行啟動的程序。
+
 - Aim to finish the whole request in one pass. Questions cost the user a round trip; each one must be worth it.
 - Before asking, check everything you can check yourself: read the code and config, search memory and past conversations, run a read-only probe. Never ask a question whose answer is on disk.
 - If questions remain, ask them all at once at the start (one batch, each with a recommended default), then work. If the user may be away, proceed on the defaults for reversible choices and list the assumptions in the report.

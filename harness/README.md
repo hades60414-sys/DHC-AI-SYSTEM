@@ -1,6 +1,6 @@
 # harness — 規則、skills、子代理、護欄
 
-這一層是整包最常被借用的部分：裝好之後，Claude Code 每個新 session 都會照這裡的規則做事。安裝步驟見上一層的 [安裝說明.md](../安裝說明.md)，或把 [SETUP_PROMPT.md](../SETUP_PROMPT.md) 貼給 AI 讓它帶你裝。
+這一層是整包最常被借用的部分：裝好之後，Claude Code 每個新 session 都會照這裡的規則做事。安裝步驟見上一層的 [安裝說明.md](../安裝說明.md)，或把 [SETUP_PROMPT.md](../SETUP_PROMPT.md) 貼給 AI 讓它帶你裝。自主性規則、hook 本機設定與各項服務的啟用條件見 [自主執行蒸餾](../docs/AUTONOMY.md)。
 
 ## 資料夾
 
@@ -9,7 +9,7 @@
 | `rules/` | `CLAUDE.md`（入口）、`AGENTS.md`（做事紀律）、`MIDOFFICE.md`（中台紅線，碰到市場資料、損益、風險時才讀）、`pstack-models.md`（pstack 外掛的模型分工）、`CODEX-AGENTS.md`（給 Codex 的版本） |
 | `skills/` | 約 50 個 skill，一覽與用途見 [SKILLS.md](../SKILLS.md) |
 | `agents/` | 9 個子代理：`scout`（找檔案）、`executor`／`mech-executor`（實作）、`verifier`（獨立驗證）、`observer`（提點子）、`plan-verifier`、`security-reviewer`／`security-executor`、`Explore` |
-| `hooks/` | 九支 hook：金鑰攔截、對外傳輸紀錄、自建前提醒、繁中回覆檢查、回合預算、回合結束守門、REA 提醒、計畫性暫停、時限續做；`install-hooks.cjs` 另把 `tools/` 下的提示詞注入警示、對話召回、Gemini 接手三支一起註冊，和原機設定相同 |
+| `hooks/` | 九支 hook 與 `das-config.js` 設定讀取器；`install-hooks.cjs` 預設註冊 16 條事件（含 tools 的提示詞注入與對話召回）。Gemini 接手的 2 條事件在外部服務已配置後才用 `--gemini` 加入；時限續做與維護功能另需本機設定 |
 | `mods/dhc-guard/` | 危險指令確認閘（要回「確認執行」才放行） |
 | `ops/` | `sync-harness.ps1`（安裝／同步）、`healthcheck.ps1`（檢查）、`install-hooks.cjs`（自動合併 hooks 設定）、`uninstall-harness.ps1`（解除安裝） |
 | `docs/` | 設計筆記與安全掃描紀錄；`archive/` 是停用規則的封存 |
@@ -26,6 +26,6 @@
 ## 跟原團隊有關、可能要改的地方
 
 - 回覆預設繁體中文、先講結論、精簡風格（`rules/CLAUDE.md` 的 Communication）。
-- GPT／Codex 委派已停用（`codex-*`、`chatgpt-bridge` 這幾個 skill 會裝上但不會自動被叫用）。
+- Claude 規則可使用 Codex 偵查、實作與驗證角色；舊版 Codex PM gate／chatgpt-bridge 仍停用。實際可用模型與工具依安裝環境核對。
 - 複雜系統工作走 [pstack](https://github.com/michael-denyer/pstack-claude) 外掛；沒裝 pstack 就把 `rules/CLAUDE.md` 的「pstack workflow」段與 `@pstack-models.md` 那行刪掉。
-- 規則裡提到的 `company-environment`、`company-intranet` skill 含公司內部資訊，沒有收錄；換成自己公司的版本，或刪掉那幾句。
+- `company-environment`、`company-intranet` 收錄的是填空範本；自行填入本機設定，私人內容不要提交到公開 repo。

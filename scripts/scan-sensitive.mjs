@@ -23,7 +23,7 @@ const EXCLUDED_DIRS = ['node_modules/', 'dist/', 'dist-server/', 'public/excalid
 const EXCLUDED_FILES = new Set(['package-lock.json', SELF, LOCAL_TERMS]);
 
 // Placeholder user names that are fine to publish (upstream tests use several of these).
-const ALLOWED_USER_NAMES = new Set(['demo', 'public', 'default', 'username', '%username%', 'user', 'you', 'yourname', 'x', 'test', 'dev', 'victim', '...', 'u', 'olduser', 'e0000000', 'j0000000']);
+const ALLOWED_USER_NAMES = new Set(['demo', 'public', 'default', 'username', '%username%', 'user', 'you', 'yourname', 'x', 'test', 'dev', 'victim', '...', 'u', 'olduser', 'e0000000', 'agent', 'cloudcli']);
 const ALLOWED_EMAIL_DOMAINS = ['example.com', 'example.org', 'example.net', 'anthropic.com', 'users.noreply.github.com', 'github.com', 'cloudcli.ai', 'corp.com', 'evil.io', 'corp-example.com.tw', 'example-bank.com.tw', 'extern-mail.example']; // fake test domains
 
 function listFiles() {
@@ -106,6 +106,11 @@ function buildTermRules(terms) {
 const userNameOk = (name) => !ALLOWED_USER_NAMES.has(name.toLowerCase()) && !name.startsWith('$') && !name.startsWith('<');
 
 const GENERIC_RULES = [
+  {
+    name: 'posix-home-path',
+    re: /\/(?:Users|home)\/([^\/"'`\s,;:)，。、；（）]+)/g,
+    check: (_line, m) => userNameOk(m[1]),
+  },
   {
     name: 'win-user-path',
     re: /[A-Za-z]:(?:\\\\|\\|\/)Users(?:\\\\|\\|\/)([^\\/"'`\s,;:)]+)/gi,

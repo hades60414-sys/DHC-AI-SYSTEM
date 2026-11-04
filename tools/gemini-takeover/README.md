@@ -1,5 +1,7 @@
 # Gemini（Antigravity CLI）接手與研究
 
+> **公開包是整合參考，預設不登錄自動接手 hook。** 下文是原環境的操作紀錄，不代表下載即用；帳號、方案與模型名稱需自行核對現況。`agy.exe`、EKB 的 `ekb-lane.cjs`、原機 CloudCLI 依賴與排程均未附。先依實際環境配置、驗證交工與續接，再把 `takeover-whitelist.example.txt` 複製成不入 Git 的 `takeover-whitelist.txt`，逐項填入已授權的工作區；最後才用 `install-hooks.cjs --gemini` 登錄。若沒有 EKB，程式會走降級路徑，仍需可用的外部執行器。私人白名單與登入資料不可提交。
+
 Google 學生方案（AI Pro）的額度。Gemini CLI 從 2026-06-18 起不再服務個人帳號，所以改用 Antigravity CLI（`agy.exe`，閉源，Google LLC 簽章，裝的時候核對過 SHA-512）。
 
 ## 檔案

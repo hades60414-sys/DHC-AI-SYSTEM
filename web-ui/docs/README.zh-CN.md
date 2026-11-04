@@ -33,7 +33,7 @@
 </td>
 <td align="center">
 <h3>移动体验</h3>
-<img src="../public/screenshots/mobile-chat.png" alt="移动界面" width="250">
+<p>Upstream screenshot omitted: it contains a personal home-directory path.</p>
 <br>
 <em>具有触控导航的响应式移动设计</em>
 </td>

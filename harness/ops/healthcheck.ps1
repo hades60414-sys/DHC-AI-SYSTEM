@@ -2,6 +2,7 @@
 # Harness/install problems -> FAIL. Ollama missing -> WARN unless -RequireOllama.
 param(
     [switch]$RequireOllama,
+    [switch]$CheckCodexBridge,
     [ValidateSet("All", "Claude", "Codex")][string]$Target = "Claude"
 )
 $ErrorActionPreference = "Continue"
@@ -51,6 +52,7 @@ if (Test-Path -LiteralPath $syncScript) {
 
 # 2) ~/.claude install state (Claude Code auto-loads these)
 $claudeDir = Join-Path $env:USERPROFILE ".claude"
+if ($Target -ne "Codex") {
 if (Test-Path (Join-Path $claudeDir "CLAUDE.md")) {
     Write-Host "OK installed ~/.claude/CLAUDE.md"
     foreach ($imp in @("AGENTS.md", "MIDOFFICE.md", "pstack-models.md")) {
@@ -76,11 +78,12 @@ if ($skillCount -ne $pkgSkills) { Write-Host "FAIL: managed Claude skills instal
 else { Write-Host "OK managed Claude skills installed: $skillCount" }
 if ($agentCount -lt $pkgAgents) { Write-Host "FAIL: agents installed $agentCount < package $pkgAgents - re-run install-harness.ps1"; $ok = $false }
 else { Write-Host "OK agents installed: $agentCount (package: $pkgAgents)" }
+}
 
 # Installed Codex PM bridge must resolve the real desktop CLI and its routing contract without network access.
 $codexBridge = Join-Path $claudeDir "skills\codex-bridge\scripts\run_codex_subagent.ps1"
-if ($Target -eq "Claude") {
-    Write-Host "SKIP Codex PM bridge (Claude-only install; use -Target All to check Codex)"
+if (-not $CheckCodexBridge) {
+    Write-Host "SKIP optional legacy Codex PM bridge (use -CheckCodexBridge only if configured)"
 } elseif (Test-Path -LiteralPath $codexBridge) {
     $bridgeResult = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $codexBridge -Role pm -Prompt "healthcheck" -Cwd $root -ResolveOnly 2>&1
     $bridgeText = $bridgeResult -join "`n"
