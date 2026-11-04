@@ -46,7 +46,7 @@ const PROTECTED_PATH = [
 // for one of these devices, with a 64-hex fingerprint and an enrollment file for that device that arrived in the
 // last 10 minutes. Anything else (other devices, chaining, redirects) still needs a card.
 const SELF_PAIR_DEVICES = new Set(['userB', 'userC', 'userD', 'pcmgr', 'userF']);
-const SELF_PAIR = /^(?:cd \/d "D:\\TAS\\Claude Code專案\\Harness優化\\gemma-offline\\agent-channel\\rag1" && )?powershell -NoProfile -ExecutionPolicy Bypass -File Controller-RAG1\.ps1 -Command pair -Config ([a-z0-9]+) -ReleaseDir release-rag1d-\1 -File "C:\\Users\\demo\\\.cloudcli\\assets\\(\d+-\d+-\1-agent-enrollment\.cms\.b64\.txt)" -Fingerprint [0-9A-Fa-f]{64}$/;
+const SELF_PAIR = /^(?:cd \/d "D:\\TAS\\Claude Code專案\\Harness優化\\gemma-offline\\agent-channel\\rag1" && )?powershell -NoProfile -ExecutionPolicy Bypass -File Controller-RAG1\.ps1 -Command pair -Config ([A-Za-z0-9]+) -ReleaseDir release-rag1d-\1 -File "C:\\Users\\demo\\\.cloudcli\\assets\\(\d+-\d+-\1-agent-enrollment\.cms\.b64\.txt)" -Fingerprint [0-9A-Fa-f]{64}$/;
 function selfPairOk(command) {
   const m = SELF_PAIR.exec(command.trim());
   if (!m || !SELF_PAIR_DEVICES.has(m[1])) return false;
