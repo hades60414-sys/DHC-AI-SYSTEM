@@ -650,7 +650,7 @@ export default function PlanBoardWindow({ profileId, profileName, legacyProjectI
             aria-label="選擇白板"
             value={activeId ?? ''}
             onChange={(event) => setActiveId(event.target.value)}
-            className="min-w-0 max-w-[14rem] rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
+            className="min-w-0 max-w-56 rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground"
           >
             {boards.map((board) => <option key={board.id} value={board.id}>{board.name}</option>)}
           </select>
@@ -708,7 +708,7 @@ export default function PlanBoardWindow({ profileId, profileName, legacyProjectI
           轉成專案板
         </button>
         {importNote && (
-          <button type="button" onClick={() => setImportNote('')} title="按一下關掉" className="max-w-[24rem] truncate text-xs text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={() => setImportNote('')} title="按一下關掉" className="max-w-96 truncate text-xs text-muted-foreground hover:text-foreground">
             {importNote}
           </button>
         )}

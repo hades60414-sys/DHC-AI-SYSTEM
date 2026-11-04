@@ -110,7 +110,12 @@ test('Agent route rejects GitHub lookalike hosts before cloning', async () => {
   });
 });
 
-test('GitHub cloning keeps credentials out of arguments and remote URL', async () => {
+test('GitHub cloning keeps credentials out of arguments and remote URL', async (t) => {
+  // The clone path logs progress with console.log. Under the node:test process runner
+  // that raw stdout shares the pipe with the serialized test-event stream, and it
+  // intermittently made the parent fail with "Unable to deserialize cloned data".
+  // Silencing it keeps the file stable without touching the route.
+  t.mock.method(console, 'log', () => {});
   const token = 'secret-token';
   let cloneArgs: readonly string[] = [];
   let cloneEnvironment: NodeJS.ProcessEnv | undefined;
@@ -157,7 +162,12 @@ test('GitHub cloning keeps credentials out of arguments and remote URL', async (
   assert.equal(cloneEnvironment?.GIT_CONFIG_KEY_1, 'credential.helper');
 });
 
-test('Agent route reuses a matching checkout without cloning or deleting it', async () => {
+test('Agent route reuses a matching checkout without cloning or deleting it', async (t) => {
+  // The clone path logs progress with console.log. Under the node:test process runner
+  // that raw stdout shares the pipe with the serialized test-event stream, and it
+  // intermittently made the parent fail with "Unable to deserialize cloned data".
+  // Silencing it keeps the file stable without touching the route.
+  t.mock.method(console, 'log', () => {});
   const spawnedArguments: string[][] = [];
   const removedPaths: string[] = [];
   const spawnProcess = ((_command: string, args: readonly string[]) => {

@@ -1,11 +1,8 @@
-import { useProjectCommandState } from '@/modules/project-workspace';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-// DHC CLI D1: the one-click "review what you just changed" prompt (logic, numbers, safety — not style).
-const REVIEW_OWN_CHANGES_PROMPT = '請審查你在這個 session 到目前為止改過的所有檔案（用 git diff 或你自己的修改紀錄找出來）。只找三類問題：邏輯錯誤、數字或計算錯誤、安全與資料風險（例如會覆蓋或刪除資料、少了防呆）。不要管程式風格與命名。每個問題列出檔案、行號、一句話說明、建議修法；確定沒有問題就明說沒有，不要硬找。';
 import { useTranslation } from 'react-i18next';
 import { ArrowDownIcon } from 'lucide-react';
 
+import { useProjectCommandState } from '@/modules/project-workspace';
 import { useTasksSettings } from '@/modules/task-master';
 import { useWebSocket } from '@/shared/context/WebSocketContext';
 import PermissionContext from '@/modules/chat/context/PermissionContext';
@@ -44,6 +41,9 @@ import {
 import ChatMessagesPane from '@/modules/chat/transcript/ChatMessagesPane';
 import ChatComposer from '@/modules/chat/composer/ChatComposer';
 import CommandResultModal from '@/modules/chat/modals/CommandResultModal';
+
+// DHC CLI D1: the one-click "review what you just changed" prompt (logic, numbers, safety — not style).
+const REVIEW_OWN_CHANGES_PROMPT = '請審查你在這個 session 到目前為止改過的所有檔案（用 git diff 或你自己的修改紀錄找出來）。只找三類問題：邏輯錯誤、數字或計算錯誤、安全與資料風險（例如會覆蓋或刪除資料、少了防呆）。不要管程式風格與命名。每個問題列出檔案、行號、一句話說明、建議修法；確定沒有問題就明說沒有，不要硬找。';
 
 type ChatInterfaceProps = {
   isActive: boolean;

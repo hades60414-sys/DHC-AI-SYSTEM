@@ -626,7 +626,7 @@ function SidebarSessionItem({
                   // Zero-wide at rest (the negative margin cancels the row gap), grows in on hover.
                   <span
                     data-testid="row-hover-lead"
-                    className="-mr-2 flex max-w-0 flex-shrink-0 items-center gap-1 overflow-hidden opacity-0 transition-all duration-200 ease-out group-hover:mr-0 group-hover:max-w-[3rem] group-hover:opacity-100 group-hover:duration-[400ms] group-hover:ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none group-hover:delay-[60ms]"
+                    className="-mr-2 flex max-w-0 flex-shrink-0 items-center gap-1 overflow-hidden opacity-0 transition-all duration-200 ease-out group-hover:mr-0 group-hover:max-w-12 group-hover:opacity-100 group-hover:delay-[60ms] group-hover:duration-[400ms] group-hover:ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
                   >
                     {!isPinned && renderStar(false)}
                     {!isMuted && renderMuteBell(false)}
@@ -670,7 +670,7 @@ function SidebarSessionItem({
                 {!isEditing && compactSessionAge && (
                   <span
                     data-testid="row-hover-age"
-                    className="-ml-2 max-w-0 flex-shrink-0 overflow-hidden whitespace-nowrap text-[11px] text-muted-foreground opacity-0 transition-all duration-200 ease-out group-hover:ml-0 group-hover:max-w-[4rem] group-hover:opacity-100 group-hover:duration-[400ms] group-hover:ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none group-hover:delay-[60ms]"
+                    className="-ml-2 max-w-0 flex-shrink-0 overflow-hidden whitespace-nowrap text-[11px] text-muted-foreground opacity-0 transition-all duration-200 ease-out group-hover:ml-0 group-hover:max-w-16 group-hover:opacity-100 group-hover:delay-[60ms] group-hover:duration-[400ms] group-hover:ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
                   >
                     {compactSessionAge}
                   </span>

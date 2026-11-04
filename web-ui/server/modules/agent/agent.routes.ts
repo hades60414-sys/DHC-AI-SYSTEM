@@ -335,99 +335,103 @@ export function createAgentRouter(dependencies: AgentRouterDependencies): expres
    * @returns {Promise<{path: string, created: boolean}>} - Checkout path and ownership flag
    */
   async function cloneGitHubRepo(githubUrl, githubToken = null, projectPath) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        // Validate the host before using credentials or invoking Git.
-        let parsedGithubUrl;
+    return new Promise((resolve, reject) => {
+      // Keep the executor synchronous; the async work runs in an IIFE whose
+      // try/catch forwards every failure to reject().
+      void (async () => {
         try {
-          parsedGithubUrl = new URL(githubUrl);
-        } catch {
-          throw new Error('Invalid GitHub URL');
-        }
-        if (
-          parsedGithubUrl.protocol !== 'https:'
-          || parsedGithubUrl.hostname !== 'github.com'
-          || parsedGithubUrl.username
-          || parsedGithubUrl.password
-        ) {
-          throw new Error('Invalid GitHub URL');
-        }
-        const cloneUrl = parsedGithubUrl.toString();
-
-        const cloneDir = path.resolve(projectPath);
-
-        // Check if directory already exists
-        try {
-          await fs.access(cloneDir);
-          // Directory exists - check if it's a git repo with the same URL
+          // Validate the host before using credentials or invoking Git.
+          let parsedGithubUrl;
           try {
-            const existingUrl = await getGitRemoteUrl(cloneDir);
-            const normalizedExisting = normalizeGitHubUrl(existingUrl);
-            const normalizedRequested = normalizeGitHubUrl(cloneUrl);
+            parsedGithubUrl = new URL(githubUrl);
+          } catch {
+            throw new Error('Invalid GitHub URL');
+          }
+          if (
+            parsedGithubUrl.protocol !== 'https:'
+            || parsedGithubUrl.hostname !== 'github.com'
+            || parsedGithubUrl.username
+            || parsedGithubUrl.password
+          ) {
+            throw new Error('Invalid GitHub URL');
+          }
+          const cloneUrl = parsedGithubUrl.toString();
 
-            if (normalizedExisting === normalizedRequested) {
-              console.log('✅ Repository already exists at path with correct URL');
-              return resolve({ path: cloneDir, created: false });
-            } else {
-              throw new Error(`Directory ${cloneDir} already exists with a different repository (${existingUrl}). Expected: ${githubUrl}`);
+          const cloneDir = path.resolve(projectPath);
+
+          // Check if directory already exists
+          try {
+            await fs.access(cloneDir);
+            // Directory exists - check if it's a git repo with the same URL
+            try {
+              const existingUrl = await getGitRemoteUrl(cloneDir);
+              const normalizedExisting = normalizeGitHubUrl(existingUrl);
+              const normalizedRequested = normalizeGitHubUrl(cloneUrl);
+
+              if (normalizedExisting === normalizedRequested) {
+                console.log('✅ Repository already exists at path with correct URL');
+                return resolve({ path: cloneDir, created: false });
+              } else {
+                throw new Error(`Directory ${cloneDir} already exists with a different repository (${existingUrl}). Expected: ${githubUrl}`);
+              }
+            } catch (gitError) {
+              throw new Error(`Directory ${cloneDir} already exists but is not a valid git repository or git command failed`);
             }
-          } catch (gitError) {
-            throw new Error(`Directory ${cloneDir} already exists but is not a valid git repository or git command failed`);
+          } catch (accessError) {
+            // Directory doesn't exist - proceed with clone
           }
-        } catch (accessError) {
-          // Directory doesn't exist - proceed with clone
+
+          // Ensure parent directory exists
+          await fs.mkdir(path.dirname(cloneDir), { recursive: true });
+
+          console.log('🔄 Cloning repository:', githubUrl);
+          console.log('📁 Destination:', cloneDir);
+
+          // Execute git clone
+          const gitEnvironment = githubToken ? {
+            ...process.env,
+            GIT_CONFIG_COUNT: '2',
+            GIT_CONFIG_KEY_0: 'credential.helper',
+            GIT_CONFIG_VALUE_0: '',
+            GIT_CONFIG_KEY_1: 'credential.helper',
+            GIT_CONFIG_VALUE_1: '!f() { echo username=x-access-token; echo "password=$CLOUDCLI_GITHUB_TOKEN"; }; f',
+            CLOUDCLI_GITHUB_TOKEN: githubToken,
+            GIT_TERMINAL_PROMPT: '0'
+          } : process.env;
+          const gitProcess = spawn('git', ['clone', '--depth', '1', '--', cloneUrl, cloneDir], {
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: gitEnvironment
+          });
+
+          let stdout = '';
+          let stderr = '';
+
+          gitProcess.stdout.on('data', (data) => {
+            stdout += data.toString();
+          });
+
+          gitProcess.stderr.on('data', (data) => {
+            stderr += data.toString();
+            console.log('Git stderr:', data.toString());
+          });
+
+          gitProcess.on('close', (code) => {
+            if (code === 0) {
+              console.log('✅ Repository cloned successfully');
+              resolve({ path: cloneDir, created: true });
+            } else {
+              console.error('❌ Git clone failed:', stderr);
+              reject(new Error(`Git clone failed: ${stderr}`));
+            }
+          });
+
+          gitProcess.on('error', (error) => {
+            reject(new Error(`Failed to execute git: ${error.message}`));
+          });
+        } catch (error) {
+          reject(error);
         }
-
-        // Ensure parent directory exists
-        await fs.mkdir(path.dirname(cloneDir), { recursive: true });
-
-        console.log('🔄 Cloning repository:', githubUrl);
-        console.log('📁 Destination:', cloneDir);
-
-        // Execute git clone
-        const gitEnvironment = githubToken ? {
-          ...process.env,
-          GIT_CONFIG_COUNT: '2',
-          GIT_CONFIG_KEY_0: 'credential.helper',
-          GIT_CONFIG_VALUE_0: '',
-          GIT_CONFIG_KEY_1: 'credential.helper',
-          GIT_CONFIG_VALUE_1: '!f() { echo username=x-access-token; echo "password=$CLOUDCLI_GITHUB_TOKEN"; }; f',
-          CLOUDCLI_GITHUB_TOKEN: githubToken,
-          GIT_TERMINAL_PROMPT: '0'
-        } : process.env;
-        const gitProcess = spawn('git', ['clone', '--depth', '1', '--', cloneUrl, cloneDir], {
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: gitEnvironment
-        });
-
-        let stdout = '';
-        let stderr = '';
-
-        gitProcess.stdout.on('data', (data) => {
-          stdout += data.toString();
-        });
-
-        gitProcess.stderr.on('data', (data) => {
-          stderr += data.toString();
-          console.log('Git stderr:', data.toString());
-        });
-
-        gitProcess.on('close', (code) => {
-          if (code === 0) {
-            console.log('✅ Repository cloned successfully');
-            resolve({ path: cloneDir, created: true });
-          } else {
-            console.error('❌ Git clone failed:', stderr);
-            reject(new Error(`Git clone failed: ${stderr}`));
-          }
-        });
-
-        gitProcess.on('error', (error) => {
-          reject(new Error(`Failed to execute git: ${error.message}`));
-        });
-      } catch (error) {
-        reject(error);
-      }
+      })();
     });
   }
 

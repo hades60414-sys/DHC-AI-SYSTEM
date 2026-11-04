@@ -818,7 +818,7 @@ export default function ProjectBoard({ profileId, profileName, projectId, isMobi
             從待辦匯入
           </button>
           {note && (
-            <button type="button" onClick={() => setNote('')} title="按一下關掉" className="min-w-0 max-w-[20rem] truncate text-xs text-muted-foreground hover:text-foreground">
+            <button type="button" onClick={() => setNote('')} title="按一下關掉" className="min-w-0 max-w-80 truncate text-xs text-muted-foreground hover:text-foreground">
               {note}
             </button>
           )}

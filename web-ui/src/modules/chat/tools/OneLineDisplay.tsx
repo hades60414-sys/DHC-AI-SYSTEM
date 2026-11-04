@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { splitPathForDisplay } from '@/modules/chat/utils/pathDisplay';
 
+import { splitPathForDisplay } from '@/modules/chat/utils/pathDisplay';
 import { copyTextToClipboard } from '@/shared/utils';
 import { ToolStatusBadge } from '@/modules/chat/tools/ToolStatusBadge';
 import type { ToolStatus } from '@/shared/types';

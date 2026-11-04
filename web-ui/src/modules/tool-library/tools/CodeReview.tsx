@@ -217,7 +217,7 @@ function DiffPanes({ reviewId, language, before, after, findings, onBefore, onAf
         <span className="px-3 py-1">舊版（貼在左邊）</span>
         <span className="border-l border-border px-3 py-1">新版（貼在右邊）</span>
       </div>
-      <div ref={host} data-testid="diff-panes" className="min-h-0 flex-1 overflow-hidden [&_.cm-mergeView]:h-full [&_.cm-mergeViewEditors]:min-h-full [&_.cm-mergeViewEditor>.cm-editor]:min-h-full" />
+      <div ref={host} data-testid="diff-panes" className="min-h-0 flex-1 overflow-hidden [&_.cm-mergeViewEditor>.cm-editor]:min-h-full [&_.cm-mergeViewEditors]:min-h-full [&_.cm-mergeView]:h-full" />
     </div>
   );
 }

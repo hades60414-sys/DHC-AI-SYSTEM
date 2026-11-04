@@ -39,7 +39,7 @@ export default function CoWorkLogRow({ entry, jumpAnchor }: { entry: CoLogEntry;
               </>
             ) : ' 退出了 Co-Work'}
           </span>
-          {time && <time className="shrink-0 tabular-nums text-[11px]" dateTime={entry.at}>{time}</time>}
+          {time && <time className="shrink-0 text-[11px] tabular-nums" dateTime={entry.at}>{time}</time>}
         </div>
         {entry.message && (
           <p className="mt-1.5 whitespace-pre-wrap break-words rounded-md bg-background/70 px-2.5 py-1.5 text-[13px] leading-5 text-foreground">

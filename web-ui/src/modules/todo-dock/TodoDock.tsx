@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { ChevronLeft, LayoutGrid, ListTodo } from 'lucide-react';
-import { useIsTeamMode } from '@/shared/dhcConfig';
 
+import { useIsTeamMode } from '@/shared/dhcConfig';
 import { isQueryProject, isWorkspaceProject } from '@/modules/sidebar';
 import EisenhowerMatrix from '@/modules/todo-dock/EisenhowerMatrix';
 import TodayTodoList from '@/modules/todo-dock/TodayTodoList';

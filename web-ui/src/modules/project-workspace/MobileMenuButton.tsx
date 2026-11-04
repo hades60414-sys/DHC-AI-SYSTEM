@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+
 import { useMobileMenuHandlers } from '@/modules/project-workspace/hooks/useMobileMenuHandlers';
 
 type MobileMenuButtonProps = {

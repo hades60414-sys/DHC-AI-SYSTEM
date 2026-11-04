@@ -247,7 +247,7 @@ export default function DocEditor({ profileId, profileName, isMobile, onClose, o
           <button type="button" onClick={removeDoc} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-destructive" title="刪除這份文件" aria-label="刪除這份文件"><Trash2 className="h-4 w-4" /></button>
           <SendMenu items={[{ label: '做成簡報', disabled: !active.markdown.trim(), onPick: () => { void saver.flush(); sendToTool(docToDeckHandoff(active.title, active.markdown)); } }]} />
           {notice && <span className="shrink-0 text-xs text-destructive">{notice}</span>}
-          {handoffNote && <button type="button" onClick={() => setHandoffNote('')} title="按一下關掉" className="max-w-[24rem] shrink-0 truncate text-xs text-muted-foreground hover:text-foreground">{handoffNote}</button>}
+          {handoffNote && <button type="button" onClick={() => setHandoffNote('')} title="按一下關掉" className="max-w-96 shrink-0 truncate text-xs text-muted-foreground hover:text-foreground">{handoffNote}</button>}
         </>
       )}
       importer={{ accept: '.md,.txt,.docx', hint: '匯入 Markdown、文字檔或 Word（.docx）', onFiles: importFiles }}

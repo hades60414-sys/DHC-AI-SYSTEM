@@ -1,5 +1,4 @@
 import { PrismLight } from 'react-syntax-highlighter';
-
 import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash';
 import batch from 'react-syntax-highlighter/dist/esm/languages/prism/batch';
 import c from 'react-syntax-highlighter/dist/esm/languages/prism/c';
