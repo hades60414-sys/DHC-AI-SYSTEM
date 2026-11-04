@@ -1,9 +1,9 @@
-// D rehearsal: ragent_doc_retrieve through the real encrypted channel against the rehearsal agent (rag1r + D release).
+// D rehearsal: ragent_doc_retrieve through the real encrypted channel against the rehearsal agent (srv-rag-rehearsal + D release).
 // Usage: node d-smoke.cjs <index> <question> [query]
 const { spawn } = require("child_process"), path = require("path");
 const [index, question, query] = process.argv.slice(2);
-const env = { ...process.env, RAGENT_AGENT: "rag1r", RAGENT_LABEL: "RAG1", RAGENT_MINOR: "1", RAGENT_RETRIEVE: "1", RAGENT_CONTROLLER: path.join(__dirname, "Controller-RAG1.ps1"),
-  RAGENT_CTL_ARGS: "-Config rag1r -ReleaseDir release-rag1d-rag1r", RAGENT_STATE_DIR: path.join(__dirname, "controller-state-rag1r") };
+const env = { ...process.env, RAGENT_AGENT: "srv-rag-rehearsal", RAGENT_LABEL: "RAG1", RAGENT_MINOR: "1", RAGENT_RETRIEVE: "1", RAGENT_CONTROLLER: path.join(__dirname, "Controller-RAG1.ps1"),
+  RAGENT_CTL_ARGS: "-Config srv-rag-rehearsal -ReleaseDir release-rag1d-srv-rag-rehearsal", RAGENT_STATE_DIR: path.join(__dirname, "controller-state-srv-rag-rehearsal") };
 const srv = spawn(process.execPath, [path.join(__dirname, "..", "mcp", "ragent-mcp.cjs")], { stdio: ["pipe", "pipe", "pipe"], env });
 let buf = "", id = 0; const waiting = new Map();
 srv.stdout.setEncoding("utf8");

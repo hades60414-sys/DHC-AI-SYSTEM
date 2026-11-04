@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$Version, [ValidateSet('rag1','rag1r','pcmgr','pcmain','userD','userF','userB','userC','userE','userA','pc55','pc18','pcmainb')][string]$Config = 'rag1r', [string]$AssetName)
+param([Parameter(Mandatory=$true)][string]$Version, [ValidateSet('rag1','srv-rag-rehearsal','pc-mgr','srv-main','userD','userF','userB','userC','userE','userA','srv-ws1','srv-ws2','srv-main-b')][string]$Config = 'srv-rag-rehearsal', [string]$AssetName)
 $ErrorActionPreference = 'Stop'
 # Rehearsal helper: build srcD with a temporary AgentVersion, pack the kit, optionally publish the raw zip, then restore the version.
 $j = $PSScriptRoot; $file = Join-Path $j 'srcD\Channel.cs'

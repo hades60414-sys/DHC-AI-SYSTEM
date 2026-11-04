@@ -1,8 +1,8 @@
 // Drive ragent-mcp.cjs configured for a RAG1 deployment through status -> health -> doc_index -> doc_list -> doc_qa.
-// Usage: node mcp-smoke.cjs <rag1|rag1r> <docs-folder> [index]
+// Usage: node mcp-smoke.cjs <rag1|srv-rag-rehearsal> <docs-folder> [index]
 const { spawn } = require("child_process"), path = require("path");
-const [cfg = "rag1r", folder, index = "smoke", question = "VaR 限額怎麼算？"] = process.argv.slice(2);
-if (!folder) throw new Error("usage: node mcp-smoke.cjs <rag1|rag1r> <docs-folder> [index]");
+const [cfg = "srv-rag-rehearsal", folder, index = "smoke", question = "VaR 限額怎麼算？"] = process.argv.slice(2);
+if (!folder) throw new Error("usage: node mcp-smoke.cjs <rag1|srv-rag-rehearsal> <docs-folder> [index]");
 const env = { ...process.env, RAGENT_AGENT: cfg, RAGENT_LABEL: "RAG1", RAGENT_MINOR: "1", RAGENT_CONTROLLER: path.join(__dirname, "Controller-RAG1.ps1"), RAGENT_CTL_ARGS: "-Config " + cfg, RAGENT_STATE_DIR: path.join(__dirname, "controller-state-" + cfg) };
 const srv = spawn(process.execPath, [path.join(__dirname, "..", "mcp", "ragent-mcp.cjs")], { stdio: ["pipe", "pipe", "pipe"], env });
 let buf = "", id = 0; const waiting = new Map();

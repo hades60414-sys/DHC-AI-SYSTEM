@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory=$true)][ValidateSet('init','pair','submit','receive','status','publish-inbox','heartbeat')][string]$Command,
-    [ValidateSet('rag1','rag1r','pcmgr','pcmain','userD','userF','userB','userC','userE','userA','pc55','pc18','pcmainb')][string]$Config = 'rag1',
+    [ValidateSet('rag1','srv-rag-rehearsal','pc-mgr','srv-main','userD','userF','userB','userC','userE','userA','srv-ws1','srv-ws2','srv-main-b')][string]$Config = 'rag1',
     [string]$File,
     [string]$Fingerprint,
     [ValidateSet('health','model-info','gemma-smoke','reason','reason-json','fixture-roundtrip','fixture-break','file-info','list-dir','file-hash','doc-qa','doc-retrieve','doc-index','doc-list','doc-export','self-update','cmd-run','secret-set','stop')][string]$Action,

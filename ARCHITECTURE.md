@@ -43,7 +43,7 @@
 - .NET Framework 單一執行檔（`Channel.cs` 等），PowerShell 控制端（`Controller-V35.ps1`、`rag1/Controller-RAG1.ps1`），Node MCP server（`mcp/ragent-mcp.cjs`）。
 - 工作單由控制端簽章並加密給已配對的裝置憑證；回報由裝置簽章加密回來。序號單調遞增、15 分鐘過期、一次只有一張在跑、執行前先落地 `RUNNING`，重開不重放。
 - 動作是白名單：唯讀 SQL 用結構化 JSON（不收 SQL 文字）、文件問答（本地模型作答＋逐字核對出處）、受限 CMD（擋格式化、關機、刪系統資料夾、改帳號）、`aiw_` 開頭的搬遷沙盒、驗雜湊的自我更新。
-- 每台主機一份設定（`userA`～`userF`、`pcmain`、`pcmgr` 等），MCP 名稱即主機名。
+- 每台主機一份設定（`userA`～`userF`、`srv-main`、`pc-mgr` 等），MCP 名稱即主機名。
 
 ### 4. 工具（`tools/`）
 - `action_gate/`：只看代理當下看得到的資訊，判斷一個提案動作「放行」或「停下等人」。附三輪對抗測試（全新子代理找漏洞）的探針與回歸題。

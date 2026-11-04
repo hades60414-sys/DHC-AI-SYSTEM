@@ -15,10 +15,10 @@ const pendingPath = (token) => path.join(PENDING, keyOf(token) + '.json');
 const log = (line) => fs.appendFileSync(path.join(DIR, 'secure-input.log'), `${new Date().toISOString()}\t${line}\n`, 'utf8');
 module.exports = { DIR, PENDING, DONE, TTL_MS, NAME_RE, TOKEN_RE, frontUrl, USER_PROJECT, keyOf, pendingPath, log };
 // 2026-10-29 安全審查：
-// - 不能存到 AI 自己所在的主機（srv-main＝pcmain）：那台的使用者環境變數 AI 直接讀得到，遮蔽只管代理程式的輸出。測試才用 SECURE_INPUT_ALLOW_HOST=1。
+// - 不能存到 AI 自己所在的主機（srv-main）：那台的使用者環境變數 AI 直接讀得到，遮蔽只管代理程式的輸出。測試才用 SECURE_INPUT_ALLOW_HOST=1。
 // - 別的工具在用的變數名（CLAUDE_、GH_、NPM_、RAGENT_…）不能存，免得換掉 AI 或工具的登入。
 // - 遮蔽是比對原文：值只收可列印 ASCII；要遮蔽的至少 6 字（4 位數可用逐一 echo 試出來）。
-const HOST_MACHINES = ['pcmain'];
+const HOST_MACHINES = ['srv-main'];
 const TOOL_RE = /^(CLAUDE|ANTHROPIC|OPENAI|GH|GITHUB|GIT|NODE|NPM|HF|HUGGINGFACE|AWS|AZURE|GOOGLE|CLOUDFLARE|CF|RAGENT|TASUI)_/i;
 const minChars = (name) => (/_USER$/.test(name) ? 2 : 6);
 const valueProblem = (name, v) => (v.length < minChars(name) || v.length > 512 || /[^\x20-\x7e]/.test(v)) ? `要 ${minChars(name)}–512 個英數或符號（不收中文、空白以外的特殊字元與換行）` : null;

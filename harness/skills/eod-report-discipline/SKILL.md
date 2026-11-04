@@ -5,7 +5,7 @@ description: EOD/日常監控報表產出紀律(證券自營中台)。當使用�
 
 # eod-report-discipline — EOD 報表紀律
 
-遵守常駐紅線 `MIDOFFICE.md`(數字附 lineage、AI 不代簽核;安裝後位於 `~/.claude/MIDOFFICE.md`)。研究依據:套件 `docs/midoffice-research-raw.json`(OCC Volcker metrics、兆豐證陳報頻率實例、exception 管理實務;僅存於套件)。與 `[[pnl-recon]]` 分工:它管調節與排查過程,本 skill 管**產出報表的格式紀律**。
+遵守常駐紅線 `MIDOFFICE.md`(數字附 lineage、AI 不代簽核;安裝後位於 `~/.claude/MIDOFFICE.md`)。研究依據:套件 `docs/midoffice-research-raw.json`(OCC Volcker metrics、某券商公開資料的陳報頻率實例、exception 管理實務;僅存於套件)。與 `[[pnl-recon]]` 分工:它管調節與排查過程,本 skill 管**產出報表的格式紀律**。
 
 ## 1. daily pack 骨架(Volcker 官方 5 項 + 中台自訂 2 項,按公司實際持有品裁剪)
 
@@ -27,7 +27,7 @@ description: EOD/日常監控報表產出紀律(證券自營中台)。當使用�
 
 - **exception-based**:首頁只放紅綠燈摘要 + 異常清單;全量明細進附錄。沒人讀的全量表不是報告。
 - **狀態行開頭**:`日期 | 紅 x 黃 y | 未解 breaks N(最老 D 天)| 距申報 cutoff T`。
-- **固定格式、固定收件人、固定頻率**,依公司陳報規定(分層示例——日報→高層、週報→風管、季報→董事會、異常即時——取自兆豐證券公開揭露,僅供參考)。日終彙總**必產出**——「今日無超限」也要出,無事本身是需要留痕的控制證據。
+- **固定格式、固定收件人、固定頻率**,依公司陳報規定(分層示例——日報→高層、週報→風管、季報→董事會、異常即時——取自某券商公開資料,僅供參考)。日終彙總**必產出**——「今日無超限」也要出,無事本身是需要留痕的控制證據。
 - 涉及月度申報時點(如月計表、資本適足申報在次月 10 日前)提前列入狀態行倒數。
 
 ## 3. 數字驗證鏈(每個數字可回溯)

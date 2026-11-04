@@ -133,12 +133,13 @@ const GENERIC_RULES = [
     check: (_line, m) => !/^10\\+\.255\\+\.0/.test(m[0]),
   },
   {
-    // Host suffixes listed as alternatives, e.g. \.(41|192|56) — names hosts as surely as ".41" does.
+    // Host suffixes listed as alternatives, e.g. \.(<srv-src>|<srv-db>|<srv-db2>) written as 2-3 digit
+    // last octets — names hosts as surely as a single ".<srv-src>" suffix does.
     name: 'host-code-group',
     re: /\\\.\((?:\d{2,3}\|)+\d{2,3}\)/g,
   },
   {
-    // Host shorthand such as ".41" or ".120": a dot with 2-3 digits that is not
+    // Host shorthand such as ".<srv-src>" or ".<srv-db>" (a 2-3 digit last octet): a dot with 2-3 digits that is not
     // part of a version number / decimal and not followed by a unit or word.
     name: 'host-code',
     re: /(?<![\w.\])])\.(\d{2,3})(?![\w.%])/g,

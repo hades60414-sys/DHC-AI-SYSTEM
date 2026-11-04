@@ -1,8 +1,8 @@
 // Drive ragent_self_update through the MCP server for a RAG1 deployment, then poll health until the version changes.
-// Usage: node update-smoke.cjs <rag1|rag1r> <kit-file.zip> <sha256> [expected-version-substring]
+// Usage: node update-smoke.cjs <rag1|srv-rag-rehearsal> <kit-file.zip> <sha256> [expected-version-substring]
 const { spawn } = require("child_process"), path = require("path");
 const [cfg, file, sha, expect] = process.argv.slice(2);
-if (!sha) throw new Error("usage: node update-smoke.cjs <rag1|rag1r> <kit-file.zip> <sha256> [expected-version]");
+if (!sha) throw new Error("usage: node update-smoke.cjs <rag1|srv-rag-rehearsal> <kit-file.zip> <sha256> [expected-version]");
 const env = { ...process.env, RAGENT_AGENT: cfg, RAGENT_LABEL: "RAG1", RAGENT_MINOR: "1", RAGENT_UPDATE: "1", RAGENT_RETRIEVE: "1",
   RAGENT_CONTROLLER: path.join(__dirname, "Controller-RAG1.ps1"), RAGENT_CTL_ARGS: `-Config ${cfg} -ReleaseDir release-rag1d-${cfg}`, RAGENT_STATE_DIR: path.join(__dirname, "controller-state-" + cfg) };
 const srv = spawn(process.execPath, [path.join(__dirname, "..", "mcp", "ragent-mcp.cjs")], { stdio: ["pipe", "pipe", "pipe"], env });

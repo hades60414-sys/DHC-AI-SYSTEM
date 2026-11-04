@@ -8,7 +8,7 @@
    ```
    D:\TAS\node\node.exe D:\TAS\ai-tools\approvals\ask.cjs --machine rag1 --cmd-file <指令檔> --why "<為什麼>" --rollback "<怎麼回退>" [--timeout 600]
    ```
-   - `--machine`：`.mcp.json` 的伺服器名稱，例如 ragent（srv-db）、rag1（srv-rag）、pcmain、pcmgr、userB、userD、userE、userC、userF、userA；那台要開 ragent_cmd。
+   - `--machine`：`.mcp.json` 的伺服器名稱，例如 ragent（srv-db）、rag1（srv-rag）、srv-main、pc-mgr、userB、userD、userE、userC、userF、userA；那台要開 ragent_cmd。
    - 指令只能是一行 CMD。要跑 SQL 檔：先用一般的 ragent_cmd 把檔案寫到那台（寫新檔不用核准），核准單裡只放 `sqlcmd ... -i <檔>`。
    - 回退方法要具體（備份表名、還原指令）；沒有回退就照實寫「無法回退」。
 
