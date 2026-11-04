@@ -1,5 +1,5 @@
 // 正反例表：node mods/dhc-guard/tests/rules-table.mjs（只比對字串，不執行任何指令）
-import { findLocalPython, findRisky, isConfirm, commandHash } from '../hooks/rules.js'
+import { findLocalPython, findRisky, isConfirm, commandHash, inputText } from '../hooks/rules.js'
 
 const PY_BLOCK = [
   'python -c "print(1)"', 'pythonw x.py', 'py -3 x.py', 'C:\\Python312\\python.exe x.py',
@@ -28,6 +28,11 @@ const RISKY_BLOCK = [
   'git checkout -- .', 'git checkout .', 'robocopy a b /MIR', 'robocopy a b /mir /R:1', 'DELETE dbo.Pos',
   'delete t', 'sqlcmd -Q "DELETE t"', 'UPDATE t SET x=1', 'update dbo.Pos set qty=0', 'DROP/**/TABLE t',
   'DELETE FROM t -- WHERE id=1', 'UPDATE t SET x=1 /* WHERE id=1 */', 'DELETE TOP (10) FROM t',
+  // 繞寫（20261105）：引號／跳脫、git 全域選項、旗標順序、WHERE 在字串或子查詢裡
+  '"rm" -rf x', "r''m -rf x", 'r\\m -rf x', '$(echo rm) -rf x', 'rm --force --recursive x',
+  'git -C . push --force', 'git -c x=y reset --hard', 'git push -uf origin main', 'git reset HEAD --hard',
+  'git reset -q --hard', 'git clean -d -f', 'git clean --force', 'rd/s/q x', 'TRUNCATE t',
+  "UPDATE t SET a='WHERE'", 'UPDATE t SET a = (SELECT 1 WHERE 1=1)', 'UPDATE `t` SET a=1', "UPDATE 't' SET a=1",
 ]
 const RISKY_ALLOW = [
   'rm a.txt', 'git push origin main', 'git reset HEAD', 'DELETE FROM t WHERE id=1', 'SELECT * FROM t', 'Remove-Item a.txt',
@@ -36,6 +41,8 @@ const RISKY_ALLOW = [
   'echo "delete me"', 'curl -X DELETE https://api.example/x', 'Get-ChildItem -Recurse', 'dir /s', 'findstr /s foo *.txt',
   'git log --oneline; sqlcmd -Q "DELETE FROM t WHERE id=1"', 'Remove-Item x -Force', 'git diff -- .',
   'DELETE FROM t WHERE a = 1 -- note',
+  'git push origin feature-fix', 'git push --follow-tags', 'git push -u origin main', 'rm -f a.txt', 'git -C sub status',
+  'UPDATE t SET a=(SELECT 1) WHERE id=1', "UPDATE t SET a='x' WHERE id=1", 'echo truncate', 'git clean -n',
 ]
 
 let fail = 0
@@ -61,6 +68,10 @@ console.log('確認字整句比對: ' + cok + '/' + conf.length)
 const h1 = await commandHash('Bash', 'rm -rf build'), h2 = await commandHash('Bash', 'rm -rf build '), h3 = await commandHash('PowerShell', 'rm -rf build')
 if (h1 === (await commandHash('Bash', 'rm -rf build')) && h1 !== h2 && h1 !== h3 && h1.length === 64) console.log('雜湊: ok')
 else { fail++; console.log('  FAIL [hash]') }
+
+// MCP 參數包在物件裡也要查得到
+if (findRisky(inputText({ tool: 'mcp__x__ragent_sql', args: { sql: 'DROP TABLE t' } }))) console.log('巢狀 MCP 參數: ok')
+else { fail++; console.log('  FAIL [nested mcp]') }
 
 console.log(fail ? 'FAILED ' + fail : 'ALL PASS')
 process.exit(fail ? 1 : 0)
