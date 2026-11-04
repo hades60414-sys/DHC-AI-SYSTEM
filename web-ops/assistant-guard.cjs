@@ -31,7 +31,21 @@ const RISKY_COMMAND = [
   /Controller-RAG1\.ps1\b[^\n]*-Command\s+(pair|init)\b/i,
   /\bwrangler\s+(deploy|publish|delete|secret)\b/i,
   /(^|[^>2&])>\s*(?!(nul|\/dev\/null|&))[^\s>&|]/i,
+  // Security audit 2026-11-04 (SEC-OPS-01): writes / moves / outbound sends that the list above missed.
+  /\b(Set-Content|Add-Content|Out-File|Tee-Object|Move-Item|Rename-Item)\b/i,
+  /(^|[;&|(]\s*)(move|ren|rename|mv)\s/i,
+  /\b(curl|wget)\b[^\n]*\s(--request\s*=?\s*['"]?(POST|PUT|PATCH|DELETE)|--json\b|-T\s|--method\s*=?\s*(POST|PUT|PATCH|DELETE)|--post-(data|file))/i,
+  /\b(powershell|pwsh)(\.exe)?\b[^\n]*\s-(e|ec|enc|encodedcommand)\s+[A-Za-z0-9+\/=]{16,}/i,
 ];
+// SEC-OPS-01: inline interpreter code (node -e, python -c, powershell -Command ...) is only held when the code
+// itself calls file-changing, network or process APIs, so read-only one-liners such as python -c "print(1)" still run.
+const INLINE_CODE = /\b(node|nodejs|deno|bun)(\.exe)?\s+(?:[^\n]*\s)?(-e|-p|--eval|--print)(\s|=|$)|\b(python[0-9.]*|py|pythonw)(\.exe)?\s+(?:[^\n]*\s)?-c(\s|$)|\b(perl|ruby)(\.exe)?\s+(?:[^\n]*\s)?-e(\s|$)|\b(powershell|pwsh)(\.exe)?\b((?!\s-File\b)[^\n])*\s-(c|command)(\s|$)/i;
+const INLINE_DANGER = /unlink|\brm(Sync)?\s*\(|rmdir|rmtree|writeFile|appendFile|createWriteStream|renameSync|\brename\s*\(|copyFile|\bcp(Sync)?\s*\(|\bfetch\s*\(|\bhttps?\.(request|get)|\brequest\s*\(|child_process|execSync|execFile|spawn|\bexec\s*\(|\bos\.(remove|unlink|rename|replace|system|popen)|subprocess|shutil\.|\bopen\s*\([^)]*,\s*['"]?[wax+]|\.write_(text|bytes)|requests\.(post|put|patch|delete)|urlopen|\[(System\.)?IO\.(File|Directory)\]::|Remove-Item|Set-Content|Add-Content|Out-File|Move-Item|Rename-Item|Invoke-(WebRequest|RestMethod|Expression)|\biex\b|Start-Process|\beval\s*\(|\bFunction\s*\(|require\s*\(\s*['"](node:)?(fs|child_process|http|https|net)['"]|\bimport\s*\(/i;
+// SEC-OPS-01: copying / linking / re-permissioning onto a protected path through the shell (Write/Edit were the only checked route).
+// SEC-OPS-02: approval clicks are plain chat messages in CloudCLI preferences, so a model that can write that store
+// can forge "同意核准單 <id>" and have approvals/watch.cjs run the ticket. The assistant has no reason to touch it.
+const CHAT_FORGE = /api\/user\/preferences|dhc\.chat:|同意核准單/i;
+const WRITE_VERB = /(^|[\s;&|(])(copy|xcopy|robocopy|cp|Copy-Item|New-Item|mklink|icacls|attrib|takeown|tee)(\s|$)/i;
 const PROTECTED_PATH = [
   /[\\/]\.claude([\\/]|$)/i,
   /[\\/]cc-host([\\/]|$)/i,
@@ -166,6 +180,9 @@ process.stdin.on('end', () => {
   if (/^(Write|Edit|MultiEdit|NotebookEdit)$/.test(tool)) {
     const file = String(args.file_path || args.notebook_path || '');
     if (PROTECTED_PATH.some((re) => re.test(file)) && !released) deny(`${file} 是系統或設定檔`);
+    const written = [args.content, args.new_string, args.new_source, ...(Array.isArray(args.edits) ? args.edits.map((e) => e && e.new_string) : [])]
+      .filter((v) => typeof v === 'string').join('\n');
+    if (CHAT_FORGE.test(written) && !released) deny(`${file} 的內容會改聊天室紀錄或核准按鈕`);
     backup(file);
     process.exit(0);
   }
@@ -177,7 +194,10 @@ process.stdin.on('end', () => {
     deny('交易時段（平日台北時間 08:30–14:00）不連正式機 srv-src／srv-db2。請改查 srv-db 複本並講複本日期，或等 14:00 後再查正式機', true);
   }
   if (command && (tool === 'Bash' || tool === 'PowerShell' || /__ragent_cmd$/.test(tool))) {
-    const hit = RISKY_COMMAND.find((re) => re.test(command));
+    const hit = RISKY_COMMAND.find((re) => re.test(command))
+      || (INLINE_CODE.test(command) && INLINE_DANGER.test(command) ? INLINE_CODE : null)
+      || (CHAT_FORGE.test(command) ? CHAT_FORGE : null)
+      || (WRITE_VERB.test(command) && PROTECTED_PATH.some((re) => re.test(command)) ? WRITE_VERB : null);
     if (hit && !released && (tool === 'Bash' || tool === 'PowerShell') && selfPairOk(command)) {
       log(`SELF-PAIR ${command.slice(0, 300)}`);
       process.exit(0);
