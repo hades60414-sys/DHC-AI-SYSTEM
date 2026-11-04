@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
-import { useIsTeamMode } from '@/shared/dhcConfig';
 import { useTranslation } from 'react-i18next';
 
+import { useIsTeamMode } from '@/shared/dhcConfig';
 import { ProviderLoginModal } from '@/modules/provider-auth';
 import { Button } from '@/shared/ui';
 import SettingsSidebar from '@/modules/settings/SettingsSidebar';

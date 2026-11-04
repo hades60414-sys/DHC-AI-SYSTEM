@@ -236,7 +236,7 @@ export default function DeckStudio({ profileId, profileName, isMobile, onClose, 
       <SendMenu items={[{ label: '轉成文件', disabled: !active.markdown.trim(), onPick: () => { void saver.flush(); sendToTool(deckToDocHandoff(active.name, active.markdown)); } }]} />
       <button type="button" onClick={downloadHtml} className={buttonClass}><Download className="h-3.5 w-3.5" />下載網頁簡報</button>
       <button type="button" onClick={remove} className={buttonClass}><Trash2 className="h-3.5 w-3.5" />刪除</button>
-      {handoffNote && <button type="button" onClick={() => setHandoffNote('')} title="按一下關掉" className="max-w-[24rem] shrink-0 truncate text-xs text-muted-foreground hover:text-foreground">{handoffNote}</button>}
+      {handoffNote && <button type="button" onClick={() => setHandoffNote('')} title="按一下關掉" className="max-w-96 shrink-0 truncate text-xs text-muted-foreground hover:text-foreground">{handoffNote}</button>}
     </>
   );
 

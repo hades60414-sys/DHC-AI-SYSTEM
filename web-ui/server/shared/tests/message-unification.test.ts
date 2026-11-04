@@ -196,7 +196,8 @@ test('a huge tool output is capped, and says how much it dropped', () => {
   const content = String(unified.toolResult?.content);
   assert.ok(content.length < body.length / 2, 'the output must not survive at full size');
   assert.match(content, /… 80000 more characters$/);
-  const nested = (unified.toolResult?.toolUseResult as { file: { base64: string } }).file.base64;
+  assert.ok(unified.toolResult, 'the tool result must be present');
+  const nested = (unified.toolResult.toolUseResult as { file: { base64: string } }).file.base64;
   assert.equal(nested, content, 'the structured copy is capped the same way');
 });
 

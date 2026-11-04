@@ -74,7 +74,6 @@ export default function PermissionRequestsBanner({
         const permissionEntry = buildClaudeToolPermissionEntry(request.toolName, rawInput);
         const settings = getClaudeSettings();
         const alreadyAllowed = permissionEntry ? settings.allowedTools.includes(permissionEntry) : false;
-        const rememberLabel = alreadyAllowed ? 'Allow (saved)' : 'Allow & remember';
         const matchingRequestIds = permissionEntry
           ? pendingPermissionRequests
               .filter(

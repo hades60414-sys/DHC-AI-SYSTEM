@@ -5,7 +5,6 @@ import React from 'react';
 import { afterEach, test, vi } from 'vitest';
 
 import { loadDistillSessions } from '@/shared/distillSessions';
-
 import { setNightQueueMarks } from '@/shared/nightQueueMarks';
 import SessionTypeBadge from '@/modules/sidebar/SessionTypeBadge';
 

@@ -230,7 +230,7 @@ export default function ToolFrame({
           </>
         )}
         {importNote && (
-          <button type="button" onClick={() => setImportNote('')} title="按一下關掉" className="max-w-[24rem] truncate text-xs text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={() => setImportNote('')} title="按一下關掉" className="max-w-96 truncate text-xs text-muted-foreground hover:text-foreground">
             {importNote}
           </button>
         )}

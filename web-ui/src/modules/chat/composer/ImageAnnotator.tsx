@@ -390,7 +390,7 @@ export default function ImageAnnotator({ file, onCancel, onDone }: {
                 placeholder="輸入文字（Enter 換行，點別處完成）"
                 data-testid="annotate-text-input"
                 rows={Math.max(1, textDraft.split('\n').length)}
-                className="absolute min-w-[12rem] resize-none overflow-hidden rounded border border-dashed border-primary bg-background/40 p-0 font-bold leading-[1.25] shadow placeholder:text-xs placeholder:font-normal"
+                className="absolute min-w-48 resize-none overflow-hidden rounded border border-dashed border-primary bg-background/40 p-0 font-bold leading-tight shadow placeholder:text-xs placeholder:font-normal"
                 style={{
                   left: textAt.x * scale,
                   top: textAt.y * scale,

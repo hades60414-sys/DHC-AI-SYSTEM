@@ -1,10 +1,9 @@
 import { CaptureUpdateAction, newElementWith, restoreElements } from '@excalidraw/excalidraw';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
+import { X } from 'lucide-react';
 
 import { arrowheadsFor, isHorizontal, splitAlpha, withAlpha } from '@/modules/plan-board/sceneModel';
 import type { SceneElement } from '@/modules/plan-board/sceneModel';
-import { X } from 'lucide-react';
-
 import { cn } from '@/shared/utils';
 
 /**
