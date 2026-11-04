@@ -36,17 +36,17 @@
 
 - **A（試用）**：只把我挑的 skill 資料夾複製到 `%USERPROFILE%\.claude\skills\`。從 `SKILLS.md` 依我的工作類別推薦 3～5 個，每個用一句話說能幫我做什麼。同名 skill 已存在就先問我。
 - **B／C（整套）**：
-  1. 先讀 `harness\rules\CLAUDE.md`、`AGENTS.md`、`MIDOFFICE.md`，把裡面只適用原團隊的地方挑出來給我看（例如 GPT 委派已停用、pstack 外掛、中台紅線），問我要留、改、還是刪。改的是 repo 裡這份，不是 `.claude` 裡的副本。
-  2. 依我選的語言與風格改 `Communication` 那段。
-  3. 先跑 `powershell -NoProfile -ExecutionPolicy Bypass -File harness\ops\sync-harness.ps1 -Target Claude -Check`（只比對、不改），把會變動的清單給我看。
+  1. 先讀 `harness\rules\CLAUDE.md`、`AGENTS.md`、`MIDOFFICE.md`，把裡面只適用原團隊的地方挑出來給我看（例如 `GPT / Codex delegation` 段：交給原環境 Codex 的 `codex-scout`／`codex-worker`／`codex-verifier` 子代理，舊版 Codex PM gate 與 `chatgpt-bridge` 已停用；pstack 外掛；中台紅線），問我要留、改、還是刪。改的是 repo 裡這份，不是 `.claude` 裡的副本。
+  2. 依我選的語言與風格改 `harness\rules\CLAUDE.md` 的 `Communication` 那段（Codex 用的 `harness\rules\CODEX-AGENTS.md` 沒有這段，只用 Codex 就略過）。
+  3. 先跑 `powershell -NoProfile -ExecutionPolicy Bypass -File harness\ops\sync-harness.ps1 -Target Claude -Check`（只比對、不改；`-Target` 要和第 3 步實際安裝的一致：Claude、Codex 或 All），把標成 `DRIFT` 的清單給我看。第一次安裝最後印 `RESULT: DRIFT` 是正常的；若有 `DRIFT retired tree`，表示我原本有和退役 skill 同名的資料夾會被移走（有備份），要特別告訴我。
 - **D**：帶我讀 `ARCHITECTURE.md`，用我的工作舉例說明每一層在做什麼，不要裝任何東西。
 
 ## 第 3 步：動手
 
 - A：複製選好的資料夾。
-- B／C：跑 `sync-harness.ps1 -Target Claude`（只用 Codex 的人改 `-Target Codex`），它會自動把被覆蓋的檔案備份到 `%USERPROFILE%\.claude\backups\harness-sync-<時間>\`。
-- 要護欄：先跑 `node harness\ops\install-hooks.cjs --check` 給我看預覽，我同意再跑 `node harness\ops\install-hooks.cjs --guard`（它會先備份 `settings.json`、保留我原本的 hooks；我不想要繁中回覆檢查就加 `--no-zh`）。
-- 規則裡有 pstack 外掛的段落：問我要不要裝 pstack（說明它是做什麼的；它已附在 repo 的 `vendor\pstack`，MIT 授權）。要裝就跑 `claude plugin marketplace add <repo>\vendor` 再 `claude plugin install pstack@dhc-vendor --scope user`；不裝就把 `rules\CLAUDE.md` 的「pstack workflow」段和 `@pstack-models.md` 那行刪掉，再同步。
+- B／C：跑 `powershell -NoProfile -ExecutionPolicy Bypass -File harness\ops\sync-harness.ps1 -Target Claude`（只用 Codex 的人改 `-Target Codex`，兩邊都用改 `-Target All`）。Claude 這邊被覆蓋的檔案會自動備份到 `%USERPROFILE%\.claude\backups\harness-sync-<時間>\`；Codex 那邊備份到 `%USERPROFILE%\.codex\backups\` 與 `%USERPROFILE%\.agents\backups\`，而且 `安裝說明.md` 第 6 步的解除安裝腳本只還原 Claude，Codex 要從這些備份手動搬回，要先跟我講。
+- 要護欄（只對 Claude Code 有效，Codex 不適用）：先跑 `node harness\ops\install-hooks.cjs --check` 給我看預覽，我同意再跑 `node harness\ops\install-hooks.cjs --guard`（`settings.json` 已存在就先備份、保留我原本的 hooks；我不想要繁中回覆檢查就加 `--no-zh`）。提醒我：部分 hook 與 `dhc-guard` 用絕對路徑指向這個 repo，裝好後 repo 資料夾不能搬或刪。
+- 規則裡有 pstack 外掛的段落：問我要不要裝 pstack（說明它是做什麼的；它已附在 repo 的 `vendor\pstack`，MIT 授權）。要裝就跑 `claude plugin marketplace add <repo>\vendor` 再 `claude plugin install pstack@dhc-vendor --scope user`；不裝就把 `harness\rules\CLAUDE.md` 的「pstack workflow」段和 `@pstack-models.md` 那行刪掉，再同步。
 - C：網頁版、遠端代理、本地模型都要額外的機器或帳號，先說明需要什麼、大概花多久，問我要不要今天做；不做就寫進最後的待辦。
 
 ## 第 4 步：驗證，然後教我用

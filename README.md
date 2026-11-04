@@ -2,7 +2,7 @@
 
 DAS 源自某證券中台團隊在一台共用主機上運作 Claude Code 的整套做法（內部代號 TAS）：行為規則、skills、子代理、安全護欄、網頁版周邊服務、遠端代理程式與日常小工具。這個 repo 是去除公司資訊後的版本，給跨部門參考與協作用。
 
-> V3 比 V2 多了核准單、安全輸入、Codex 去識別代理、Gemini 接手、對話搜尋、蒸餾模式評測等工具（見 `tools/`）。**V3.1（2026-11-03）**把 harness 對齊到內部 TAS 當天的狀態：`install-hooks.cjs` 註冊和原機相同的 18 條 hook（新增回合預算、回合結束守門、REA 提醒、計畫性暫停、時限續做、提示詞注入警示等），另收提示詞注入防護（`prompt-injection/`）、核准單的授權／續做／喚醒、專案層 Claude↔Codex 規則同步（`rulesync/`）、決策負擔週量測（`metrics/`）。
+> V3 比 V2 多了核准單、安全輸入、Codex 去識別代理、Gemini 接手、對話搜尋、蒸餾模式評測等工具（見 `tools/`）。**V3.1（2026-11-03）**把 harness 對齊到內部 TAS 當天的狀態：`install-hooks.cjs` 註冊和原機相同的 hook（預設 16 條事件；Gemini 接手的 2 條要加 `--gemini` 才註冊，合計 18 條；新增回合預算、回合結束守門、REA 提醒、計畫性暫停、時限續做、提示詞注入警示等），另收提示詞注入防護（`prompt-injection/`）、核准單的授權／續做／喚醒、專案層 Claude↔Codex 規則同步（`rulesync/`）、決策負擔週量測（`metrics/`）。
 
 > 名稱對照：文件裡的「某證券」「某金融集團」、`DHC`、`EKB`（企業知識庫）、`srv-db`／`srv-rag` 這類主機代號、`userA`～`userG`／「同事A」～「同事G」都是替換後的代稱；IP 一律是 `10.255.0.x` 假網段，email 是 `example.*` 網域。
 
@@ -32,7 +32,7 @@ DAS 源自某證券中台團隊在一台共用主機上運作 Claude Code 的整
 > - **只想試幾個 skill**：看 [SKILLS.md](SKILLS.md) 依工作挑，複製單一資料夾就能用，不動你原本的設定。
 > - **自己一步一步裝**：看 [安裝說明.md](安裝說明.md)。
 
-1. **只想借規則與 skills**：讀 [harness/README.md](harness/README.md)，在 Windows 跑 `harness\ops\sync-harness.ps1 -Target All`，再跑 `harness\ops\healthcheck.ps1` 看到 `RESULT: OK`。新開的 Claude Code session 會自動載入。
+1. **只想借規則與 skills**：讀 [harness/README.md](harness/README.md)，在 Windows 的 `harness` 資料夾跑 `powershell -NoProfile -ExecutionPolicy Bypass -File .\ops\sync-harness.ps1 -Target Claude -Check` 先看會改哪些檔，再拿掉 `-Check` 跑一次，最後跑 `powershell -NoProfile -ExecutionPolicy Bypass -File .\ops\healthcheck.ps1` 看到 `RESULT: OK`（也用 Codex 就把 `-Target Claude` 換成 `-Target All`，healthcheck 也加 `-Target All`）。新開的 Claude Code session 會自動載入。完整步驟與還原方式見 [安裝說明.md](安裝說明.md)。
 2. **想看設計思路**：先讀 [ARCHITECTURE.md](ARCHITECTURE.md)，再挑有興趣的元件看程式開頭的註解；每支腳本開頭都寫了用途與限制。
 3. **要搬到自己的環境**：程式裡的路徑（`D:\TAS\...`、`C:\Users\demo\...`）、主機代號與 IP 都要換成實際值。多數腳本是 Windows＋Node.js；PowerShell 腳本以 Windows PowerShell 5.1 為準。
 
