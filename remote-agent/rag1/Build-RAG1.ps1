@@ -1,9 +1,9 @@
-param([ValidateSet('rag1','rag1r')][string]$Config = 'rag1')
+param([ValidateSet('rag1','srv-rag-rehearsal')][string]$Config = 'rag1')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 # RAG1 build (2026-10-01): frozen v3.1 sources in .\src (asset names follow agentId) + config-<Config>\release.json.
 # Reuses the existing workstation public certificates (outer signer from ..\release, recipient from resume-probe); never creates keys.
-# Output: release-<Config>\ only. rag1r is the local rehearsal deployment bound to this workstation's address.
+# Output: release-<Config>\ only. srv-rag-rehearsal is the local rehearsal deployment bound to this workstation's address.
 $here = $PSScriptRoot
 $v1 = Join-Path (Split-Path $here -Parent) 'release'
 $recipientPath = Join-Path (Split-Path (Split-Path $here -Parent) -Parent) 'resume-probe\recipient.cer'

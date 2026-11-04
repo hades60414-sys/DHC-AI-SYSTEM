@@ -6,7 +6,7 @@
 ```
 D:\TAS\node\node.exe D:\TAS\ai-tools\secure-input\ask.cjs --machine rag1 --name EKB_PWD --note "EKB 登入密碼"
 ```
-- `--machine`：`.mcp.json` 的伺服器名稱，那台要開 ragent_cmd，代理程式要 rag1v 以上（目前 rag1＝srv-rag 可用；pcmain＝srv-main 也裝了，但它是 AI 所在主機，**不開單**；同事主機升級後才能用）。
+- `--machine`：`.mcp.json` 的伺服器名稱，那台要開 ragent_cmd，代理程式要 rag1v 以上（目前 rag1＝srv-rag 可用；srv-main 也裝了，但它是 AI 所在主機，**不開單**；同事主機升級後才能用）。
 - `--name`：以 `_PWD`、`_PASS`、`_TOKEN`、`_OTP` 結尾的會遮蔽；`_USER` 結尾的是帳號，不遮蔽。
 - 不能用的名稱：CLAUDE_、ANTHROPIC_、OPENAI_、GH_、GITHUB_、GIT_、NODE_、NPM_、HF_、AWS_、AZURE_、GOOGLE_、CLOUDFLARE_、CF_、RAGENT_、TASUI_ 開頭（別的工具在用）。
 - 值：可列印英數符號，要遮蔽的至少 6 字、帳號至少 2 字、最多 512 字。
@@ -32,6 +32,6 @@ D:\TAS\node\node.exe D:\TAS\ai-tools\secure-input\ask.cjs --machine rag1 --name 
 ## 回退
 - 10-30 Origin 修正：`copy /y D:\TAS\ai-tools\secure-input\serve.cjs.bak-20261030xo D:\TAS\ai-tools\secure-input\serve.cjs`，再重啟 seal-proxy（先 idle-check）。
 - seal-proxy：`copy /y D:\TAS\cc-web\seal-proxy.js.bak-20261029si D:\TAS\cc-web\seal-proxy.js`，再跑 `restart-seal-proxy.cmd`（先 idle-check）。
-- ragent-mcp：`ragent-mcp.cjs.bak-20261029b`；Controller：`Controller-RAG1.ps1.bak-20261029`；pcmain 控制端 exe：`release-rag1d-pcmain.bak-20261029`。
-- srv-main 代理程式：apply-update 留有 `agent\dbclone-agent-v1.previous.exe`；或把 `TAS遷移\kits\pcmain\tas-rag1t-pcmain.zip` 放 assets 用 ragent_self_update 推回 rag1t。
+- ragent-mcp：`ragent-mcp.cjs.bak-20261029b`；Controller：`Controller-RAG1.ps1.bak-20261029`；srv-main 控制端 exe：`release-rag1d-srv-main.bak-20261029`。
+- srv-main 代理程式：apply-update 留有 `agent\dbclone-agent-v1.previous.exe`；或把 `TAS遷移\kits\srv-main\tas-rag1t-srv-main.zip` 放 assets 用 ragent_self_update 推回 rag1t。
 - 原始碼：`rag1\srcD.bak-20261029`。

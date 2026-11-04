@@ -1,5 +1,5 @@
 // 開一張安全輸入單：貼一張卡到使用者和小助手的私聊，裡面是一次性連結（15 分鐘、只能用一次）。
-//   node ask.cjs --machine pcmain --name EKB_PWD [--note "EKB 登入密碼"] [--room <聊天室>]
+//   node ask.cjs --machine srv-main --name EKB_PWD [--note "EKB 登入密碼"] [--room <聊天室>]
 // 不印連結（對話紀錄裡不留可用的連結）；只印單號。
 const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
 const C = require('./common.cjs'), L = require('../approvals/lib.cjs');
@@ -8,7 +8,7 @@ const arg = (k, d) => { const i = argv.indexOf('--' + k); return i >= 0 ? argv[i
 (async () => {
   const machine = arg('machine'), name = arg('name'), note = (arg('note', '') || '').slice(0, 80);
   const s = L.servers()[machine];
-  if (!s) throw new Error('沒有這台：' + machine + '（用 .mcp.json 的伺服器名稱，例如 pcmain、rag1、userE）');
+  if (!s) throw new Error('沒有這台：' + machine + '（用 .mcp.json 的伺服器名稱，例如 srv-main、rag1、userE）');
   if (!(machine === 'ragent' || (s.env && s.env.RAGENT_CMD === '1'))) throw new Error(machine + ' 沒開 ragent_cmd，代理程式收不到');
   if (!C.NAME_RE.test(name || '')) throw new Error('名稱要以 _PWD、_PASS、_TOKEN、_OTP 或 _USER 結尾（英數與底線）');
   if (C.TOOL_RE.test(name)) throw new Error(name + ' 是別的工具在用的變數名，不能存');

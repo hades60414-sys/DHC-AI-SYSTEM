@@ -447,7 +447,7 @@ public static class Program {
             if(inbox==null){Thread.Sleep(PollDelay(wakeUntil));continue;}
             // Reject only malformed/untrusted inputs here. Persistence/execution infrastructure failures escape and STOP.
             long before=core.State.Seq;
-            try {stop=core.Handle(inbox,(a,p)=>c.Agent=="pcmainb"?CmdActions.ExecuteFixed(a,p):a=="self-update"?Updater.Execute(root,p,c.BaseUrl):DocQa.Handles(a)?DocQa.ExecuteAction(root,a,p):LocalActions.Execute(a,p),DateTime.UtcNow);}
+            try {stop=core.Handle(inbox,(a,p)=>c.Agent=="srv-main-b"?CmdActions.ExecuteFixed(a,p):a=="self-update"?Updater.Execute(root,p,c.BaseUrl):DocQa.Handles(a)?DocQa.ExecuteAction(root,a,p):LocalActions.Execute(a,p),DateTime.UtcNow);}
             catch(InputRejected e){Console.Error.WriteLine("Rejected input: "+Common.Safe(e.Message));}
             if(core.State.Seq!=before)wakeUntil=DateTime.UtcNow.AddMinutes(5);
             if(core.State.Outbox.Length!=0)continue;

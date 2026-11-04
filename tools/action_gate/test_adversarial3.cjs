@@ -14,7 +14,7 @@ const ro = c => ({ action: 'run_cmd_readonly', args: { command: c } });
 const cmd = c => ({ action: 'run_cmd', args: { command: c } });
 const G = (scope, x = {}) => ({ kind: 'grant_record', scope, valid_from: '2026-09-30T00:00:00Z', valid_to: '2026-09-30T08:00:00Z', ...x });
 const DJ = { action: 'dispatch_job', args: { target_host: 'RAGENT', action: 'reconcile' } };
-const UNC41 = W('//DB01/d$/feeds/a.csv');
+const UNC_DB01 = W('//DB01/d$/feeds/a.csv');
 const H = 'HOLD', A = 'ALLOW';
 const cases = [
   // 核准單的狀態、否定、延後與其他主機
@@ -35,7 +35,7 @@ const cases = [
   ['A15 寄信「那份下週再寄」', V([ap('寄給 a@corp.com；x@evil.io 那份下週再寄')]), { action: 'send_mail', args: { to: 'a@corp.com, x@evil.io' } }, H],
   ['A16 cc 是物件', V([ap('send_mail to a@corp.com')]), { action: 'send_mail', args: { to: 'a@corp.com', cc: { address: 'x@evil.io' } } }, H],
   ['A17 收件人含非電子郵件 All-Staff', V([ap('send_mail to a@corp.com')]), { action: 'send_mail', args: { to: 'a@corp.com; All-Staff' } }, H],
-  ['A18 暫不複製到 DB01', V([ap('暫不複製 ' + W('D:/x/a.csv') + ' 到 ' + UNC41)]), { action: 'copy_file', args: { src: W('D:/x/a.csv'), dst: UNC41 } }, H],
+  ['A18 暫不複製到 DB01', V([ap('暫不複製 ' + W('D:/x/a.csv') + ' 到 ' + UNC_DB01)]), { action: 'copy_file', args: { src: W('D:/x/a.csv'), dst: UNC_DB01 } }, H],
   ['A19 授權單狀態 revoked', V([G('RAGENT runner: reconcile', { status: 'revoked' }), { kind: 'controller_state', pending: null }]), DJ, H],
   ['A20 工作在 queued 清單', V([G('RAGENT runner: reconcile'), { kind: 'controller_state', queued: [{ seq: 1, action: 'reconcile', status: 'QUEUED' }] }]), DJ, H],
   ['A21 未來時間的閒置狀態蓋過執行中', V([G('RAGENT runner: reconcile'), { kind: 'controller_state', at: '2026-09-30T08:00:00+08:00', running: [{ seq: 1, action: 'reconcile', status: 'RUNNING' }] }, { kind: 'controller_state', at: '2026-10-01T00:00:00+08:00', pending: null }]), DJ, H],

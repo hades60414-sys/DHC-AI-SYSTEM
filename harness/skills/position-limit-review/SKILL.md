@@ -5,7 +5,7 @@ description: 部位/限額檢核紀律(證券自營中台)。當使用者要「�
 
 # position-limit-review — 部位/限額檢核
 
-檢核紀律,不是計算引擎。遵守常駐紅線 `MIDOFFICE.md`(建議單模式、超限語意;安裝後位於 `~/.claude/MIDOFFICE.md`)。研究依據:套件 `docs/midoffice-research-raw.json`(value-at-risk.net 限額分類、SEC 15c3-5、Basel FRTB、台灣證券商管理規則、兆豐證實例;僅存於套件,未隨 skill 安裝)。
+檢核紀律,不是計算引擎。遵守常駐紅線 `MIDOFFICE.md`(建議單模式、超限語意;安裝後位於 `~/.claude/MIDOFFICE.md`)。研究依據:套件 `docs/midoffice-research-raw.json`(value-at-risk.net 限額分類、SEC 15c3-5、Basel FRTB、台灣證券商管理規則、某券商公開資料實例;僅存於套件,未隨 skill 安裝)。
 
 ## 1. 檢核矩陣(缺一維就標「資料不全」,不得只看單一指標判安全)
 

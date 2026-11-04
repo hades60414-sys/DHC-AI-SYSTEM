@@ -4,7 +4,7 @@ DAS 源自某證券中台團隊在一台共用主機上運作 Claude Code 的整
 
 > V3 比 V2 多了核准單、安全輸入、Codex 去識別代理、Gemini 接手、對話搜尋、蒸餾模式評測等工具（見 `tools/`）。**V3.1（2026-11-03）**把 harness 對齊到內部 TAS 當天的狀態：`install-hooks.cjs` 註冊和原機相同的 18 條 hook（新增回合預算、回合結束守門、REA 提醒、計畫性暫停、時限續做、提示詞注入警示等），另收提示詞注入防護（`prompt-injection/`）、核准單的授權／續做／喚醒、專案層 Claude↔Codex 規則同步（`rulesync/`）、決策負擔週量測（`metrics/`）。
 
-> 名稱對照：文件裡的「某證券」「某金融集團」、`DHC`、`EKB`（企業知識庫）、`srv-db`／`srv-rag` 這類主機代號、`userA`～`userG`／「同事A」～「同事G」都是替換後的代稱；IP 一律是 `10.255.0.x` 假網段，email 是 `example.*` 網域。
+> 名稱對照：文件裡的「某證券」「某金融集團」、`DHC`、`EKB`（企業知識庫）、`srv-db`／`srv-rag` 這類主機代號（另含 `srv-main`、`srv-main-b`、`srv-rag-rehearsal`、`srv-ws`、`srv-ws1`、`srv-ws2`、`pc-mgr` 等主機設定名與工作站名）、`userA`～`userG`／「同事A」～「同事G」都是替換後的代稱；IP 一律是 `10.255.0.x` 假網段，email 是 `example.*` 網域。
 
 ## 內容
 

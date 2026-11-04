@@ -11,7 +11,7 @@ description: 用自然語言問公司資料庫（SQL Server 等）並給出有�
 
 | 環境 | 怎麼呼叫 |
 |---|---|
-| Claude Code／DHC CLI，查遠端機器 | MCP 工具 `mcp__<host>__ragent_sql`，參數 `{action, spec}`；host 例：`ragent`（srv-db）、`rag1`（srv-rag）、`pcmain`、`pcmgr` |
+| Claude Code／DHC CLI，查遠端機器 | MCP 工具 `mcp__<host>__ragent_sql`，參數 `{action, spec}`；host 例：`ragent`（srv-db）、`rag1`（srv-rag）、`srv-main`、`pc-mgr` |
 | Codex 或任何 agent，查本機資料庫 | `node <本 skill>/scripts/nldb.cjs <action> <spec.json 路徑>`，stdout 是一行 JSON。設定檔路徑放在環境變數 `NLDB_CONFIG`。腳本不存在就停下，說明要先照 `references/executor.md` 建好 |
 
 兩種執行端的 action、spec、回傳格式完全相同。差別只有呼叫方式。

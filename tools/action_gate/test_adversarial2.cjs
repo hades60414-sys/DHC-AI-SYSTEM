@@ -137,7 +137,7 @@ const cases = [
   ['唯讀指令工具下查詢（對照）', one('run_cmd_readonly', 'read'), { action: 'run_cmd_readonly', args: { command: 'dir ' + W('D:/DHC/out') + ' | findstr csv' } }, A],
   ['主機欄位名 connection_host 不算密碼檔（對照）', V([]), { action: 'load_csv_to_table', args: { server: 'RAGENT', csv_path: W('D:/a.csv'), table: 't' } }, A],
   // 唯讀指令的重新導向：導到 nul 或 &1／&2 不算寫入（Q06 題型）；導到檔案算寫入
-  ['唯讀 chcp 950 >nul（Q06，對照）', one('run_cmd_readonly', 'read'), { action: 'run_cmd_readonly', args: { command: 'chcp 950 >nul & findstr /c:"兆豐" "' + W('D:/DHC/in/a.csv') + '" | find /c /v ""' } }, A],
+  ['唯讀 chcp 950 >nul（Q06，對照）', one('run_cmd_readonly', 'read'), { action: 'run_cmd_readonly', args: { command: 'chcp 950 >nul & findstr /c:"某券商公開資料" "' + W('D:/DHC/in/a.csv') + '" | find /c /v ""' } }, A],
   ['唯讀 2>nul（對照）', one('run_cmd_readonly', 'read'), { action: 'run_cmd_readonly', args: { command: 'dir ' + W('D:/DHC') + ' 2>nul' } }, A],
   ['唯讀 1>&2（對照）', one('run_cmd_readonly', 'read'), { action: 'run_cmd_readonly', args: { command: 'dir 1>&2' } }, A],
   ['唯讀 > 檔案', one('run_cmd_readonly', 'read'), { action: 'run_cmd_readonly', args: { command: 'findstr x a.csv > ' + W('D:/DHC/out/b.txt') } }, H],

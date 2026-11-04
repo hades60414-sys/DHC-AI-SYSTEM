@@ -1,9 +1,9 @@
-param([ValidateSet('rag1','rag1r','pcmgr','pcmain','userD','userF','userB','userC','userE','userA','pc55','pc18','pcmainb')][string]$Config = 'rag1', [string]$OutDir, [string]$KeyDir)
+param([ValidateSet('rag1','srv-rag-rehearsal','pc-mgr','srv-main','userD','userF','userB','userC','userE','userA','srv-ws1','srv-ws2','srv-main-b')][string]$Config = 'rag1', [string]$OutDir, [string]$KeyDir)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 # RAG1 D build (2026-10-01): same as Build-RAG1.ps1 but sources from .srcD, output release-rag1d-<Config>. RAG1 build (2026-10-01): frozen v3.1 sources in .\src (asset names follow agentId) + config-<Config>\release.json.
 # Reuses the existing workstation public certificates (outer signer from ..\release, recipient from resume-probe); never creates keys.
-# Output: release-<Config>\ only. rag1r is the local rehearsal deployment bound to this workstation's address.
+# Output: release-<Config>\ only. srv-rag-rehearsal is the local rehearsal deployment bound to this workstation's address.
 $here = $PSScriptRoot
 $v1 = Join-Path (Split-Path $here -Parent) 'release'
 $recipientPath = Join-Path (Split-Path (Split-Path $here -Parent) -Parent) 'resume-probe\recipient.cer'

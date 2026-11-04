@@ -45,8 +45,8 @@ const PROTECTED_PATH = [
 // 10/21 MO OK'd plan B: pairing a colleague's lite PC runs without a card, but only as this exact command,
 // for one of these devices, with a 64-hex fingerprint and an enrollment file for that device that arrived in the
 // last 10 minutes. Anything else (other devices, chaining, redirects) still needs a card.
-const SELF_PAIR_DEVICES = new Set(['userB', 'userC', 'userD', 'pcmgr', 'userF']);
-const SELF_PAIR = /^(?:cd \/d "D:\\TAS\\Claude Code專案\\Harness優化\\gemma-offline\\agent-channel\\rag1" && )?powershell -NoProfile -ExecutionPolicy Bypass -File Controller-RAG1\.ps1 -Command pair -Config ([a-z0-9]+) -ReleaseDir release-rag1d-\1 -File "C:\\Users\\demo\\\.cloudcli\\assets\\(\d+-\d+-\1-agent-enrollment\.cms\.b64\.txt)" -Fingerprint [0-9A-Fa-f]{64}$/;
+const SELF_PAIR_DEVICES = new Set(['userB', 'userC', 'userD', 'pc-mgr', 'userF']);
+const SELF_PAIR = /^(?:cd \/d "D:\\TAS\\Claude Code專案\\Harness優化\\gemma-offline\\agent-channel\\rag1" && )?powershell -NoProfile -ExecutionPolicy Bypass -File Controller-RAG1\.ps1 -Command pair -Config ([a-z0-9-]+) -ReleaseDir release-rag1d-\1 -File "C:\\Users\\demo\\\.cloudcli\\assets\\(\d+-\d+-\1-agent-enrollment\.cms\.b64\.txt)" -Fingerprint [0-9A-Fa-f]{64}$/;
 function selfPairOk(command) {
   const m = SELF_PAIR.exec(command.trim());
   if (!m || !SELF_PAIR_DEVICES.has(m[1])) return false;
@@ -56,9 +56,9 @@ function selfPairOk(command) {
   } catch { return false; }
 }
 const MAIL_READ = /olRag|Outlook\.Application|\.pst\b/i;
-const MAILBOX = { rag1: 'srv-rag', userF: '同事F', pcmgr: '同事G', userD: '同事D', userC: '同事C', userB: 'userB', userE: '同事E', pcmain: 'srv-main' };
+const MAILBOX = { rag1: 'srv-rag', userF: '同事F', 'pc-mgr': '同事G', userD: '同事D', userC: '同事C', userB: 'userB', userE: '同事E', 'srv-main': 'srv-main' };
 function mailAudit(tool, command) {
-  const device = /__ragent_cmd$/.test(tool) ? tool.split('__')[1] : (/AGX=(\w+)/.exec(command)?.[1] ?? 'rag1');
+  const device = /__ragent_cmd$/.test(tool) ? tool.split('__')[1] : (/AGX=([\w-]+)/.exec(command)?.[1] ?? 'rag1');
   const what = (command.match(/[\w-]+\.ps1/g) ?? []).join(',') || command.slice(0, 200);
   const line = [new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 19).replace('T', ' '), process.env.ASSISTANT_ASKER || '（未知）', MAILBOX[device] ?? device, what.replace(/\s+/g, ' ')].join('\t');
   try { fs.appendFileSync(path.join(ROOT, 'mail-audit.log'), line + '\n'); } catch {}

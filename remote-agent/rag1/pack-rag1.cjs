@@ -1,9 +1,9 @@
 // Stage the RAG1 install kit: package\*.cmd + Setup-RAG1.ps1 + agent exe (base64), placeholders filled, CRLF.
-// Usage: node pack-rag1.cjs [rag1|rag1r]   -> out-<config>\kit\ and out-<config>\rag1-rag-kit-<config>.zip
+// Usage: node pack-rag1.cjs [rag1|srv-rag-rehearsal]   -> out-<config>\kit\ and out-<config>\rag1-rag-kit-<config>.zip
 const fs = require("fs"), path = require("path"), crypto = require("crypto"), { execFileSync } = require("child_process");
 const cfgName = process.argv[2] || "rag1";
 const relDir = process.argv[3] || `release-${cfgName}`;   // e.g. release-rag1d-rag1 for the D build
-if (!["rag1", "rag1r", "pcmgr", "pcmain", "userD", "userF", "userB", "userC", "userE", "userA", "pc55", "pc18", "pcmainb"].includes(cfgName)) throw new Error("config must be rag1, rag1r, pcmgr or pcmain");
+if (!["rag1", "srv-rag-rehearsal", "pc-mgr", "srv-main", "userD", "userF", "userB", "userC", "userE", "userA", "srv-ws1", "srv-ws2", "srv-main-b"].includes(cfgName)) throw new Error("config must be rag1, srv-rag-rehearsal, pc-mgr or srv-main");
 const here = __dirname;
 const cfg = JSON.parse(fs.readFileSync(path.join(here, `config-${cfgName}`, "release.json"), "utf8"));
 const exe = fs.readFileSync(path.join(here, relDir, "dbclone-agent-v1.exe"));

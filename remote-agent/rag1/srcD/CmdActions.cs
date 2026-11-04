@@ -82,9 +82,9 @@ public static class CmdActions {
         return Common.Encode(new { kind = "secret_set", name = name, stored = true, masked = secret, chars = value.Length });
     }
 
-    // pcmainb (3+1, 2026-11-02): the srv-main agent that srv-old controls runs only these fixed scripts; no command text is accepted.
+    // srv-main-b (3+1, 2026-11-02): the srv-main agent that srv-old controls runs only these fixed scripts; no command text is accepted.
     static readonly string[] FixedScripts = { "probe", "restart-all" };
-    const string FixedDir = @"D:\TAS\cc-hosts\pcmainb";
+    const string FixedDir = @"D:\TAS\cc-hosts\srv-main-b";
     public static string ExecuteFixed(string action, string prompt) {
         if (action != "cmd-run") throw new InvalidOperationException("Action not allowed on this agent");
         var d = Common.Decode(prompt);
