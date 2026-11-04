@@ -60,6 +60,7 @@ import { worktreesRoutes } from './modules/worktrees/index.js';
 import browserUseMcpRoutes from './modules/browser-use/browser-use-mcp.routes.js';
 import { browserUseService } from './modules/browser-use/browser-use.service.js';
 import { initializeDatabase, sessionsDb } from './modules/database/index.js';
+import { checkPlatformModeBinding, createOriginGuard } from './shared/origin-policy.js';
 import { configureWebPush } from './modules/notifications/index.js';
 
 const __dirname = getModuleDirectory(import.meta.url);
@@ -126,7 +127,10 @@ createWebSocketServer(server, {
     getPluginPort,
 });
 
-app.use(cors({ exposedHeaders: ['X-Refreshed-Token', 'X-Auth-Error'] }));
+// Security audit 2026-11-04 (SEC-WEB-01): reject foreign browser origins before any
+// route runs, then only reflect origins the guard allowed (was: Access-Control-Allow-Origin: *).
+app.use(createOriginGuard());
+app.use(cors({ origin: true, exposedHeaders: ['X-Refreshed-Token', 'X-Auth-Error'] }));
 app.use(express.json({
     limit: '50mb',
     type: (req) => {
@@ -339,6 +343,16 @@ async function removeLocalServerMarker() {
 // Initialize database and start server
 async function startServer() {
     try {
+        // Security audit 2026-11-04 (SEC-WEB-02): no-auth platform mode must not face the network.
+        const platformBindingError = checkPlatformModeBinding(IS_PLATFORM, HOST);
+        if (platformBindingError) {
+            console.error(`${terminalTextStyles.error('[ERROR]')} ${platformBindingError}`);
+            process.exit(1);
+        }
+        if (IS_PLATFORM) {
+            console.warn('[WARN] VITE_IS_PLATFORM=true: authentication is DISABLED; every request runs as the first user.');
+        }
+
         // Initialize authentication database
         await initializeDatabase();
 
