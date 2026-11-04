@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '')
 
-  const configuredHost = env.HOST || '0.0.0.0'
+  const configuredHost = env.HOST || '127.0.0.1' // security audit 2026-11-04 (SEC-WEB-03): was 0.0.0.0
   // if the host is not a loopback address, it should be used directly. 
   // This allows the vite server to EXPOSE all interfaces when the host 
   // is set to '0.0.0.0' or '::', while still using 'localhost' for browser 

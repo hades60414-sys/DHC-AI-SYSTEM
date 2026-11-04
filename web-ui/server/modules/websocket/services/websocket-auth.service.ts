@@ -1,9 +1,12 @@
 import type { VerifyClientCallbackSync } from 'ws';
 
+import { isOriginAllowed } from '@/shared/origin-policy.js';
 import type { AuthenticatedWebSocketRequest } from '@/shared/types.js';
 
 type WebSocketAuthDependencies = {
   isPlatform: boolean;
+  /** Exact extra origins allowed to open sockets (defaults to DHC_ALLOWED_ORIGINS). */
+  allowedOrigins?: Set<string>;
   authenticateWebSocket: (token: string | null) => {
     id?: string | number;
     userId?: string | number;
@@ -27,6 +30,15 @@ export function verifyWebSocketClient(
   }
 
   console.log('WebSocket connection attempt to:', `${loggedUrl.pathname}${loggedUrl.search}`);
+
+  // Security audit 2026-11-04 (SEC-WEB-01): browsers send Origin on every WebSocket
+  // handshake and WebSockets are not covered by CORS, so a foreign page could
+  // otherwise drive /shell with a token it obtained (or with none in platform mode).
+  const origin = info.origin || (request.headers?.origin as string | undefined);
+  if (!isOriginAllowed(origin, request.headers?.host, dependencies.allowedOrigins)) {
+    console.log('[WARN] WebSocket rejected: foreign origin', origin);
+    return false;
+  }
 
   // Platform mode: use the first DB user and skip token checks.
   if (dependencies.isPlatform) {
