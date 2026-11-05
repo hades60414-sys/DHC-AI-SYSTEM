@@ -48,6 +48,8 @@ function mostlyEnglish(text, minLatin) {
     .replace(/`[^`]*`/g, ' ')
     .replace(/https?:\/\/\S+/g, ' ')
     .replace(/[A-Za-z]:[\/]\S*/g, ' ')
+    // Linux／macOS 路徑（/usr/…、~/…、./…）也不算英文；前面是英數字的 and/or 這種不動
+    .replace(/(?<![\w.:\/])(?:~|\.{1,2})?\/[\w.\-\/@+]+/g, ' ')
     .replace(/\bDEID_[A-Z]+_\d+\b/g, ' ');
   const cjk = (prose.match(/[㐀-鿿]/g) || []).length;
   const latin = (prose.match(/[A-Za-z]/g) || []).length;
@@ -70,7 +72,7 @@ process.stdin.on('data', (c) => (input += c)).on('end', () => {
     if (!e.transcript_path) return;
 
     if (ev === 'PostToolUse') {
-      const stateFile = path.join(os.tmpdir(), `zh-guard-${e.session_id || 'x'}.json`);
+      const stateFile = path.join(os.tmpdir(), `zh-guard-${String(e.session_id || 'x').replace(/\W/g, '')}.json`);
       let warned = [];
       try { warned = JSON.parse(fs.readFileSync(stateFile, 'utf8')); } catch {}
       const bad = turnTexts(e.transcript_path).filter((t) => t.id && !warned.includes(t.id) && mostlyEnglish(t.text, 15));
@@ -82,8 +84,9 @@ process.stdin.on('data', (c) => (input += c)).on('end', () => {
 
     if (ev === 'Stop' || !ev) {
       if (e.stop_hook_active) return;
-      const texts = turnTexts(e.transcript_path);
-      const text = typeof e.last_assistant_message === 'string' ? e.last_assistant_message : (texts.length ? texts[texts.length - 1].text : '');
+      // 有 last_assistant_message 就不讀對話紀錄（紀錄檔不存在時原本會丟錯而直接放行，也省一次 1 MB 讀檔）
+      let text = e.last_assistant_message;
+      if (typeof text !== 'string') { const texts = turnTexts(e.transcript_path); text = texts.length ? texts[texts.length - 1].text : ''; }
       if (!text || !mostlyEnglish(text, 40)) return;
       return out({ decision: 'block', reason:
         '上一則回覆主體是英文。使用者要求一律用繁體中文：請把同一則內容改用繁體中文完整重寫一次再結束（指令、路徑、程式碼保留原文），不要說明這次重寫。' });

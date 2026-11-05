@@ -10,6 +10,8 @@ DAS 源自某證券中台團隊在一台共用主機上運作 Claude Code 的整
 
 **2026-11-04 補充：** [自主執行蒸餾](docs/AUTONOMY.md) 已納入兩套規則；hook 改用本機 `das-hooks.json`，Codex-only 檢查不再誤查 Claude。Gemini 自動交工改為選裝，所需白名單提供空白範本。完整掃描範圍、發現與限制見 [包裝檢查報告](docs/PACKAGE_AUDIT.md)。
 
+**2026-11-05 補強：** 三個守門 hook 修掉有實測的漏洞：`secret-guard` 改掃原始字串（換行／tab 後的 token、引號拆字、全形字都會攔；修掉 Email 規則的平方時間，200 KB 輸入從 47 秒降到幾十毫秒）；`dhc-guard` 正規化引號／跳脫、git 全域選項與旗標順序，WHERE 只算最外層、巢狀 MCP 參數也查；提示詞注入警示加零寬字元／全形正規化、補中文改寫、修自身資料夾略過的路徑判斷。另修 `zh-reply-guard`（Linux 路徑被算成英文）、`keepgoing-detect`（checkpoint 路徑）、`turn-budget`（平行呼叫掉計數）、`drain-guard`（缺 `since` 會永久暫停）、常設授權的引號開關繞過、敏感字掃描的 NUL／lockfile 盲點；健康檢查會驗 hook 指令路徑（repo 搬家後的靜默失效）。測試：`node harness/hooks/test/secret-guard.test.cjs`、`node harness/hooks/test/hooks-misc.test.cjs`、`node harness/mods/dhc-guard/tests/rules-table.mjs`、`node tools/prompt-injection/test.cjs`。
+
 | 資料夾 | 是什麼 | 適合誰 | 入口 |
 |---|---|---|---|
 | `harness/` | 規則（CLAUDE.md／AGENTS.md）、約 50 個 skills（一覽見 [SKILLS.md](SKILLS.md)）、9 個子代理、hooks、`dhc-guard` 危險指令攔截 mod、同步與健康檢查腳本 | 每個人 | [harness/README.md](harness/README.md) |

@@ -1,5 +1,5 @@
 {
- "_source": "Ported from lasso-security/claude-hooks (MIT, commit 8fbfd14, patterns.yaml). Inline (?i) removed for JS; noisy rules downgraded to low; chinesePatterns and agentTargetingPatterns added by TAS 2026-11-03.",
+ "_source": "Ported from lasso-security/claude-hooks (MIT, commit 8fbfd14, patterns.yaml). Inline (?i) removed for JS; noisy rules downgraded to low; chinesePatterns and agentTargetingPatterns added by TAS 2026-11-03; zh override widened and dark-mode false positive removed 2026-11-05.",
  "instructionOverridePatterns": [
   {
    "pattern": "\\bignore\\s+(all\\s+)?(previous|prior|above|earlier|preceding)\\s+(instructions?|prompts?|rules?|guidelines?|directives?|context)",
@@ -224,7 +224,7 @@
    "severity": "low"
   },
   {
-   "pattern": "\\b(evil|shadow|dark|unrestricted|uncensored)\\s+(twin|version|mode|side|alter\\s*ego)\\b",
+   "pattern": "\\b(?:(evil|shadow|unrestricted|uncensored)\\s+(twin|version|mode|side|alter\\s*ego)|dark\\s+(twin|alter\\s*ego))\\b",
    "reason": "Evil twin persona attempt",
    "severity": "high"
   },
@@ -490,7 +490,7 @@
  ],
  "chinesePatterns": [
   {
-   "pattern": "(忽略|無視|忽视|无视|不要理會|别管)(掉)?(之前|先前|以上|上面|前面|所有|全部)(的)?(所有)?(指令|指示|規則|规则|提示|設定|设定|要求)",
+   "pattern": "(忽略|無視|忽视|无视|不要理會|不要理会|别管|別管)(掉)?(之前|先前|以上|上面|前面|所有|全部)[^。！？\\n]{0,8}?(指令|指示|規則|规则|提示|設定|设定|要求)",
    "reason": "中文：要求忽略先前指令",
    "severity": "high"
   },
@@ -522,6 +522,11 @@
   {
    "pattern": "(開發者|开发者|管理員|管理员)模式",
    "reason": "中文：開發者／管理員模式",
+   "severity": "medium"
+  },
+  {
+   "pattern": "(你現在是|你现在是|從現在起你是|从现在起你是)(一個|一个|一位)?\\s*(系統)?(管理員|管理员|開發者|开发者|root|admin|DAN)",
+   "reason": "中文：指定 AI 新身分",
    "severity": "medium"
   }
  ],

@@ -5,8 +5,21 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const SELF_DIR = __dirname.replace(/\\/g, '/').toLowerCase();
-const MAX_SCAN = 2_000_000;
+const MAX_HEAD = 1_500_000;
+const MAX_TAIL = 500_000;
+
+// 讀的是本工具資料夾裡的檔案（規則檔本身）才略過；先 resolve 掉 ../，大小寫只在 Windows 忽略，
+// 且要真的在資料夾內（prompt-injection-cache/ 這種同名前綴的兄弟資料夾不算）
+function isSelfFile(fp) {
+  if (!fp) return false;
+  const win = process.platform === 'win32';
+  const norm = p => (win ? p.toLowerCase() : p);
+  const rel = path.relative(norm(path.resolve(__dirname)), norm(path.resolve(fp)));
+  return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
+
+// 比對前正規化：全形→半形（NFKC）、拿掉零寬字元與軟連字號（ig\u200bnore 這種拆字）
+const normalize = t => t.normalize('NFKC').replace(/[\u00ad\u180e\u200b-\u200d\u2060\ufeff]/g, '');
 
 // 只收字串值；JSON.stringify 會把換行變成 \n，讓 ^、\s 類規則失準。
 function collectText(v, out = [], depth = 0) {
@@ -52,14 +65,20 @@ function main(raw) {
   const ev = JSON.parse(raw);
   const name = ev.tool_name || '';
   const input = ev.tool_input || {};
-  const fp = String(input.file_path || input.path || '').replace(/\\/g, '/').toLowerCase();
-  if (fp && fp.startsWith(SELF_DIR)) return; // 讀規則檔本身不算
+  if (isSelfFile(String(input.file_path || input.path || ''))) return; // 讀規則檔本身不算
 
-  const text = collectText(ev.tool_response ?? ev.tool_result).join('\n').slice(0, MAX_SCAN);
+  let text = collectText(ev.tool_response ?? ev.tool_result).join('\n');
+  // 太長就掃頭尾（注入常放在開頭或結尾；只掃開頭會被一大段填充推出範圍）
+  if (text.length > MAX_HEAD + MAX_TAIL) text = text.slice(0, MAX_HEAD) + '\n' + text.slice(-MAX_TAIL);
   if (text.length < 10) return;
 
   const rules = JSON.parse(fs.readFileSync(path.join(__dirname, 'patterns.json'), 'utf8'));
   const hits = scan(text, rules);
+  const norm = normalize(text);
+  if (norm !== text) {
+    const seen = new Set(hits.map(h => h.reason));
+    for (const h of scan(norm, rules)) if (!seen.has(h.reason)) hits.push(h);
+  }
   if (!hits.length) return;
 
   const high = hits.filter(h => h.severity === 'high');
@@ -96,4 +115,4 @@ if (require.main === module) {
   process.stdin.on('end', () => { try { main(raw); } catch {} process.exit(0); });
 }
 
-module.exports = { scan, collectText };
+module.exports = { scan, collectText, isSelfFile, normalize };

@@ -27,4 +27,4 @@ const api = async (m, u, b) => (await fetch(BASE + u, { method: m, headers: { 'C
   const last = (await L.readMsgs(ROOM)).slice(-3).map((m) => String(m.text).split('\n')[0]); console.log('聊天室最後三則：', last);
   const pass = !early.ok && active && use.ok && /依常設授權/.test(use.out + last.join()) && g1.usesLeft === 1 && rv.ok && backToTicket;
   console.log(pass ? 'RESULT OK' : 'RESULT FAIL');
-})().catch((e) => console.log('script fail', e.message));
+})().catch((e) => { console.log('script fail', e.message); process.exitCode = 1; }); // 失敗要讓 CI／呼叫端看得到

@@ -11,6 +11,12 @@ const NOISY = [
   String.raw`hex\s*(string`, String.raw`\b(what|list|show)`, String.raw`(two|dual|split`,
   String.raw`\burl\s*(encoded`, String.raw`(context|background|situation)`, String.raw`\bpriority\s*(level)`,
 ];
+// 「dark mode／dark version」是 UI 用語（ui-ux-pro-max 等 skill 讀進來就誤警示），dark 只留 twin／side／alter ego
+for (const k in d) for (const p of d[k]) {
+  if (p.reason === 'Evil twin persona attempt') {
+    p.pattern = String.raw`\b(?:(evil|shadow|unrestricted|uncensored)\s+(twin|version|mode|side|alter\s*ego)|dark\s+(twin|alter\s*ego))\b`;
+  }
+}
 let low = 0;
 for (const k in d) for (const p of d[k]) {
   if (p.severity === 'medium' && NOISY.some(s => p.pattern.includes(s))) { p.severity = 'low'; low++; }
@@ -19,13 +25,15 @@ for (const k in d) for (const p of d[k]) {
 }
 
 d.chinesePatterns = [
-  [String.raw`(忽略|無視|忽视|无视|不要理會|别管)(掉)?(之前|先前|以上|上面|前面|所有|全部)(的)?(所有)?(指令|指示|規則|规则|提示|設定|设定|要求)`, '中文：要求忽略先前指令', 'high'],
+  // 中間允許少量字（「之前所有的指示」「先前的系統提示」），但不跨句
+  [String.raw`(忽略|無視|忽视|无视|不要理會|不要理会|别管|別管)(掉)?(之前|先前|以上|上面|前面|所有|全部)[^。！？\n]{0,8}?(指令|指示|規則|规则|提示|設定|设定|要求)`, '中文：要求忽略先前指令', 'high'],
   [String.raw`(忘記|忘记|忘掉)(你|之前|先前|所有)(的)?(指令|指示|規則|规则|設定|设定|訓練|训练)`, '中文：要求忘記指令', 'high'],
   [String.raw`(新的|真正的|更新後的|更新后的)(系統|系统)(提示|提示詞|提示词|指令)`, '中文：偽造新系統提示', 'high'],
   [String.raw`(你現在是|你现在是|從現在起你是|从现在起你是|假裝你是|假装你是|扮演).{0,20}(不受|沒有|没有|無|无)(任何)?(限制|規則|规则|約束|约束)`, '中文：無限制角色扮演', 'high'],
   [String.raw`(給|给|致)\s*(AI|ai|助理|助手|代理|模型|Claude|ChatGPT|GPT)[^\n]{0,15}(的)?(指令|指示|訊息|消息)[:：]`, '中文：寫給 AI 的指令', 'medium'],
   [String.raw`(不要|別|别)(告訴|告诉|讓|让)(使用者|用戶|用户|人類|人类)(知道)?`, '中文：要求對使用者隱瞞', 'high'],
   [String.raw`(開發者|开发者|管理員|管理员)模式`, '中文：開發者／管理員模式', 'medium'],
+  [String.raw`(你現在是|你现在是|從現在起你是|从现在起你是)(一個|一个|一位)?\s*(系統)?(管理員|管理员|開發者|开发者|root|admin|DAN)`, '中文：指定 AI 新身分', 'medium'],
 ].map(([pattern, reason, severity]) => ({ pattern, reason, severity }));
 
 d.agentTargetingPatterns = [
@@ -38,7 +46,7 @@ d.agentTargetingPatterns = [
 
 for (const k in d) for (const p of d[k]) new RegExp(p.pattern, 'im'); // 編譯不過就讓腳本直接報錯
 const out = {
-  _source: 'Ported from lasso-security/claude-hooks (MIT, commit 8fbfd14, patterns.yaml). Inline (?i) removed for JS; noisy rules downgraded to low; chinesePatterns and agentTargetingPatterns added by TAS 2026-11-03.',
+  _source: 'Ported from lasso-security/claude-hooks (MIT, commit 8fbfd14, patterns.yaml). Inline (?i) removed for JS; noisy rules downgraded to low; chinesePatterns and agentTargetingPatterns added by TAS 2026-11-03; zh override widened and dark-mode false positive removed 2026-11-05.',
   ...d,
 };
 fs.writeFileSync(dst, JSON.stringify(out, null, 1));

@@ -121,11 +121,11 @@ const stripSql = (s) => s.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/--(?=\s|$).
 const RECURSE = String.raw`-(?:r|re|rec|recu|recur|recurs|recurse)(?=\s|$|:)`
 const SHELL_RISKY = [
   [/\brm\s+(?:-\w*\s+)*-[a-z]*r[a-z]*\b/i, 'rm -r'],
-  [/\brm\s+(?:-\w+\s+)*--recursive\b/i, 'rm --recursive'],
-  [/\bgit\s+push\b[^;&|\n]*\s(?:--force(?:-with-lease)?|-f)\b/i, 'git push --force'],
+  [/\brm\b[^;&|\n]*\s--recursive\b/i, 'rm --recursive'],
+  [/\bgit\s+push\b[^;&|\n]*\s(?:--force(?:-with-lease|-if-includes)?|-[a-z]*f[a-z]*)(?=\s|$|=)/i, 'git push --force'],
   [/\bgit\s+push\b[^;&|\n]*\s\+\S/i, 'git push +ref'],
-  [/\bgit\s+reset\s+--hard\b/i, 'git reset --hard'],
-  [/\bgit\s+clean\s+-\w*f/i, 'git clean -f'],
+  [/\bgit\s+reset\b[^;&|\n]*\s--hard\b/i, 'git reset --hard'],
+  [/\bgit\s+clean\b[^;&|\n]*\s(?:-[a-z]*f[a-z]*|--force)(?=\s|$)/i, 'git clean -f'],
   [/\bgit\s+branch\b[^;&|\n]*\s-D\b/, 'git branch -D'],
   [/\bgit\s+branch\b[^;&|\n]*\s(?:-d|--delete)\b[^;&|\n]*\s(?:-f|--force)\b/i, 'git branch -D'],
   [/\bgit\s+checkout\s+(?:--\s+)?\.(?=\s|$|[;&|])/i, 'git checkout -- .'],
@@ -134,20 +134,41 @@ const SHELL_RISKY = [
   [/\b(?:del|erase)\b[^;&|\n]*\s\/s\b/i, 'del /s'],
   [/\brobocopy\b[^;&|\n]*\s\/MIR\b/i, 'robocopy /MIR'],
 ]
+
+// 繞寫正規化：去引號與反斜線跳脫（"rm"、r''m、r\m 在 shell 裡都是 rm）、
+// 拿掉 git 的全域選項（git -C dir / -c k=v push …）、rd/s/q 這種黏在指令名後的旗標拆開。
+// 只多產生一份文字一起比對，原文照樣比對，所以不會少擋。
+const GIT_GLOBAL = /\bgit((?:\s+(?:-C\s+\S+|-c\s+\S+|--git-dir(?:=\S+|\s+\S+)|--work-tree(?:=\S+|\s+\S+)|--no-pager|--bare|--no-replace-objects|--literal-pathspecs|-P|-p))+)(?=\s)/gi
+function normalizeShell(s) {
+  return s
+    .replace(/\\(?=[A-Za-z])/g, '')
+    .replace(/(['"])([^'"\n]*?)\1/g, '$2')
+    .replace(/\$\(\s*echo\s+([\w.-]+)\s*\)/gi, '$1')
+    .replace(GIT_GLOBAL, 'git')
+    .replace(/\b(rd|rmdir|del|erase)(\/[a-z])/gi, '$1 $2')
+}
 const SQL_RISKY = [
   [/\bDROP\s+(?:TABLE|DATABASE|SCHEMA|VIEW|PROCEDURE|PROC|FUNCTION|INDEX)\b/i, 'DROP'],
   [/\bTRUNCATE\s+TABLE\b/i, 'TRUNCATE TABLE'],
+  [/^\s*["']?TRUNCATE\s+(?!TABLE\b)[\w\[\]."`]+\s*(?:;|$)/im, 'TRUNCATE TABLE'],
 ]
-const TARGET = String.raw`(?!\w+:\/\/)[\w\[\].#@"]+`
+const TARGET = String.raw`(?!\w+:\/\/)[\w\[\].#@"'\x60]+`
 const DEL_FROM = /\bDELETE\s+(?:TOP\s*\(\s*\d+\s*\)\s*)?FROM\b/i
 const DEL_NOFROM_UPPER = new RegExp(String.raw`\bDELETE\s+(?:TOP\s*\(\s*\d+\s*\)\s*)?` + TARGET)
 const DEL_NOFROM_START = new RegExp(String.raw`^\s*["']?DELETE\s+(?:TOP\s*\(\s*\d+\s*\)\s*)?` + TARGET, 'i')
 const UPD = new RegExp(String.raw`\bUPDATE\s+(?:TOP\s*\(\s*\d+\s*\)\s*)?` + TARGET + String.raw`\s+SET\b`, 'i')
 
+// WHERE 要在最外層才算：字串常值（SET a='WHERE'）與括號子查詢（SET a=(SELECT … WHERE …)）裡的不算
+function topLevel(stmt) {
+  let t = stmt.replace(/N?'(?:[^']|'')*'/g, "''")
+  for (let prev = ''; prev !== t;) { prev = t; t = t.replace(/\([^()]*\)/g, '()') }
+  return t
+}
+
 function sqlRisky(s, out) {
   for (const [re, label] of SQL_RISKY) if (re.test(s)) out.add(label)
   for (const stmt of s.split(/;|^\s*GO\s*$/im)) {
-    if (/\bWHERE\b/i.test(stmt)) continue
+    if (/\bWHERE\b/i.test(topLevel(stmt))) continue
     if (DEL_FROM.test(stmt) || DEL_NOFROM_UPPER.test(stmt) || DEL_NOFROM_START.test(stmt)) out.add('DELETE 沒有 WHERE')
     if (UPD.test(stmt)) out.add('UPDATE 沒有 WHERE')
   }
@@ -158,7 +179,8 @@ export function findAllRisky(text) {
   const s = String(text || '')
   const sh = splitFlags(s)
   const out = new Set()
-  for (const [re, label] of SHELL_RISKY) if (re.test(sh)) out.add(label)
+  const shn = normalizeShell(sh)
+  for (const [re, label] of SHELL_RISKY) if (re.test(sh) || re.test(shn)) out.add(label)
   // 原文與去註解版各查一次，任一命中就擋（DROP/**/TABLE、WHERE 只在註解裡）
   sqlRisky(s, out)
   sqlRisky(stripSql(s), out)
@@ -169,12 +191,16 @@ export function findRisky(text) {
   return findAllRisky(text)[0] || null
 }
 
-// MCP 工具的參數名稱不固定，把所有字串值串起來檢查
+// MCP 工具的參數名稱不固定，也可能包在物件／陣列裡：遞迴把所有字串值串起來檢查
 export function inputText(e) {
-  return Object.entries(e)
-    .filter(([k, v]) => k !== 'tool' && typeof v === 'string')
-    .map(([, v]) => v)
-    .join('\n')
+  const out = []
+  const walk = (v, d) => {
+    if (d > 20 || v == null) return
+    if (typeof v === 'string') out.push(v)
+    else if (typeof v === 'object') for (const x of Object.values(v)) walk(x, d + 1)
+  }
+  for (const [k, v] of Object.entries(e)) if (k !== 'tool') walk(v, 0)
+  return out.join('\n')
 }
 
 export const CONFIRM_WORD = '確認執行'

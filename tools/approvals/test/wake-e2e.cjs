@@ -30,4 +30,4 @@ const api = async (m, u, b) => (await fetch(BASE + u, { method: m, headers: { 'C
   const dry = await wake(id, { dry: true }); console.log('閒著的對話 → 應會叫醒（dry）', /^會叫醒/.test(dry), dry.slice(0, 160));
   L.save(saved); // 換回自己，讓 watch 之後叫醒這個對話
   console.log(fin.status === 'done' && busyOk && /^會叫醒/.test(dry) ? 'RESULT OK（剩下：這個對話結束回合後 1～2 分鐘內應被叫醒）' : 'RESULT FAIL');
-})().catch((e) => console.log('script fail', e.message));
+})().catch((e) => { console.log('script fail', e.message); process.exitCode = 1; }); // 失敗要讓 CI／呼叫端看得到

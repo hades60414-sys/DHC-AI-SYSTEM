@@ -5,6 +5,18 @@
 const fs = require('fs'), path = require('path'), os = require('os')
 const CALLS = Number(process.env.TURN_BUDGET_CALLS) || 60
 const READONLY_AGENTS = /^(scout|Explore|verifier|plan-verifier|observer|security-reviewer|Plan|codex-scout|codex-verifier|statusline-setup)$/
+// 平行工具呼叫會同時跑好幾個這個 hook：讀改寫要上鎖，不然計數互相覆蓋（實測 20 次平行呼叫只記到 4 次）
+const sleep = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+function withLock(file, fn) {
+  const lock = file + '.lock'
+  for (let i = 0; i < 400; i++) {
+    try { fs.closeSync(fs.openSync(lock, 'wx')); break } catch {
+      try { if (Date.now() - fs.statSync(lock).mtimeMs > 2000) fs.unlinkSync(lock) } catch {} // 上一個程序當掉留下的鎖
+      sleep(5)
+    }
+  }
+  try { return fn() } finally { try { fs.unlinkSync(lock) } catch {} }
+}
 let raw = ''
 process.stdin.on('data', d => raw += d).on('end', () => {
   try {
@@ -12,6 +24,7 @@ process.stdin.on('data', d => raw += d).on('end', () => {
     const j = JSON.parse(raw), ev = j.hook_event_name
     const file = path.join(os.tmpdir(), `turn-budget-${String(j.session_id || 'x').replace(/\W/g, '')}.json`)
     if (ev === 'UserPromptSubmit') { fs.writeFileSync(file, '{}'); return }
+    const notes = withLock(file, () => {
     let st = {}; try { st = JSON.parse(fs.readFileSync(file, 'utf8')) } catch {}
     const key = j.agent_id || 'main', s = st[key] || (st[key] = { calls: 0, fails: {}, writers: 0 })
     const notes = []
@@ -33,6 +46,8 @@ process.stdin.on('data', d => raw += d).on('end', () => {
         notes.push('這一回合已經派出 3 個會寫檔的子代理，換方向：接下來的子代理一律依序跑（run_in_background: false，等前一個完成再派下一個），每個只負責一組不重疊的檔案。')
     }
     fs.writeFileSync(file, JSON.stringify(st))
+    return notes
+    })
     if (notes.length)
       console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: ev, additionalContext: '【回合預算】' + notes.join(' ') } }))
   } catch {}
