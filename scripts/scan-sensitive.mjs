@@ -20,7 +20,10 @@ const SELF = 'scripts/scan-sensitive.mjs';
 const LOCAL_TERMS = 'scripts/scan-sensitive.local.json';
 
 const EXCLUDED_DIRS = ['node_modules/', 'dist/', 'dist-server/', 'public/excalidraw/'];
-const EXCLUDED_FILES = new Set(['package-lock.json', SELF, LOCAL_TERMS]);
+const EXCLUDED_FILES = new Set([SELF, LOCAL_TERMS]);
+// Lockfiles are full of integrity hashes and maintainer emails, so only the key rules run on them.
+// They used to be skipped entirely by basename, so any file named package-lock.json was a blind spot.
+const LOCKFILES = new Set(['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock']);
 
 // Placeholder user names that are fine to publish (upstream tests use several of these).
 const ALLOWED_USER_NAMES = new Set(['demo', 'public', 'default', 'username', '%username%', 'user', 'you', 'yourname', 'x', 'test', 'dev', 'victim', '...', 'u', 'olduser', 'e0000000', 'agent', 'cloudcli']);
@@ -35,8 +38,7 @@ function listFiles() {
   ]);
   return [...files].filter((f) =>
     !EXCLUDED_DIRS.some((d) => f.startsWith(d) || f.includes(`/${d}`))
-    && !EXCLUDED_FILES.has(f)
-    && !EXCLUDED_FILES.has(path.posix.basename(f)));
+    && !EXCLUDED_FILES.has(f));
 }
 
 function loadLocalTerms() {
@@ -163,6 +165,7 @@ const GENERIC_RULES = [
     },
   },
   { name: 'key:sk-', re: /\bsk-[A-Za-z0-9_-]{20,}/g, check: (_line, m) => !m[0].includes('EXAMPLE') },
+  { name: 'key:aws', re: /(?<![A-Z0-9])(?:AKIA|ASIA)[0-9A-Z]{16}(?![A-Z0-9])/g, check: (_line, m) => !m[0].includes('EXAMPLE') },
   { name: 'key:ghp_', re: /\bgh[pousr]_[A-Za-z0-9]{20,}/g, check: (_line, m) => !/^gh[pousr]_x+$/i.test(m[0]) },
   {
     name: 'key:long-base64',
@@ -174,10 +177,12 @@ const GENERIC_RULES = [
   },
 ];
 
+// Binary = more than 1% NUL bytes in the first 8000. A single NUL used to hide a whole text file.
 function isBinary(buf) {
   const len = Math.min(buf.length, 8000);
-  for (let i = 0; i < len; i += 1) if (buf[i] === 0) return true;
-  return false;
+  let nul = 0;
+  for (let i = 0; i < len; i += 1) if (buf[i] === 0) nul += 1;
+  return nul > Math.max(1, len * 0.01);
 }
 
 function main() {
@@ -191,9 +196,10 @@ function main() {
     if (!existsSync(abs) || !statSync(abs).isFile()) continue;
     const buf = readFileSync(abs);
     if (isBinary(buf)) continue;
+    const fileRules = LOCKFILES.has(path.posix.basename(rel)) ? rules.filter((r) => ['key:sk-', 'key:ghp_', 'key:aws'].includes(r.name)) : rules;
     const lines = buf.toString('utf8').split(/\r?\n/);
     lines.forEach((line, idx) => {
-      for (const rule of rules) {
+      for (const rule of fileRules) {
         rule.re.lastIndex = 0;
         for (const m of line.matchAll(rule.re)) {
           if (rule.check && !rule.check(line, m)) continue;

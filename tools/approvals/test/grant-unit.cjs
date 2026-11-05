@@ -27,6 +27,13 @@ t('夾帶變數', !!G.match('rag1', 'D:\\TAS\\deploy\\push-page.cmd CBAS %X_PWD%
 t('參數裡有紅線字', !!G.match('rag1', 'D:\\TAS\\deploy\\push-page.cmd CBAS del', [g]), false);
 t('過期', !!G.match('rag1', 'D:\\TAS\\deploy\\push-page.cmd CBAS', [mk('rag1', g.prefix, { expires: new Date(Date.now() - 1000).toISOString() })]), false);
 t('次數用完', !!G.match('rag1', 'D:\\TAS\\deploy\\push-page.cmd CBAS', [mk('rag1', g.prefix, { usesLeft: 0 })]), false);
+// 引號包住的開關：Windows 會去掉引號，"/s" 就是 /s（11-05）
+const sq = mk('rag1', 'schtasks /query'), tl = mk('rag1', 'tasklist'), dr = mk('rag1', 'dir');
+t('引號開關 schtasks "/s"', !!G.match('rag1', 'schtasks /query "/s" evilhost "/u" admin', [sq]), false);
+t('引號開關 tasklist "/S"', !!G.match('rag1', 'tasklist "/S" evil "/U" adm', [tl]), false);
+t('引號開關 dir "/s"', !!G.match('rag1', 'dir "/s" C:\\', [dr]), false);
+t('schtasks -s 連別台', !G.unsafe('schtasks /query -s evilhost'), false);
+t('引號路徑參數照樣可用', !!G.match('rag1', 'dir "D:\\TAS\\out files"', [dr]), true);
 t('已撤銷', !!G.match('rag1', 'D:\\TAS\\deploy\\push-page.cmd CBAS', [mk('rag1', g.prefix, { status: 'revoked' })]), false);
 t('授權檔字首被改（指紋不符）', !!G.match('rag1', 'D:\\TAS\\other.cmd CBAS', [{ ...g, prefix: 'D:\\TAS\\other.cmd CBAS' }]), false);
 

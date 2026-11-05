@@ -38,7 +38,7 @@ if (require.main === module) {
         const k = K.start(e.session_id, new Date(r.until).toISOString(), String(e.prompt).slice(0, 80));
         const hm = new Date(Date.parse(k.until) + TW).toISOString().slice(11, 16);
         note = `已登記時限續做：到 ${hm}。時限內每次結束回合、對話閒下來 2 分鐘後，程式會叫醒你接著做（間隔至少 5 分鐘）。` +
-          `把完成條件、已做、待做、證據寫在 checkpoint ${K.KDIR}\\${e.session_id}.md。紅線留給使用者，先做不依賴它的項目。全部做完並驗證過才寫「${K.DONE}」。`;
+          `把完成條件、已做、待做、證據寫在 checkpoint ${require('path').join(K.KDIR, e.session_id + '.md')}。紅線留給使用者，先做不依賴它的項目。全部做完並驗證過才寫「${K.DONE}」。`;
       }
       if (note) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: note } }));
     } catch {}

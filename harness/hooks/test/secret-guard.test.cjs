@@ -28,7 +28,7 @@ const BLOCK = [
   bash('echo sk-""' + SK_ANT),                // 引號拆字
   bash('echo SK-' + SK_ANT),
   bash('echo ' + GHP),
-  bash('echo AKIAABCDEFGHIJKLMNOP'),
+  bash('echo ' + 'AKIA' + 'ABCDEFGHIJKLMNOP'),
   bash('curl -H "Authorization: Basic ' + BASIC + '"'),
   bash('echo A１23456789'),                                          // 全形數字
   bash('echo 4111 1111 1111 1111'),

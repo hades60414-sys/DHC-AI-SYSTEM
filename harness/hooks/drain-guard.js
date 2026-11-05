@@ -10,7 +10,8 @@ process.stdin.on('data', d => raw += d).on('end', () => {
     if (!ROOT) return // 未配置維護服務就不啟用
     if (!fs.existsSync(FLAG)) return
     const flag = JSON.parse(fs.readFileSync(FLAG, 'utf8'))
-    if (Date.now() - Date.parse(flag.since) > MAX_AGE) return
+    // since 缺少或格式錯就當過期（舊寫法 NaN > MAX_AGE 為 false，會永久攔住所有工具）
+    if (!(Date.now() - Date.parse(flag.since) <= MAX_AGE)) return
     const j = JSON.parse(raw), sid = String(j.session_id || '')
     if (!sid || (flag.except || []).includes(sid)) return
     const ckpt = `${DIR}/${sid}.md`

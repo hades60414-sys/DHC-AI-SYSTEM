@@ -22,4 +22,4 @@ const api = async (m, u, b) => (await fetch(BASE + u, { method: m, headers: { 'C
   await sleep(1000); const again = run(['run.cjs', id]); console.log('重跑 → 應拒', !again.ok, again.out.trim());
   const after = await L.readMsgs(ROOM); console.log('聊天室最後一則：', String(after.at(-1).text).slice(0, 120).replace(/\n/g, ' / '));
   console.log(fin.status === 'done' && !early.ok && !again.ok ? 'RESULT OK' : 'RESULT FAIL');
-})().catch((e) => console.log('script fail', e.message));
+})().catch((e) => { console.log('script fail', e.message); process.exitCode = 1; }); // 失敗要讓 CI／呼叫端看得到

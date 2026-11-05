@@ -109,7 +109,7 @@ if (CHECK) { console.log('CHECK only: nothing changed.'); process.exit(0); }
 if (after !== JSON.stringify(JSON.parse(before || '{}'), null, 2) + '\n') {
   if (fs.existsSync(settingsPath)) {
     let bak = `${settingsPath}.bak-${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}`;
-    for (let i = 2; fs.existsSync(bak); i++) bak = bak.replace(/(-d+)?$/, `-${i}`); // never overwrite an earlier backup
+    for (let i = 2; fs.existsSync(bak); i++) bak = bak.replace(/(-\d+)?$/, `-${i}`); // never overwrite an earlier backup
     fs.copyFileSync(settingsPath, bak);
     console.log(`backup: ${bak}`);
   }

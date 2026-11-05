@@ -65,6 +65,15 @@ if (Test-Path (Join-Path $claudeDir "CLAUDE.md")) {
     Write-Host "FAIL: not installed to ~/.claude - run .\ops\install-harness.ps1"
     $ok = $false
 }
+# Hook command paths: a moved repo silently disables hooks that run in place from tools/
+if (Get-Command node -ErrorAction SilentlyContinue) {
+    $env:CLAUDE_CONFIG_DIR = $claudeDir
+    node (Join-Path $PSScriptRoot "check-hooks.cjs")
+    if ($LASTEXITCODE -ne 0) { $ok = $false }
+    Remove-Item Env:CLAUDE_CONFIG_DIR -ErrorAction SilentlyContinue
+} else {
+    Write-Host "WARN: node not found; hook paths not checked"
+}
 # Installed counts must cover active managed items, not archived source skills.
 $expectedClaudeSkills = @(@($manifest.skills.shared) + @($manifest.skills.claudeOnly) | Sort-Object -Unique)
 $pkgSkills = $expectedClaudeSkills.Count

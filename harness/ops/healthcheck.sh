@@ -32,6 +32,13 @@ else echo "OK skills installed: $INST_SKILLS (package: $PKG_SKILLS)"; fi
 if [ "$INST_AGENTS" -lt "$PKG_AGENTS" ]; then echo "FAIL: agents installed $INST_AGENTS < package $PKG_AGENTS"; OK=0
 else echo "OK agents installed: $INST_AGENTS (package: $PKG_AGENTS)"; fi
 
+# 2b) Hook command paths (a moved repo silently disables hooks that run in place from tools/)
+if command -v node >/dev/null 2>&1; then
+  CLAUDE_CONFIG_DIR="$CLAUDE_DIR" node "$ROOT/ops/check-hooks.cjs" || OK=0
+else
+  echo "WARN: node not found; hook paths not checked"
+fi
+
 # 3) Local Ollama (optional unless REQUIRE_OLLAMA=1)
 if curl -fsS --max-time 8 http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
   MODELS=$(curl -fsS --max-time 8 http://127.0.0.1:11434/api/tags | grep -o '"name":"[^"]*"' | head -5)

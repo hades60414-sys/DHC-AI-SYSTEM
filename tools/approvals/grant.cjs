@@ -14,10 +14,13 @@ const NETWORK = /\\\\|\/\//;
 const ODD_SPACE = /[\u0000-\u0008\u000b-\u001f\u007f-\u00a0\u1680\u180e\u2000-\u200f\u2028-\u202f\u205f\u3000\ufeff]/;
 // 紅線：刪除、權限、帳密、對外連線、資料庫寫入、系統層、任意腳本主機；一律不能存成常設授權，也不能靠授權放行
 // 11-03 Astra 對抗：git（clean/checkout/reset 會丟檔）、robocopy /mov、schtasks /run 帶 /s /u /p 連別台都漏掉，補上
-const FORBID = /\b(del|erase|rd|rmdir|move|format|diskpart|cipher|icacls|cacls|takeown|attrib|net|netsh|reg|sc|setx|runas|shutdown|bcdedit|wmic|powershell|pwsh|mshta|cscript|wscript|rundll32|regsvr32|curl|wget|bitsadmin|certutil|ftp|tftp|ssh|scp|sqlcmd|osql|bcp|isql|mysql|psql|msiexec|winget|choco|pip|npm|npx|git)\b|\bschtasks\b(?!\s+\/(run|end|query)\b)|\bschtasks\b.*\s\/(s|u|p)\b|\/(mir|purge|mov|move)\b|_(pwd|pass|token|otp)\b|password|passwd/i;
+const FORBID = /\b(del|erase|rd|rmdir|move|format|diskpart|cipher|icacls|cacls|takeown|attrib|net|netsh|reg|sc|setx|runas|shutdown|bcdedit|wmic|powershell|pwsh|mshta|cscript|wscript|rundll32|regsvr32|curl|wget|bitsadmin|certutil|ftp|tftp|ssh|scp|sqlcmd|osql|bcp|isql|mysql|psql|msiexec|winget|choco|pip|npm|npx|git)\b|\bschtasks\b(?!\s+\/(run|end|query)\b)|\bschtasks\b.*\s[\/-](s|u|p)\b|\/(mir|purge|mov|move)\b|_(pwd|pass|token|otp)\b|password|passwd/i;
 // 黑名單列不完：字首後面多出來的部分只能是一般參數，不能再帶任何開關（/x、-x），開關要寫進使用者按過的字首裡
 const EXTRA_FLAG = /(^|\s)[\/-][A-Za-z?]/;
 const DAY = 864e5;
+// 比對紅線與開關前先拿掉引號：Windows 的命令列解析會去掉引號，"/s" 跑起來就是 /s（11-05 對抗測試：
+// schtasks /query "/s" evilhost "/u" admin、tasklist "/S" evil 原本都過得了授權比對）
+const unquote = (s) => String(s).replace(/["']/g, '');
 
 function unsafe(s) {
   if (!s || !s.trim()) return '空的';
@@ -25,7 +28,7 @@ function unsafe(s) {
   const b = s.match(BANNED); if (b) return `含禁止字元 ${JSON.stringify(b[0])}`;
   if (NETWORK.test(s)) return '含網路路徑';
   if (ODD_SPACE.test(s)) return '含特殊空白或控制字元';
-  const f = s.match(FORBID); if (f) return `碰到紅線「${f[0]}」（刪除／權限／帳密／對外／資料庫寫入／系統層），不能用常設授權`;
+  const f = s.match(FORBID) || unquote(s).match(FORBID); if (f) return `碰到紅線「${f[0]}」（刪除／權限／帳密／對外／資料庫寫入／系統層），不能用常設授權`;
   return '';
 }
 
@@ -42,7 +45,7 @@ function match(machine, cmd, grants = all()) {
   if (unsafe(cmd)) return null;
   const lc = cmd.toLowerCase();
   return grants.find((g) => live(g) && g.machine === machine && L.sha(g.machine, 'GRANT\n' + g.prefix) === g.sha256 &&
-    (() => { const p = g.prefix.toLowerCase(); return lc === p || (lc.startsWith(p) && /[ \t]/.test(lc[p.length]) && !EXTRA_FLAG.test(lc.slice(p.length))); })()) || null;
+    (() => { const p = g.prefix.toLowerCase(); return lc === p || (lc.startsWith(p) && /[ \t]/.test(lc[p.length]) && !EXTRA_FLAG.test(unquote(lc.slice(p.length)))); })()) || null;
 }
 
 // 讀改寫授權檔一律搶 .lock（11-03 Astra：兩筆同時 consume 會超用，consume 和 revoke 交錯會把撤銷蓋回有效）

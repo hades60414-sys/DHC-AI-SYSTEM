@@ -1,5 +1,6 @@
 // 時限續做單元測試：講法解析（不登記）＋ tick 的判斷（假對話紀錄、--dry，不送訊息）
-const { parse } = require(require('path').join(require('os').homedir(), '.claude/hooks/keepgoing-detect.js'));
+// 測 repo 裡的版本，不是 ~/.claude/hooks 已安裝的那份（沒安裝的機器原本直接 MODULE_NOT_FOUND）
+const { parse } = require(require('path').join(__dirname, '..', '..', '..', 'harness', 'hooks', 'keepgoing-detect.js'));
 const NOW = Date.parse('2026-11-03T00:20:00Z'); // 台灣 08:20
 const tw = (ms) => new Date(ms + 8 * 3600e3).toISOString().slice(11, 16);
 let bad = 0;
