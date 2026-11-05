@@ -1,7 +1,7 @@
 {
-  "name": "DHC CLI UI",
-  "short_name": "DHC CLI UI",
-  "description": "DHC CLI UI web application",
+  "name": "DHC AI System",
+  "short_name": "DHC AI",
+  "description": "DHC AI System web application",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

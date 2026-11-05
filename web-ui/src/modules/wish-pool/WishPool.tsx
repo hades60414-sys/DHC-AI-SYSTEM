@@ -10,12 +10,14 @@ import {
   useFeatureWishes,
   wishDiscussionPrompt,
 } from '@/shared/featureWishes';
+import { useEscapeClose } from '@/shared/escapeStack';
+import { useRailOpenRequest } from '@/shared/mobileRail';
 import { cn } from '@/shared/utils';
 
 const DRAFT_STORAGE_KEY = 'dhc.wishDraft';
-// Middle of the right-edge stack, between 待辦 and 版本更新 (TodoDock, ReleaseNotes).
+// Middle of the right-edge stack, between 待辦 and 聊天室 (TodoDock, ChatRoom); 行事曆 moved into 工具庫 (10/16).
 const DESKTOP_HANDLE_STYLE: CSSProperties = { top: 'calc(90% - 46px)', transform: 'translateY(-50%)' };
-const MOBILE_HANDLE_STYLE: CSSProperties = { bottom: 'calc(50% + 46px)' };
+const MOBILE_HANDLE_STYLE: CSSProperties = { bottom: '50%' };
 
 // 自選功能 fan: the person's five slots on an arc around the handle.
 const FAN_RADIUS = 105;
@@ -73,6 +75,8 @@ type WishPoolProps = {
   onOpenTool: (id: string) => void;
   /** 工具庫: the handle itself and every empty slot open it. */
   onOpenLibrary: () => void;
+  /** 10/16: a soft red dot on a tool's icon (someone mentioned you on a whiteboard), by tool id. */
+  badges?: Record<string, number>;
   /** The 功能許願池 window (opened from 工具庫). */
   wishesOpen: boolean;
   onWishesOpenChange: (open: boolean) => void;
@@ -83,7 +87,7 @@ type WishPoolProps = {
  * 自選 slots (10/14). Clicking the handle opens 工具庫; an empty slot says 新增自選 and opens 工具庫 too.
  * 功能許願池 (the form and everyone's wishes) opens from 工具庫.
  */
-export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpenLibrary, wishesOpen: isOpen, onWishesOpenChange: setIsOpen }: WishPoolProps) {
+export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpenLibrary, badges, wishesOpen: isOpen, onWishesOpenChange: setIsOpen }: WishPoolProps) {
   useEffect(() => startFeatureWishesSync(), []);
   const wishes = useFeatureWishes();
   const [isFanned, setIsFanned] = useState(false);
@@ -107,17 +111,13 @@ export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpe
     setIsFanned(false);
     onOpenLibrary();
   };
+  // 手機頂端選單的「工具庫」
+  useRailOpenRequest('library', openLibrary);
 
-  useEffect(() => {
-    if (!isOpen && !isFanned) return undefined;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      setIsOpen(false);
-      setIsFanned(false);
-    };
-    window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [isOpen, isFanned, setIsOpen]);
+  useEscapeClose(() => {
+    setIsOpen(false);
+    setIsFanned(false);
+  }, isOpen || isFanned);
 
   const update = (patch: Partial<Draft>) => {
     const next = { ...draft, ...patch };
@@ -142,6 +142,7 @@ export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpe
   return (
     <>
       <div
+        data-rail-item
         className="fixed right-0 z-[51] flex items-center justify-end"
         style={isMobile ? MOBILE_HANDLE_STYLE : DESKTOP_HANDLE_STYLE}
         onMouseEnter={isMobile ? undefined : keepFan}
@@ -153,6 +154,7 @@ export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpe
           onClick={() => (isMobile && !isFanned ? keepFan() : openLibrary())}
           aria-label="自選功能"
           aria-expanded={isFanned}
+          data-tutorial-tip={isMobile ? '自選功能：點一下展開你的快捷工具，再點一下打開工具庫' : '自選功能：滑過會展開你的快捷工具，點一下打開工具庫'}
           title={isFanned ? undefined : '自選功能（點一下打開工具庫）'}
           className={cn(
             'flex items-center justify-center border border-gray-200 bg-white text-gray-600 shadow-lg transition-all duration-200 ease-out hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700',
@@ -160,6 +162,7 @@ export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpe
           )}
         >
           <Blocks className={cn('transition-all duration-200', isFanned ? 'h-4 w-4' : 'h-5 w-5')} />
+          {!isFanned && badges && Object.keys(badges).length > 0 && <span data-testid="mention-dot" title="白板有人提到你或邀你 Co-Work" className="absolute -left-0.5 -top-0.5 h-2 w-2 rounded-full bg-rose-400/75 shadow-[0_0_0_3px_rgba(251,113,133,0.15)]" />}
         </button>
 
         {/* While fanned, the whole half disc behind the circles counts as hovering, so the gaps between them never fold it. */}
@@ -194,6 +197,7 @@ export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpe
                 style={fanStyle(index, isFanned)}
               >
                 <Icon className="h-4 w-4" />
+                {slot && badges?.[slot.id] ? <span data-testid="mention-dot" title="白板有人提到你或邀你 Co-Work" className="absolute -left-0.5 -top-0.5 h-2 w-2 rounded-full bg-rose-400/75 shadow-[0_0_0_3px_rgba(251,113,133,0.15)]" /> : null}
                 <span className="pointer-events-none absolute right-full mr-2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs text-background opacity-0 shadow transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                   {label}
                 </span>
@@ -233,8 +237,8 @@ export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpe
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto p-3">
-              <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-                任何 AI 相關的願望都可以許：介面功能、內部資料自動彙整報告、電腦操作自動化等；不知道怎麼寫，按「跟 DHC CLI 討論」。
+              <p data-tutorial className="mb-3 text-xs leading-relaxed text-muted-foreground">
+                任何 AI 相關的願望都可以許：介面功能、內部資料自動彙整報告、電腦操作自動化等；不知道怎麼寫，按「跟 DHC AI System 討論」。
               </p>
 
               <div className="space-y-2">
@@ -247,7 +251,8 @@ export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpe
                 />
                 <textarea
                   aria-label="描述"
-                  placeholder="描述：想在什麼情況下做到什麼？"
+                  placeholder="描述"
+                  data-tutorial-tip="寫想在什麼情況下做到什麼；不會寫就按「跟 DHC AI System 討論」"
                   value={draft.description}
                   onChange={(event) => update({ description: event.target.value })}
                   rows={4}
@@ -255,7 +260,8 @@ export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpe
                 />
                 <input
                   aria-label="署名"
-                  placeholder="署名（留空＝匿名）"
+                  placeholder="署名"
+                  data-tutorial-tip="留空＝匿名"
                   value={draft.author}
                   onChange={(event) => update({ author: event.target.value })}
                   className={inputClass}
@@ -267,7 +273,7 @@ export default function WishPool({ isMobile, onDiscuss, slots, onOpenTool, onOpe
                     className="flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs text-foreground hover:bg-muted"
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
-                    跟 DHC CLI 討論
+                    跟 DHC AI System 討論
                   </button>
                   <button
                     type="button"

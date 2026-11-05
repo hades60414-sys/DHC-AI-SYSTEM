@@ -115,15 +115,15 @@ function statuses(sessionId: string): string[] {
   return items(sessionId).map((item) => item.status);
 }
 
-test('the window is 02:00 up to (not including) 07:00, local time', () => {
-  assert.equal(isNightWindow(at(1, 59)), false);
-  assert.equal(isNightWindow(at(2, 0)), true);
-  assert.equal(isNightWindow(at(6, 59)), true);
-  assert.equal(isNightWindow(at(7, 0)), false);
+test('the window is 01:00 up to (not including) 06:00, local time', () => {
+  assert.equal(isNightWindow(at(0, 59)), false);
+  assert.equal(isNightWindow(at(1, 0)), true);
+  assert.equal(isNightWindow(at(5, 59)), true);
+  assert.equal(isNightWindow(at(6, 0)), false);
   assert.equal(isNightWindow(at(14, 0)), false);
 });
 
-test('storing a prompt turns night mode on and nothing runs before 02:00', async () => {
+test('storing a prompt turns night mode on and nothing runs before 01:00', async () => {
   await withIsolatedDatabase(async (userId) => {
     const state = nightQueueService.enqueue({ userId, sessionId: SESSION_A, content: 'refactor the loader' });
     assert.equal(state.enabled, true);
@@ -133,7 +133,7 @@ test('storing a prompt turns night mode on and nothing runs before 02:00', async
 
     const runs: RunCall[] = [];
     assert.equal(await dispatchNightQueue(createRuntime(runs), at(23, 30)), false);
-    assert.equal(await dispatchNightQueue(createRuntime(runs), at(1, 59)), false);
+    assert.equal(await dispatchNightQueue(createRuntime(runs), at(0, 59)), false);
     assert.equal(runs.length, 0);
     assert.deepEqual(statuses(SESSION_A), ['pending']);
   });
@@ -186,12 +186,12 @@ test('a pass while an item is still running starts nothing else', async () => {
   });
 });
 
-test('from 07:00 nothing new starts; what is left waits for the next night', async () => {
+test('from 06:00 nothing new starts; what is left waits for the next night', async () => {
   await withIsolatedDatabase(async (userId) => {
     nightQueueService.enqueue({ userId, sessionId: SESSION_A, content: 'too late tonight' });
 
     const runs: RunCall[] = [];
-    assert.equal(await dispatchNightQueue(createRuntime(runs), at(7, 0)), false);
+    assert.equal(await dispatchNightQueue(createRuntime(runs), at(6, 0)), false);
     assert.deepEqual(statuses(SESSION_A), ['pending']);
 
     assert.equal(await dispatchNightQueue(createRuntime(runs), at(2, 5)), true);
@@ -251,10 +251,7 @@ test('a busy session is skipped without its items losing their order', async () 
   });
 });
 
-test('a turn that ends in an error goes back to waiting, pauses the queue, and fails after three tries', async (t) => {
-  // The pause starts from the later of the dispatch time and the wall clock; pin the wall clock to the
-  // simulated night so the test does not depend on today's date.
-  t.mock.method(Date, 'now', () => at(3, 0).getTime());
+test('a turn that ends in an error goes back to waiting, pauses the queue, and fails after three tries', async () => {
   await withIsolatedDatabase(async (userId) => {
     nightQueueService.enqueue({ userId, sessionId: SESSION_A, content: 'hits the limit' });
     nightQueueService.enqueue({ userId, sessionId: SESSION_B, content: 'fine later' });

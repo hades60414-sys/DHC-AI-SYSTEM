@@ -51,6 +51,7 @@ export default function QuickSettingsHandle({
   return (
     <button
       type="button"
+      data-rail-item
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
@@ -63,6 +64,7 @@ export default function QuickSettingsHandle({
       }}
       aria-label={ariaLabel}
       title={title}
+      data-tutorial-tip="快速設定：點一下開關設定抽屜，可上下拖動位置"
     >
       {isDragging ? (
         <GripVertical className="h-5 w-5 text-blue-500 dark:text-blue-400" />

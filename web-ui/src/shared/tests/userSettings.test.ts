@@ -247,7 +247,7 @@ test('an existing device silently stays on the shared profile; a new device must
 test('a profile reads and writes its own namespaced keys, leaving shared keys alone', async () => {
   localStorage.setItem('dhc.settingsProfile', 'abc');
   serverPreferences = {
-    'dhc.profiles': [{ id: 'abc', name: 'Alex' }],
+    'dhc.profiles': [{ id: 'abc', name: 'Mike' }],
     selectedProvider: 'codex',
     'p:abc:selectedProvider': 'claude',
   };
@@ -258,7 +258,7 @@ test('a profile reads and writes its own namespaced keys, leaving shared keys al
   store.writeUserPreference('theme', 'dark');
   await vi.advanceTimersByTimeAsync(500);
   assert.deepEqual(saved, [{ 'p:abc:theme': 'dark' }]);
-  assert.deepEqual(store.listSettingsProfiles(), [{ id: 'abc', name: 'Alex' }]);
+  assert.deepEqual(store.listSettingsProfiles(), [{ id: 'abc', name: 'Mike' }]);
 });
 
 test('a device whose profile was deleted elsewhere is asked again', async () => {
@@ -276,9 +276,9 @@ test('creating a profile copies the current settings under the new id', async ()
   const store = await loadStore();
   await store.hydrateUserPreferences();
 
-  const id = await store.createSettingsProfile('  Alex ', true);
+  const id = await store.createSettingsProfile('  Mike ', true);
   const payload = saved.at(-1) as unknown as Record<string, unknown>;
-  assert.deepEqual(payload['dhc.profiles'], [{ id, name: 'Alex' }]);
+  assert.deepEqual(payload['dhc.profiles'], [{ id, name: 'Mike' }]);
   assert.equal(payload[`p:${id}:theme`], 'dark');
   assert.equal(payload[`p:${id}:selectedProvider`], 'codex');
   assert.equal(payload.theme, undefined, 'shared keys must not be touched');

@@ -33,12 +33,33 @@ const FALLBACK_DEFAULT_MODEL: Record<LLMProvider, string> = {
   cursor: 'gpt-5.3-codex',
   codex: 'gpt-5.4',
   opencode: 'anthropic/claude-sonnet-4-5',
+  agy: 'claude-opus-4-6-thinking',
 };
 
-const PROVIDERS: LLMProvider[] = ['claude', 'cursor', 'codex', 'opencode'];
+const PROVIDERS: LLMProvider[] = ['claude', 'cursor', 'codex', 'opencode', 'agy'];
 
 /** localStorage key holding the user's default model for one provider. */
 const providerModelStorageKey = (provider: LLMProvider): string => `${provider}-model`;
+
+/**
+ * DHC CLI house default (2026-10-20): Opus 5.5 1M at medium effort in bypass mode; the 0.4M
+ * window is cc-host's `modelSettings.autoCompactWindow`. Applied once per browser, overwriting
+ * earlier picks, so later changes stick.
+ */
+const DHC_DEFAULTS_APPLIED_KEY = 'dhc.claudeDefaults.20261020';
+const applyDhcClaudeDefaults = (): void => {
+  try {
+    if (localStorage.getItem(DHC_DEFAULTS_APPLIED_KEY)) {
+      return;
+    }
+    localStorage.setItem(providerModelStorageKey('claude'), 'opus[1m]');
+    localStorage.setItem('claude-effort', 'medium');
+    localStorage.setItem('permissionMode-last-claude', 'bypassPermissions');
+    localStorage.setItem(DHC_DEFAULTS_APPLIED_KEY, '1');
+  } catch {
+    // Without storage the upstream defaults stay in place.
+  }
+};
 
 /**
  * DHC CLI: the server catalog labels the Opus aliases just "Opus", which does not say which Opus
@@ -74,6 +95,8 @@ const FALLBACK_PERMISSION_MODES: Record<LLMProvider, PermissionMode[]> = {
   cursor: ['default', 'acceptEdits', 'bypassPermissions', 'plan'],
   codex: ['default', 'acceptEdits', 'bypassPermissions'],
   opencode: ['default', 'acceptEdits', 'bypassPermissions', 'plan'],
+  // `plan` hangs in agy headless mode, so it is not offered.
+  agy: ['acceptEdits', 'bypassPermissions'],
 };
 
 type ProviderCapabilities = {
@@ -158,6 +181,7 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
   // must restore the model that provider was last used with, and the catalogue
   // that validates them arrives asynchronously per provider.
   const [providerModels, setProviderModels] = useState<Record<LLMProvider, string>>(() => {
+    applyDhcClaudeDefaults();
     return PROVIDERS.reduce<Record<LLMProvider, string>>((acc, targetProvider) => {
       acc[targetProvider] = localStorage.getItem(providerModelStorageKey(targetProvider))
         || FALLBACK_DEFAULT_MODEL[targetProvider];
@@ -494,6 +518,12 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
    */
   const supportsMessageEditing = Boolean(providerCapabilities?.[provider]?.supportsMessageEditing);
   const supportsSessionForking = Boolean(providerCapabilities?.[provider]?.supportsSessionForking);
+  // Unlike the two above, this one defaults to on: only a provider that is known not to take images or files
+  // (agy) loses the attach controls; until the matrix loads, agy is the one assumed to lack them.
+  const currentCapabilities = providerCapabilities?.[provider];
+  const supportsAttachments = currentCapabilities
+    ? currentCapabilities.supportsImages || currentCapabilities.supportsFiles
+    : provider !== 'agy';
 
   const resolvePermissionModeForProvider = useCallback((
     targetProvider: LLMProvider,
@@ -584,14 +614,18 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
    *
    * The pick always becomes the per-provider default so the next new chat
    * inherits it, and — when a session is open — is also recorded against that
-   * session so reopening it later restores this model.
+   * session so reopening it later restores this model. `keepDefault` (DHC CLI 開對話建議模型) records it
+   * against the session only, so a Sonnet switch for one chat does not become every new chat's default.
    */
   const selectProviderModel = useCallback(async (
     targetProvider: LLMProvider,
     model: string,
     sessionId?: string | null,
+    options: { keepDefault?: boolean } = {},
   ) => {
-    setStoredProviderModel(targetProvider, model);
+    if (!options.keepDefault) {
+      setStoredProviderModel(targetProvider, model);
+    }
 
     const normalizedSessionId = typeof sessionId === 'string' ? sessionId.trim() : '';
     if (!normalizedSessionId) {
@@ -853,5 +887,6 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
     resolvePermissionModeForProvider,
     supportsMessageEditing,
     supportsSessionForking,
+    supportsAttachments,
   };
 }

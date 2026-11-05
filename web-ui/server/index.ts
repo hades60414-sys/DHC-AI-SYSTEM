@@ -41,6 +41,7 @@ import {
     stopAllPlugins,
 } from './modules/plugins/index.js';
 import providerRoutes from './modules/providers/provider.routes.js';
+import assistantRoutes from './modules/assistant/assistant.routes.js';
 import { voiceRoutes } from './modules/voice/index.js';
 import {
     closeScheduledMessageDispatcher,
@@ -87,6 +88,13 @@ const systemRoutes = createSystemModule({
 });
 console.log('SERVER_PORT from env:', process.env.SERVER_PORT);
 
+process.on("unhandledRejection", (reason) => {
+    console.error("[unhandledRejection]", reason);
+});
+process.on("uncaughtException", (err) => {
+    console.error("[uncaughtException]", err);
+});
+
 const app = express();
 const server = http.createServer(app);
 const queryClaude = providerRuntimeService.getRunner('claude');
@@ -126,6 +134,13 @@ createWebSocketServer(server, {
     getPluginPort,
 });
 
+app.use((_req, res, next) => {
+    res.setHeader("Content-Security-Policy-Report-Only", "default-src 'self'; script-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; connect-src 'self' wss: ws:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self' blob:");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    next();
+});
 app.use(cors({ exposedHeaders: ['X-Refreshed-Token', 'X-Auth-Error'] }));
 app.use(express.json({
     limit: '50mb',
@@ -198,9 +213,13 @@ app.use('/api/browser-use', authenticateToken, browserUseRoutes);
 
 // Unified provider MCP routes (protected)
 app.use('/api/providers', authenticateToken, providerRoutes);
+// DHC CLI 10/19 團隊小助理
+app.use('/api/assistant', authenticateToken, assistantRoutes);
 app.use('/api/scheduled-messages', authenticateToken, scheduledMessagesRoutes);
 // DHC CLI: night mode — prompts held per session and run one at a time from 02:00.
 app.use('/api/night-queue', authenticateToken, nightQueueRoutes);
+
+// Agent API Routes (uses API key authentication)
 // DHC CLI: dhc.config.json (workspace root, personal/team mode, agents, domain), read once at startup.
 loadDhcConfig();
 app.use('/api/dhc', authenticateToken, dhcRoutes);
@@ -370,7 +389,7 @@ async function startServer() {
 
             console.log('');
             console.log(terminalTextStyles.dim('═'.repeat(63)));
-            console.log(`  ${terminalTextStyles.bright('DHC CLI Server - Ready')}`);
+            console.log(`  ${terminalTextStyles.bright('CloudCLI Server - Ready')}`);
             console.log(terminalTextStyles.dim('═'.repeat(63)));
             console.log('');
             console.log(`${terminalTextStyles.info('[INFO]')} Server URL:  ${terminalTextStyles.bright('http://' + DISPLAY_HOST + ':' + SERVER_PORT)}`);
@@ -379,7 +398,11 @@ async function startServer() {
             console.log('');
 
             // Start watching the projects folder for changes
-            await initializeSessionsWatcher();
+            try {
+                await initializeSessionsWatcher();
+            } catch (err) {
+                console.error("[SessionsWatcher] init failed:", err);
+            }
             // Sends anything that came due while the server was not running,
             // then keeps polling.
             initializeScheduledMessageDispatcher(providerRuntimeService);

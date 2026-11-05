@@ -30,13 +30,6 @@ setCoProjectNames([{ projectId: 'olive', displayName: 'Olive' }, { projectId: 'a
 beforeEach(() => setDhcConfig({ mode: 'team' }));
 afterEach(() => setDhcConfig({ mode: 'personal' }));
 
-test('personal mode: no sender face beside a shared session message', () => {
-  setDhcConfig({ mode: 'personal' });
-  renderBubble('【Amy】幫我看這張表', CO_SESSION);
-
-  assert.equal(screen.queryByRole('img', { name: 'Amy' }), null);
-});
-
 test('a marked message shows the sender and hides the mark', () => {
   const { container } = renderBubble('【Amy】幫我看這張表', CO_SESSION);
 

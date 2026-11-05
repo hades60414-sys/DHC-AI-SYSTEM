@@ -57,6 +57,7 @@ const PROVIDER_LABELS: Record<string, string> = {
   cursor: 'Cursor',
   codex: 'Codex',
   opencode: 'OpenCode',
+  agy: 'Google agy',
 };
 
 const FALLBACK_COMMANDS: CommandEntry[] = [
@@ -387,7 +388,7 @@ function ModelsContent({
                     <span className="mt-1 text-xs leading-5 text-muted-foreground">{option.description}</span>
                   )}
                   {isCurrent && (
-                    <span className="mt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">Current selection</span>
+                    <span className="mt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">{t('chat:misc.currentSelection')}</span>
                   )}
                   {isPendingSelection && !isCurrent && (
                     <span className="mt-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-500 dark:text-emerald-400">
@@ -498,6 +499,7 @@ function CostContent({ data }: { data: CostCommandData }) {
 }
 
 function StatusContent({ data }: { data: StatusCommandData }) {
+  const { t } = useTranslation();
   const memoryRssMb = data.memoryUsage?.rssMb;
   const rows = [
     { label: 'Package', value: data.packageName || 'claude-code-ui', icon: Package },
@@ -519,7 +521,7 @@ function StatusContent({ data }: { data: StatusCommandData }) {
             <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-foreground">Runtime online</p>
+            <p className="text-sm font-semibold text-foreground">{t('chat:misc.runtimeOnline')}</p>
             <p className="text-xs text-muted-foreground">Process {data.pid ? `#${data.pid}` : 'status'} is responding.</p>
           </div>
         </div>

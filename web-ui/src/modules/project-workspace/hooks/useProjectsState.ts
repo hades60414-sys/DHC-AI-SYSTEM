@@ -13,6 +13,16 @@ import { readSelectedProvider } from '@/shared/selectedProvider';
 import { getUserPreferencesVersion, resolveSettingsProjectId, subscribeToUserPreferences } from '@/shared/userSettings';
 import { notifyBrowser } from '@/shared/browserNotify';
 import { onFlashSessionEnded } from '@/shared/flashTasks';
+import { isQueryProject } from '@/modules/sidebar/hooks/useSidebarController';
+import {
+  addPendingQueryPurge,
+  duePendingQueryPurges,
+  isListedIncognitoQuery,
+  QUERY_PURGE_DELAY_MS,
+  readPendingQueryPurges,
+  removePendingQueryPurge,
+  staleQuerySessionIds,
+} from '@/modules/project-workspace/utils/incognitoQuery';
 import { forgetSessionInBoxes } from '@/shared/sessionBoxes';
 import { forgetCoSession, isCoMuted } from '@/shared/coSessions';
 import { clearWaitingRequest, clearWaitingSession, markWaiting } from '@/shared/waitingOnYou';
@@ -1141,10 +1151,13 @@ export function useProjectsState({
   );
 
   const handleSessionDelete = useCallback(
-    (sessionIdToDelete: string) => {
+    (sessionIdToDelete: string, hardDelete = true) => {
       clearSessionAttention(sessionIdToDelete);
-      forgetSessionInBoxes(sessionIdToDelete);
-      forgetCoSession(sessionIdToDelete);
+      // Archiving keeps the session, so its box and Co-Work members must survive a restore.
+      if (hardDelete) {
+        forgetSessionInBoxes(sessionIdToDelete);
+        forgetCoSession(sessionIdToDelete);
+      }
 
       if (selectedSession?.id === sessionIdToDelete) {
         setSelectedSession(null);
@@ -1160,6 +1173,59 @@ export function useProjectsState({
 
   // DHC CLI 快閃任務區: the sidebar × and the header button delete without going through the sidebar's dialog.
   useEffect(() => onFlashSessionEnded(handleSessionDelete), [handleSessionDelete]);
+
+  // DHC 無痕查詢 (10/31): a 內部資料查詢 conversation is deleted for good once the user moves to any other
+  // conversation; one still running is remembered (dhc.queryPurgePending) and deleted once its run ends.
+  const handleSessionDeleteRef = useRef(handleSessionDelete);
+  handleSessionDeleteRef.current = handleSessionDelete;
+  const purgingRef = useRef(new Set<string>());
+  const forgetQuerySession = useCallback(async (id: string) => {
+    if (purgingRef.current.has(id)) return;
+    purgingRef.current.add(id);
+    try {
+      const response = await api.deleteSession(id, true);
+      if (!response.ok && response.status !== 404) return;
+    } catch {
+      return;
+    } finally {
+      purgingRef.current.delete(id);
+    }
+    removePendingQueryPurge(id);
+    handleSessionDeleteRef.current(id);
+  }, []);
+  // Only a session the projects payload lists under a query project, active after the cutoff, is ever deleted:
+  // placeholders (deep link, failed lookup, archive/fork open) carry no project or time and are left alone.
+  const openSessionIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const left = openSessionIdRef.current;
+    openSessionIdRef.current = selectedSession?.id ?? null;
+    if (!left || left === selectedSession?.id || !isListedIncognitoQuery(projects, left)) return;
+    if (isSessionProcessing(left)) addPendingQueryPurge(left);
+    else void forgetQuerySession(left);
+  },[selectedSession?.id, projects, isSessionProcessing, forgetQuerySession]);
+  // The idle purge waits for the first running-sessions poll so a long-running query is seen as busy.
+  const isSessionProcessingRef = useRef(isSessionProcessing);
+  isSessionProcessingRef.current = isSessionProcessing;
+  const queryPurgeDoneRef = useRef(false);
+  // Queries left while running are deleted as soon as they stop; the first pass waits for the same poll.
+  const flushPendingQueryPurges = useCallback(() => {
+    const keepId = selectedSessionRef.current?.id ?? sessionIdRef.current ?? null;
+    duePendingQueryPurges(projectsRef.current, readPendingQueryPurges(), keepId, isSessionProcessingRef.current)
+      .forEach((id) => void forgetQuerySession(id));
+  }, [forgetQuerySession]);
+  useEffect(() => {
+    if (queryPurgeDoneRef.current) flushPendingQueryPurges();
+  }, [projects, isSessionProcessing, selectedSession?.id, flushPendingQueryPurges]);
+  useEffect(() => {
+    if (isLoadingProjects || queryPurgeDoneRef.current) return undefined;
+    queryPurgeDoneRef.current = true;
+    const timer = window.setTimeout(() => {
+      staleQuerySessionIds(projectsRef.current, Date.now(), selectedSessionRef.current?.id ?? sessionIdRef.current ?? null, isSessionProcessingRef.current)
+        .forEach((id) => void forgetQuerySession(id));
+      flushPendingQueryPurges();
+    }, QUERY_PURGE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [isLoadingProjects, forgetQuerySession, flushPendingQueryPurges]);
 
   const handleSidebarRefresh = useCallback(async () => {
     try {

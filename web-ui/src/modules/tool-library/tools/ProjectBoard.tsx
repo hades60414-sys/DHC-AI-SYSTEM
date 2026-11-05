@@ -3,9 +3,10 @@ import { Bot, CalendarPlus, GanttChart, Kanban, Link2, ListChecks, Pencil, Plus,
 
 import { TaskMarker } from '@/modules/todo-dock';
 import ToolFrame from '@/modules/tool-library/ToolFrame';
+import SendMenu, { chatItems } from '@/modules/tool-library/tools/SendMenu';
 import type { ToolProps } from '@/modules/tool-library/catalog';
 import {
-  COLUMNS, QUADRANT_LABEL, aiContext, applyAiItems, boardBrief, boardFromCardsPayload, cardBrief, columnLabel, dateOfDay,
+  COLUMNS, QUADRANT_LABEL, aiContext, applyAiItems, boardBrief, boardSummary, boardFromCardsPayload, cardBrief, columnLabel, dateOfDay,
   emptyBoard, emptyItem, MAX_BOARD_ITEMS, dayIndexAt, ganttDayWidth, ganttGrid, moveSpan, resizeSpan, itemsFromRows, itemsFromText, itemsFromTodos, parseBoards, todayText,
   stripLegacyTodoNote, syncWithTodos, todoRows,
 } from '@/modules/tool-library/tools/projectBoardModel';
@@ -827,6 +828,7 @@ export default function ProjectBoard({ profileId, profileName, projectId, isMobi
             {viewButton('kanban', '看板', Kanban)}
             {viewButton('gantt', '甘特圖', GanttChart)}
           </div>
+          {active && <SendMenu items={chatItems('專案板', () => ({ title: active.name, body: boardSummary(liveBoard(active, todos)) }), active.items.length === 0, () => void saver.flush())} />}
           {undo && undo.boardId === activeId && (
             <button
               type="button"
@@ -853,7 +855,7 @@ export default function ProjectBoard({ profileId, profileName, projectId, isMobi
         chat: active.chat,
         onChatChange,
         intro: '說你想做什麼，例如「幫我把月底風險報表拆成 6 個步驟，排在這兩週」。AI 會拆工作、排時程、整理順序，更動可以復原。',
-        placeholder: '要拆什麼、排什麼？（Enter 送出）',
+        placeholder: '要拆什麼、排什麼？',
       } : undefined}
       startWork={{
         hint: '整張板當成工作說明，開一個新對話送出（優先處理「交給 AI」欄）。',

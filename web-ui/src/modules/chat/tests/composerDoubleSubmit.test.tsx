@@ -131,7 +131,8 @@ test('a different message is not held back by an upload still in flight', async 
   await act(async () => {
     second = view.result.current.handleSubmit(ENTER);
   });
-  assert.equal(upload.calls, 2, 'an edited message is a new turn, even while the first upload hangs');
+  // The 個資 check reads the attachment first, so the second upload starts a tick later.
+  await vi.waitFor(() => assert.equal(upload.calls, 2, 'an edited message is a new turn, even while the first upload hangs'));
 
   await act(async () => {
     upload.release.forEach((release) => release());

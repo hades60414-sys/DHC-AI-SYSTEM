@@ -2,12 +2,11 @@ import assert from 'node:assert/strict';
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import React from 'react';
-import { afterEach, beforeEach, test, vi } from 'vitest';
+import { afterEach, test, vi } from 'vitest';
 
 import type * as PersonTodosModule from '@/shared/personTodos';
 import type { TodoItem } from '@/shared/personTodos';
 import type { Project } from '@/shared/types';
-import { setDhcConfig } from '@/shared/dhcConfig';
 
 /**
  * DHC CLI 10/05 待辦: moved out of the sidebar tabs to a right-edge handle like quick settings. On desktop the
@@ -26,10 +25,12 @@ vi.mock('@/shared/personTodos', async (importOriginal) => ({
   bindTodo: (_p: string, id: string) => calls.push(`bind ${id}`),
   setTodoToday: (_p: string, id: string, on: boolean) => calls.push(`today ${id} ${on}`),
   reorderToday: (_p: string, ids: string[]) => calls.push(`order ${ids.join(',')}`),
-  addTodo: (_p: string, text: string) => Boolean(text.trim()) && calls.push(`add ${text}`) > 0,
+  addTodo: (_p: string, text: string, place?: { parentId?: string }) =>
+    Boolean(text.trim()) && calls.push(`add ${text}${place?.parentId ? ` under ${place.parentId}` : ''}`) > 0,
   setTodoDone: (_p: string, id: string, done: boolean) => calls.push(`done ${id} ${done}`),
   unlinkTodo: (_p: string, id: string) => calls.push(`unlink ${id}`),
   clearToday: (_p: string, ids: string[]) => calls.push(`clear ${ids.join(',')}`),
+  setTodoDue: (_p: string, id: string, due?: string) => calls.push(`due ${id} ${due}`),
 }));
 vi.mock('@/modules/sidebar', () => ({
   isWorkspaceProject: () => true,
@@ -44,11 +45,7 @@ const person = (projectId: string, displayName: string) => (
 const PEOPLE = [person('p1', '同事C'), person('p2', '同事A')];
 const LIST = { name: '待辦清單' };
 
-// Choosing whose list to see is a team feature (dhc.config.json "mode": "team").
-beforeEach(() => setDhcConfig({ mode: 'team' }));
-
 afterEach(() => {
-  setDhcConfig({ mode: 'personal' });
   localStorage.clear();
   todos.items = [];
   calls.length = 0;
@@ -81,17 +78,8 @@ test('phone: the list slides over the chat, a tap outside closes it, and it neve
   assert.equal(screen.queryByRole('complementary', LIST), null);
 });
 
-test('personal mode: one list, no picker for whose to-dos', () => {
-  setDhcConfig({ mode: 'personal' });
-  todos.items = [{ id: 'a', text: '對帳', done: false, createdAt: '', today: true }];
-  render(<TodoDock projects={PEOPLE} isMobile={false} />);
-  fireEvent.click(screen.getByRole('button', { name: '打開待辦' }));
-
-  assert.equal(screen.queryByRole('combobox', { name: '誰的待辦' }), null);
-  assert.ok(screen.getByText('對帳'));
-});
-
-test("the handle counts only today's open to-dos of this device's person, and the list can switch person", () => {
+test("the handle counts only today's open to-dos of this device's person, and 11/01: the dock has no person switcher", () => {
+  localStorage.setItem('dhc.todosPerson', 'p2');
   todos.items = [
     { id: 'a', text: '對帳', done: false, createdAt: '', today: true },
     { id: 'b', text: '寄日報', done: false, createdAt: '', today: true },
@@ -102,10 +90,8 @@ test("the handle counts only today's open to-dos of this device's person, and th
   assert.equal(screen.getByRole('button', { name: '打開待辦' }).textContent, '2');
 
   fireEvent.click(screen.getByRole('button', { name: '打開待辦' }));
-  const select = screen.getByRole('combobox', { name: '誰的待辦' }) as HTMLSelectElement;
-  assert.equal(select.value, 'p1');
-  fireEvent.change(select, { target: { value: 'p2' } });
-  assert.equal(localStorage.getItem('dhc.todosPerson'), 'p2');
+  assert.equal(screen.queryByRole('combobox'), null, 'no switcher');
+  assert.equal(screen.queryByText('同事A'), null, 'a person picked earlier (行事曆) does not show in the dock');
   assert.ok(screen.getByText('對帳'));
   assert.equal(screen.queryByText('只在矩陣'), null, 'the dock lists today only');
 });
@@ -302,4 +288,143 @@ test('10/13: a task due today or overdue shows on top of 今日待辦 by itself;
   fireEvent.click(within(list).getByRole('button', { name: '全部移出今日' }));
   assert.deepEqual(calls, ['clear b']);
   assert.equal(within(list).queryByText('之前留下 1 項還沒做完'), null, 'asked once a day');
+});
+
+test('10/31: once 今日待辦 has been dragged into order, a due task keeps its dragged place instead of jumping back on top', () => {
+  const today = new Date();
+  const due = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  todos.items = [
+    { id: 'a', text: '去識別層', done: false, createdAt: '', today: true, due, todayRank: 1 },
+    { id: 'b', text: '打包上repo', done: false, createdAt: '', today: false, parentId: 'a' },
+    { id: 'c', text: '新增狀態', done: false, createdAt: '', today: true, todayRank: 0 },
+    { id: 'd', text: '新到期', done: false, createdAt: '', today: false, due },
+  ];
+  render(<TodoDock projects={PEOPLE} isMobile={false} />);
+  fireEvent.click(screen.getByRole('button', { name: '打開待辦' }));
+  const list = screen.getByRole('complementary', LIST);
+  assert.deepEqual(
+    within(list).getAllByText(/去識別層|新增狀態|新到期/).map((node) => node.firstChild?.textContent),
+    ['新到期', '新增狀態', '去識別層'],
+    'a due task never dragged still comes first; a dragged one follows the dragged order',
+  );
+});
+
+test('10/18: Enter that only confirms an IME candidate neither adds nor closes the bottom input', () => {
+  todos.items = [{ id: 'a', text: '對帳', done: false, createdAt: '', today: true, quadrant: 'q1' }];
+  render(<TodoDock projects={PEOPLE} isMobile={false} />);
+  fireEvent.click(screen.getByRole('button', { name: '打開待辦' }));
+  fireEvent.click(screen.getByRole('button', { name: '在清單最下方新增' }));
+  const bottom = screen.getByRole('textbox', { name: '新增任務到最下方' });
+  fireEvent.change(bottom, { target: { value: 'ㄅㄆ' } });
+  fireEvent.keyDown(bottom, { key: 'Enter', isComposing: true });
+  assert.deepEqual(calls, [], 'composing Enter adds nothing');
+  fireEvent.keyDown(bottom, { key: 'Escape', isComposing: true });
+  assert.ok(screen.getByRole('textbox', { name: '新增任務到最下方' }), 'composing Esc keeps the box');
+  fireEvent.keyDown(bottom, { key: 'Enter' });
+  assert.deepEqual(calls, ['add ㄅㄆ'], 'a real Enter adds');
+});
+
+test('10/31: ＋ on a 今日待辦 row opens a subtask input under it; no ＋ at the deepest level', () => {
+  todos.items = [
+    { id: 'a', text: '去識別層', done: false, createdAt: '', today: true, quadrant: 'q1' },
+    { id: 'b', text: '打包上repo', done: false, createdAt: '', today: false, parentId: 'a' },
+    { id: 'c', text: '寫 README', done: false, createdAt: '', today: false, parentId: 'b' },
+  ];
+  render(<TodoDock projects={PEOPLE} isMobile={false} />);
+  fireEvent.click(screen.getByRole('button', { name: '打開待辦' }));
+  assert.equal(screen.queryByRole('button', { name: '拆子任務：寫 README' }), null, 'third level cannot split');
+
+  fireEvent.click(screen.getByRole('button', { name: '拆子任務：去識別層' }));
+  const input = screen.getByRole('textbox', { name: '新增子任務到去識別層' });
+  const branch = input.closest('ul')!;
+  assert.equal(branch.lastElementChild, input.closest('li'), 'the input sits after the existing subtasks');
+  fireEvent.change(input, { target: { value: '補測試' } });
+  fireEvent.keyDown(input, { key: 'Enter' });
+  assert.deepEqual(calls, ['add 補測試 under a']);
+  assert.equal((input as HTMLInputElement).value, '', 'stays open for the next one');
+  fireEvent.keyDown(input, { key: 'Escape' });
+  assert.equal(screen.queryByRole('textbox', { name: '新增子任務到去識別層' }), null);
+});
+
+test('10/31: the 重要／緊急 toggles (11/01: in the header) filter 今日待辦 by quadrant, and due tasks always show', () => {
+  const today = new Date();
+  const due = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  todos.items = [
+    { id: 'a', text: '對帳', done: false, createdAt: '', today: true, quadrant: 'q1' },
+    { id: 'b', text: '寫規劃', done: false, createdAt: '', today: true, quadrant: 'q2' },
+    { id: 'c', text: '回信', done: false, createdAt: '', today: true, quadrant: 'q3' },
+    { id: 'd', text: '整理桌面', done: false, createdAt: '', today: true },
+    { id: 'e', text: '交季報', done: false, createdAt: '', today: false, due },
+  ];
+  render(<TodoDock projects={PEOPLE} isMobile={false} />);
+  fireEvent.click(screen.getByRole('button', { name: '打開待辦' }));
+  const list = screen.getByRole('complementary', LIST);
+  const rows = () => within(list).getAllByText(/對帳|寫規劃|回信|整理桌面|交季報/).map((node) => node.firstChild?.textContent).sort();
+
+  fireEvent.click(within(list).getByRole('button', { name: '重要' }));
+  assert.deepEqual(rows(), ['交季報', '寫規劃', '對帳'].sort());
+  fireEvent.click(within(list).getByRole('button', { name: '緊急' }));
+  assert.deepEqual(rows(), ['交季報', '對帳'].sort(), 'both on = important and urgent; the due one stays');
+  assert.equal(localStorage.getItem('dhc.todayFilter'), JSON.stringify({ important: true, urgent: true }));
+
+  assert.equal(within(list).getByRole('button', { name: '緊急' }).getAttribute('aria-pressed'), 'true');
+  fireEvent.click(within(list).getByRole('button', { name: '重要' }));
+  fireEvent.click(within(list).getByRole('button', { name: '緊急' }));
+  assert.equal(rows().length, 5);
+  assert.equal(localStorage.getItem('dhc.todayFilter'), JSON.stringify({ important: false, urgent: false }));
+});
+
+test('11/01: a due subtask under a task the filter hides keeps its parent row on screen', () => {
+  const today = new Date();
+  const due = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  todos.items = [
+    { id: 'p', text: '整理桌面', done: false, createdAt: '', today: true, quadrant: 'q4' },
+    { id: 'k', text: '交季報', done: false, createdAt: '', today: false, due, parentId: 'p' },
+  ];
+  localStorage.setItem('dhc.todayFilter', JSON.stringify({ important: true, urgent: false }));
+  render(<TodoDock projects={PEOPLE} isMobile={false} />);
+  fireEvent.click(screen.getByRole('button', { name: '打開待辦' }));
+  const list = screen.getByRole('complementary', LIST);
+  assert.ok(within(list).queryByText(/交季報/), 'the overdue subtask is still listed');
+});
+
+test('11/01: adding a task while a filter hides it says so and offers to clear the filter; the toggles say due tasks always show', () => {
+  todos.items = [{ id: 'a', text: '對帳', done: false, createdAt: '', today: true, quadrant: 'q1' }];
+  render(<TodoDock projects={PEOPLE} isMobile={false} />);
+  fireEvent.click(screen.getByRole('button', { name: '打開待辦' }));
+  const list = screen.getByRole('complementary', LIST);
+  assert.match(within(list).getByRole('button', { name: '重要' }).title, /到期的一律顯示/);
+  const add = (text: string) => {
+    fireEvent.change(within(list).getByRole('textbox', { name: '新增今日待辦' }), { target: { value: text } });
+    fireEvent.submit(within(list).getByRole('textbox', { name: '新增今日待辦' }).closest('form') as HTMLFormElement);
+  };
+
+  add('沒篩選');
+  assert.equal(within(list).queryByText('已新增，目前篩選中看不到'), null, 'no filter, nothing hidden');
+  fireEvent.click(within(list).getByRole('button', { name: '重要' }));
+  add('篩選中新增');
+  assert.ok(within(list).getByText('已新增，目前篩選中看不到'));
+  fireEvent.click(within(list).getByRole('button', { name: '取消篩選' }));
+  assert.equal(within(list).queryByText('已新增，目前篩選中看不到'), null);
+  assert.equal(within(list).getByRole('button', { name: '重要' }).getAttribute('aria-pressed'), 'false');
+});
+
+test('11/01: a due task offers 延後一天 instead of a no-op ×; the small row controls get a touch hit area', () => {
+  const today = new Date();
+  const due = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  todos.items = [
+    { id: 'e', text: '交季報', done: false, createdAt: '', today: true, due },
+    { id: 'f', text: '整理桌面', done: false, createdAt: '', today: true },
+  ];
+  render(<TodoDock projects={PEOPLE} isMobile />);
+  fireEvent.click(screen.getByRole('button', { name: '打開待辦' }));
+  const list = screen.getByRole('complementary', LIST);
+  assert.equal(within(list).queryByRole('button', { name: '移出今日：交季報' }), null);
+  const later = within(list).getByRole('button', { name: '延後一天：交季報' });
+  assert.match(later.className, /pointer:coarse/);
+  assert.match(within(list).getByRole('button', { name: '完成：交季報' }).className, /pointer:coarse/);
+  assert.match(within(list).getByRole('button', { name: '移出今日：整理桌面' }).className, /pointer:coarse/);
+  fireEvent.click(later);
+  const next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  assert.deepEqual(calls, [`due e ${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`]);
 });

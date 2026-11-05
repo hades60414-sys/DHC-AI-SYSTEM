@@ -119,14 +119,15 @@
     "attachImages": "Attach images",
     "send": "Send",
     "stop": "Stop",
-    "sendNow": "Send now (interrupts the current turn)",
+    "sendNow": "Add to the running turn",
+    "interruptNow": "Interrupt: stop this turn and send now",
     "placeholderAnswer": "Or type your answer here…",
     "hintText": {
       "ctrlEnter": "Ctrl+Enter to send • Shift+Enter for new line • Tab to change modes • / for slash commands",
       "enter": "Enter to send • Shift+Enter for new line • Tab to change modes • / for slash commands",
       "queue": "Enter to queue your next message",
       "updateQueued": "Enter to update queued message",
-      "sendNow": "Enter sends now and interrupts the current turn • Queue sends after it finishes",
+      "sendNow": "Enter adds this to the running turn • Interrupt stops it • Queue sends after it finishes",
       "answerQuestion": "Enter sends your text as the answer to the question above"
     },
     "clickToChangeMode": "Click to change permission mode (or press Tab in input)",
@@ -268,6 +269,8 @@
   },
   "message": {
     "editAndResend": "Edit and resend",
+    "midTurnLabel": "Mid-turn",
+    "midTurn": "Sent while the turn was running; Claude read it before its next step",
     "forkFromHere": "Fork from here"
   },
   "export": {
@@ -289,9 +292,9 @@
   },
   "nightQueue": {
     "label": "Defer",
-    "toggleOn": "Night mode: prompts you send are stored and run one at a time, in order, from 02:00; start one with @12:05 to give it its own time",
+    "toggleOn": "Night mode: prompts you send are stored and run one at a time, in order, from 01:00; use the clock to pick a time or the quota reset",
     "toggleOff": "Turn night mode off (if prompts are waiting, you choose: run them now or cancel them)",
-    "banner": "Night mode is on: prompts you send are stored and run one at a time, in the order stored, from 02:00. Nothing new starts after 07:00; what is left runs the next night. Start a prompt with @12:05 to run that one at 12:05 (@重置 = when the quota resets). Press the moon again to run them now or cancel them.",
+    "banner": "Night mode is on: prompts you send are stored and run one at a time, in the order stored, from 01:00. Nothing new starts after 06:00; what is left runs the next night. Use the clock to pick a time or the quota reset. Press the moon again to run them now or cancel them.",
     "bannerBypass": "They run with bypass (no approvals; deleting data, payments, permission changes and anything sent outside are still skipped and noted for you).",
     "bypassQuestion": {
       "title": "Night mode",
@@ -300,11 +303,11 @@
       "no": "Turn on without bypass",
       "cancel": "Cancel"
     },
-    "placeholder": "Night mode: prompts are stored and run in order from 02:00; start with @12:05 for a time of its own…",
-    "hint": "Enter stores it • start with @12:05 for its own time, @重置 for the quota reset",
+    "placeholder": "Night mode: prompts are stored and run in order from 01:00…",
+    "hint": "Enter stores it for the night • use the clock for a specific time",
     "store": "Store for tonight",
     "status": {
-      "waiting": "Starts at 02:00 · #{{position}} in the queue",
+      "waiting": "Starts at 01:00 · #{{position}} in the queue",
       "waitingInWindow": "Queued · #{{position}} in the queue",
       "waitingAlarm": "Starts at {{time}} · #{{position}} in the queue",
       "runNow": "Running soon · #{{position}} in the queue",
@@ -337,6 +340,7 @@
       "1440": "Tomorrow"
     },
     "pending": "Scheduled for {{when}}",
+    "sending": "Due — waiting for the previous turn in this conversation to finish",
     "failed": "Not sent — {{reason}}",
     "cancel": "Cancel scheduled message",
     "dismiss": "Dismiss failure notice"
@@ -396,6 +400,19 @@
     "tokensLabel_one": "token",
     "tokensLabel_other": "tokens",
     "escClosesModal": "Esc closes the modal.",
-    "close": "Close"
+    "close": "Close",
+    "reasoningThinking": "Thinking...",
+    "reasoningThoughtFew": "Thought for a few seconds",
+    "reasoningThought": "Thought for {{duration}} seconds",
+    "selectAll": "Select all that apply",
+    "dropFiles": "Drop files here",
+    "removeFile": "Remove {{name}}",
+    "editFile": "Edit {{name}}",
+    "modelSelector": "Model Selector",
+    "modelLibrary": "Model library",
+    "yourModels": "Your models",
+    "noCustomModels": "No custom models yet",
+    "currentSelection": "Current selection",
+    "runtimeOnline": "Runtime online"
   }
 }

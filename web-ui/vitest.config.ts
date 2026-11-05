@@ -25,5 +25,12 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     restoreMocks: true,
+    // A runaway test (render loop) once grew one node.exe to ~48 GB and
+    // blue-screened the host. Cap each fork so it dies alone, and keep
+    // parallel agents from multiplying workers.
+    pool: 'forks',
+    poolOptions: { forks: { execArgv: ['--max-old-space-size=4096'] } },
+    maxWorkers: 2,
+    testTimeout: 30_000,
   },
 });

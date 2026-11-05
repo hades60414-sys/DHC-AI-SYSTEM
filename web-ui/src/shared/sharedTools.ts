@@ -13,6 +13,10 @@ export type SharedTool = {
   html: string;
   author: string;
   sharedAt: string;
+  /** 10/22: the author's workshop tool it came from; publishing that tool again updates this listing. */
+  sourceId?: string;
+  /** One line on its 工具庫 card. */
+  summary?: string;
 };
 
 const KEY = 'dhc.sharedTools';
@@ -20,6 +24,7 @@ export const MAX_SHARED_HTML = 200 * 1024;
 export const MAX_SHARED_TOOLS = 100;
 const MAX_NAME_LENGTH = 60;
 const MAX_AUTHOR_LENGTH = 30;
+const MAX_SUMMARY_LENGTH = 80;
 const RELOAD_ON_FOCUS_MIN_MS = 30_000;
 const EMPTY: SharedTool[] = [];
 
@@ -34,6 +39,8 @@ export function parseSharedTools(value: unknown): SharedTool[] {
     html: item.html,
     author: typeof item.author === 'string' ? item.author : '',
     sharedAt: typeof item.sharedAt === 'string' ? item.sharedAt : '',
+    ...(typeof item.sourceId === 'string' && item.sourceId ? { sourceId: item.sourceId } : {}),
+    ...(typeof item.summary === 'string' && item.summary ? { summary: item.summary } : {}),
   }));
 }
 
@@ -117,16 +124,26 @@ export function useSharedTools(): SharedTool[] {
 
 const oneLine = (text: string, max: number) => text.trim().replace(/\s+/g, ' ').slice(0, max);
 
-/** Returns false without saving when the name or page is blank or the page is over 200KB. */
-export function shareTool({ name, html, author }: { name: string; html: string; author: string }): boolean {
+/** The listing a workshop tool already has (same tool, same author), if any. */
+export const findListing = (list: SharedTool[], sourceId: string, author: string) => (
+  list.find((item) => item.sourceId === sourceId && item.author === oneLine(author, MAX_AUTHOR_LENGTH)) ?? null
+);
+
+/**
+ * Returns false without saving when the name or page is blank or the page is over 200KB. 10/22 上架: with a
+ * sourceId, the tool's earlier listing is replaced in place and keeps its id, so 自選 slots holding it stay.
+ */
+export function shareTool({ name, html, author, sourceId, summary }: { name: string; html: string; author: string; sourceId?: string; summary?: string }): boolean {
   const cleanName = oneLine(name, MAX_NAME_LENGTH);
   if (!cleanName || !html.trim() || new Blob([html]).size > MAX_SHARED_HTML) return false;
   const item: SharedTool = {
-    id: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+    id: (sourceId && findListing(tools, sourceId, author)?.id) || `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
     name: cleanName,
     html,
     author: oneLine(author, MAX_AUTHOR_LENGTH),
     sharedAt: new Date().toISOString(),
+    ...(sourceId ? { sourceId } : {}),
+    ...(summary?.trim() ? { summary: oneLine(summary, MAX_SUMMARY_LENGTH) } : {}),
   };
   void updateSharedTools((current) => capSharedTools([item, ...current.filter((entry) => entry.id !== item.id)]));
   return true;

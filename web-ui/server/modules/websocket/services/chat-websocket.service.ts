@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import type { WebSocket } from 'ws';
 
+import { dropCommandModeSocket, handleCommandModeMessage } from '@/modules/command-mode/index.js';
 import { sessionsDb } from '@/modules/database/index.js';
 import { providerModelsService, sessionsService } from '@/modules/providers/index.js';
 import { chatRunRegistry } from '@/modules/websocket/services/chat-run-registry.service.js';
@@ -73,6 +74,7 @@ export type ProviderRuntimeGateway = {
     writer: ProviderRuntimeWriter,
   ): Promise<unknown>;
   abort(provider: LLMProvider, sessionId: string): Promise<boolean>;
+  inject(provider: LLMProvider, sessionId: string, command: string, options: AnyRecord): Promise<boolean>;
   resolveToolApproval(requestId: string, payload: ProviderPermissionDecision): void;
   getPendingApprovalsForSession(sessionId: string): unknown[];
 };
@@ -138,6 +140,34 @@ function readRequiredSessionId(data: AnyRecord): string | null {
   return sessionId.length > 0 ? sessionId : null;
 }
 
+// DHC CLI 語音通話: a turn that carries a clientRequestId runs at most once, so a reconnect flush or a resend
+// of the same utterance cannot start it twice. Memory only; a server restart forgets, which the TTL bounds anyway.
+const CLIENT_REQUEST_TTL_MS = 10 * 60_000;
+const CLIENT_REQUEST_CAP = 2000;
+const claimedClientRequests = new Map<string, number>();
+
+function readClientRequestId(data: AnyRecord): string | null {
+  const id = typeof data.clientRequestId === 'string' ? data.clientRequestId.trim() : '';
+  return id && id.length <= 100 ? id : null;
+}
+
+/** True the first time a (session, id) pair is seen within the TTL. Exported for tests. */
+export function claimClientRequest(sessionId: string, clientRequestId: string, now = Date.now()): boolean {
+  const key = `${sessionId}\u0000${clientRequestId}`;
+  const expiresAt = claimedClientRequests.get(key);
+  if (expiresAt !== undefined && expiresAt > now) {
+    return false;
+  }
+  claimedClientRequests.delete(key);
+  claimedClientRequests.set(key, now + CLIENT_REQUEST_TTL_MS);
+  // Insertion order is claim order, so the oldest claims go first.
+  for (const candidate of claimedClientRequests.keys()) {
+    if (claimedClientRequests.size <= CLIENT_REQUEST_CAP) break;
+    claimedClientRequests.delete(candidate);
+  }
+  return true;
+}
+
 /**
  * Handles `chat.send`: resolves the session row (provider, project path, and
  * provider-native id all come from the database — never from the client),
@@ -154,13 +184,64 @@ async function handleChatSend(
     return;
   }
 
+  const clientRequestId = readClientRequestId(data);
+  if (clientRequestId && !claimClientRequest(resolved.sessionId, clientRequestId)) {
+    sendJson(ws, {
+      kind: 'chat_send_duplicate',
+      sessionId: resolved.sessionId,
+      clientRequestId,
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+
+  // DHC CLI: `injectIntoActiveRun: true` is the composer's default while a turn is going — the message
+  // joins the running turn and the CLI reads it before its next step, as in the desktop app. When no
+  // turn can take it (it just finished, or the provider cannot inject) it falls back to "send now".
+  if (data.injectIntoActiveRun === true && await injectIntoActiveRun(resolved, data, dependencies)) {
+    return;
+  }
+
   // DHC CLI: `interruptActiveRun: true` is the composer's "send now" while a turn is going — the same
   // Codex-style steer the user expects instead of stopping the session by hand and re-sending.
-  if (data.interruptActiveRun === true) {
+  if (data.interruptActiveRun === true || data.injectIntoActiveRun === true) {
     await interruptActiveRun(resolved.sessionId, dependencies);
   }
 
   await dispatchRun(ws, userId, resolved.sessionId, resolved.session, data, dependencies);
+}
+
+/** DHC CLI: true when the running turn took the message; nothing is started or stopped either way. */
+async function injectIntoActiveRun(
+  resolved: ResolvedSendTarget,
+  data: AnyRecord,
+  dependencies: ChatWebSocketDependencies,
+): Promise<boolean> {
+  const activeRun = chatRunRegistry.getRun(resolved.sessionId);
+  if (!activeRun || activeRun.status !== 'running') {
+    return false;
+  }
+  const clientOptions = (data.options ?? {}) as AnyRecord;
+  const command = typeof data.content === 'string' ? data.content : '';
+  const attachments = verifyClientAttachments(clientOptions);
+  return dependencies.runtime.inject(resolved.provider, resolved.sessionId, command, {
+    images: attachments.filter(isImageAttachmentDescriptor),
+    files: attachments.filter((descriptor) => !isImageAttachmentDescriptor(descriptor)),
+    cwd: clientOptions.cwd ?? resolved.session.project_path ?? undefined,
+  });
+}
+
+/** Attachments are re-validated server-side: only direct children of the global upload store pass. */
+function verifyClientAttachments(clientOptions: AnyRecord) {
+  const attachmentCandidates = [
+    ...normalizeAttachmentDescriptors(clientOptions.images),
+    ...normalizeAttachmentDescriptors(clientOptions.files),
+    ...normalizeAttachmentDescriptors(clientOptions.attachments),
+  ];
+  const verifiedAttachments = filterAttachmentsToUploadStore(attachmentCandidates);
+  return verifiedAttachments.filter(
+    (descriptor, index, all) => all.findIndex((candidate) => candidate.path === descriptor.path) === index,
+  );
 }
 
 /**
@@ -278,15 +359,7 @@ async function dispatchRun(
     providerModelsService.setSessionEffort(provider, sessionId, clientOptions.effort);
   }
 
-  const attachmentCandidates = [
-    ...normalizeAttachmentDescriptors(clientOptions.images),
-    ...normalizeAttachmentDescriptors(clientOptions.files),
-    ...normalizeAttachmentDescriptors(clientOptions.attachments),
-  ];
-  const verifiedAttachments = filterAttachmentsToUploadStore(attachmentCandidates);
-  const uniqueAttachments = verifiedAttachments.filter(
-    (descriptor, index, all) => all.findIndex((candidate) => candidate.path === descriptor.path) === index,
-  );
+  const uniqueAttachments = verifyClientAttachments(clientOptions);
 
   // The provider runtimes receive the stable app session id. When their
   // CLI/SDK needs the provider-native id for resume, they resolve it from the
@@ -656,6 +729,10 @@ export function handleChatConnection(
           handlePermissionResponse(data, dependencies);
           return;
         default:
+          if (messageType.startsWith('command.')) {
+            handleCommandModeMessage(ws, messageType, data);
+            return;
+          }
           sendProtocolError(ws, 'UNKNOWN_MESSAGE_TYPE', `Unknown message type "${messageType}".`);
           return;
       }
@@ -669,5 +746,6 @@ export function handleChatConnection(
   ws.on('close', () => {
     console.log('[INFO] Chat client disconnected');
     connectedClients.delete(ws);
+    dropCommandModeSocket(ws);
   });
 }

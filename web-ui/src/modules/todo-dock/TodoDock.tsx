@@ -1,23 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { ChevronLeft, LayoutGrid, ListTodo } from 'lucide-react';
-import { useIsTeamMode } from '@/shared/dhcConfig';
+import { setRailCount, useRailOpenRequest } from '@/shared/mobileRail';
+import { ChevronLeft, ListTodo, X } from 'lucide-react';
 
-import { isQueryProject, isWorkspaceProject } from '@/modules/sidebar';
 import EisenhowerMatrix from '@/modules/todo-dock/EisenhowerMatrix';
-import TodayTodoList from '@/modules/todo-dock/TodayTodoList';
-import { isFlashProject } from '@/shared/flashTasks';
+import TodayTodoList, { FILTER_KEY, FILTERS, readFilter } from '@/modules/todo-dock/TodayTodoList';
+import type { TodayFilter } from '@/modules/todo-dock/TodayTodoList';
+import TodoTrash from '@/modules/todo-dock/TodoTrash';
+import { useTodoPerson } from '@/modules/todo-dock/todoPerson';
 import { isDueNow, startPersonTodosSync, usePersonTodos } from '@/shared/personTodos';
 import type { Project } from '@/shared/types';
-import { resolveSettingsProjectId } from '@/shared/userSettings';
 import { cn } from '@/shared/utils';
 
-const PERSON_STORAGE_KEY = 'dhc.todosPerson';
 const OPEN_STORAGE_KEY = 'dhc.todoDockOpen';
-// Top of the right-edge stack: 待辦, 版本更新, 功能許願池, one handle-height apart; 許願池 sits at 90% from the top
-// on desktop and 50% from the bottom on a phone (where the quick-settings handle used to be).
+// Top of the right-edge stack: 待辦, 自選功能, 聊天室 (10/16), one handle-height apart; 聊天室 sits at 90% from the top
+// on desktop and 46px under the middle on a phone.
 const DESKTOP_HANDLE_STYLE: CSSProperties = { top: 'calc(90% - 92px)', transform: 'translateY(-50%)' };
-const MOBILE_HANDLE_STYLE: CSSProperties = { bottom: 'calc(50% + 92px)' };
+const MOBILE_HANDLE_STYLE: CSSProperties = { bottom: 'calc(50% + 46px)' };
 
 const readStored = (key: string) => {
   try {
@@ -49,72 +48,77 @@ type TodoDockProps = {
  */
 export default function TodoDock({ projects, isMobile }: TodoDockProps) {
   useEffect(() => startPersonTodosSync(), []);
-  // Personal mode: one list, no "whose todos" picker.
-  const isTeam = useIsTeamMode();
 
-  const people = useMemo(
-    () => projects.filter((project) => isWorkspaceProject(project) && !isQueryProject(project) && !isFlashProject(project)),
-    [projects],
-  );
-  const [chosenId, setChosenId] = useState<string | null>(() => readStored(PERSON_STORAGE_KEY));
-  const personId = [chosenId, resolveSettingsProjectId(people), people[0]?.projectId]
-    .find((id) => id && people.some((project) => project.projectId === id)) ?? null;
+  // 11/01: only this device's own list, no switcher, so nobody else's to-dos show on a shared screen.
+  const { people, ownId: personId } = useTodoPerson(projects);
   const personItems = usePersonTodos(personId ?? '').items;
   const openCount = personItems.filter((item) => (item.today && !item.done) || isDueNow(item)).length;
-  const allOpenCount = personItems.filter((item) => !item.done).length;
+  useEffect(() => setRailCount('todo', openCount), [openCount]);
   const [matrixOpen, setMatrixOpen] = useState(false);
+  const [filter, setFilterState] = useState(readFilter);
+  const setFilter = (next: TodayFilter) => {
+    setFilterState(next);
+    writeStored(FILTER_KEY, JSON.stringify(next));
+  };
   // Only the docked panel comes back open after a reload; on a phone it would cover the chat.
   const [isOpen, setIsOpen] = useState(() => !isMobile && readStored(OPEN_STORAGE_KEY) === '1');
+
+  // 手機頂端選單的「待辦」
+  useRailOpenRequest('todo', () => setIsOpen(true));
 
   const toggle = () => {
     if (!isMobile) writeStored(OPEN_STORAGE_KEY, isOpen ? '0' : '1');
     setIsOpen(!isOpen);
   };
-  const choosePerson = (projectId: string) => {
-    setChosenId(projectId);
-    writeStored(PERSON_STORAGE_KEY, projectId);
-  };
 
   // Docked, the right 2.5rem stays empty for the edge handles (this one and quick settings), so they never sit on the list.
   const panel = (
     <div className={cn('flex h-full flex-col', isMobile ? 'w-64' : 'w-[18.5rem]')}>
-      <div className={cn('flex h-14 flex-shrink-0 items-center gap-2 border-b border-border bg-muted/40 pl-3', isMobile ? 'pr-3' : 'pr-[3.25rem]')}>
+      <div className={cn('flex h-14 flex-shrink-0 items-center gap-2 border-b border-border bg-muted/40 pl-3', 'pr-2')}>
         <ListTodo className="h-4 w-4 shrink-0 text-primary" />
         <span className="shrink-0 text-sm font-semibold text-foreground">今日待辦</span>
-        {isTeam && personId && (
-          <select
-            aria-label="誰的待辦"
-            value={personId}
-            onChange={(event) => choosePerson(event.target.value)}
-            className="min-w-0 bg-transparent text-xs text-foreground outline-none"
-          >
-            {people.map((project) => (
-              <option key={project.projectId} value={project.projectId}>
-                {project.displayName}
-              </option>
-            ))}
-          </select>
-        )}
+        <button type="button" aria-label="關閉待辦" title="收起待辦" onClick={toggle} className="ml-auto shrink-0 rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground">
+          <X className="h-4 w-4" />
+        </button>
       </div>
+      {/* 11/01: one toolbar row — a light 全部待辦 link on the left, the 重要／緊急 toggles on the right (was a big card + header toggles). */}
       {personId && (
-        <div className={cn('flex-shrink-0 border-b border-border p-2', !isMobile && 'pr-12')}>
+        <div className={cn('flex flex-shrink-0 items-center gap-2 border-b border-border px-2 py-1.5', !isMobile && 'pr-8')}>
           <button
             type="button"
             onClick={() => setMatrixOpen(true)}
             aria-label="打開全部待辦"
+            data-tutorial-tip="全部待辦：所有待辦依重要／緊急分四格"
             title="所有待辦，依重要／緊急分四格"
-            className="flex h-9 w-full items-center gap-2 rounded-md border border-border bg-muted/60 px-2 text-sm font-medium text-foreground hover:bg-muted"
+            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-md pl-1 pr-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
-            <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-            <LayoutGrid className="h-4 w-4 text-primary" />
-            全部待辦
-            <span className="ml-auto rounded-full bg-background px-2 py-0.5 text-xs tabular-nums">{allOpenCount}</span>
+            <ChevronLeft className="h-4 w-4 shrink-0" />
+            <span className="truncate">全部待辦</span>
           </button>
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            {FILTERS.map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={filter[key]}
+                data-tutorial-tip={`只看${label}的待辦；再按一下取消`}
+                title={filter[key] ? `只看${label}的（再按一下取消）；到期的一律顯示` : `只看${label}的；到期的一律顯示`}
+                onClick={() => setFilter({ ...filter, [key]: !filter[key] })}
+                className={cn(
+                  'h-7 shrink-0 rounded border px-2 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  filter[key] ? 'border-primary/40 bg-primary/15 text-primary' : 'border-border text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
-      <div className={cn('min-h-0 flex-1 overflow-y-auto py-2', !isMobile && 'pr-14')}>
+      {/* 11/01: pr-14 → pr-6; the handles overlap the scrollbar, so 1.5rem still clears them and the checkboxes sit further right. */}
+      <div className={cn('min-h-0 flex-1 overflow-y-auto py-2', !isMobile && 'pr-6')}>
         {personId ? (
-          <TodayTodoList key={personId} personId={personId} />
+          <TodayTodoList key={personId} personId={personId} filter={filter} onClearFilter={() => setFilter({ important: false, urgent: false })} />
         ) : (
           <p className="px-4 py-4 text-center text-xs text-muted-foreground">還沒有任何人的工作區。</p>
         )}
@@ -127,8 +131,10 @@ export default function TodoDock({ projects, isMobile }: TodoDockProps) {
       <button
         type="button"
         onClick={toggle}
+        data-rail-item
         aria-pressed={isOpen}
         aria-label={isOpen ? '收起待辦' : '打開待辦'}
+        data-tutorial-tip="今日待辦：點一下展開或收起，紅圓點數字是未完成項數"
         title={openCount > 0 ? `今日待辦（${openCount} 項未完成）` : '今日待辦'}
         className={cn(
           'fixed right-0 z-50 rounded-l-md border p-2 shadow-lg transition-colors',
@@ -151,9 +157,12 @@ export default function TodoDock({ projects, isMobile }: TodoDockProps) {
         <button
           type="button"
           onClick={() => setMatrixOpen(true)}
+          data-rail-item
+          data-rail-aux
           aria-label="直接打開全部待辦"
+          data-tutorial-tip="全部待辦：直接打開，依重要／緊急分四格"
           title="全部待辦"
-          className="fixed right-[38px] z-40 flex h-[38px] w-5 items-center justify-center text-primary opacity-50 transition-opacity hover:opacity-100"
+          className='fixed right-[38px] z-40 flex h-[38px] w-5 items-center justify-center text-primary opacity-50 transition-opacity hover:opacity-100'
           style={isMobile ? MOBILE_HANDLE_STYLE : DESKTOP_HANDLE_STYLE}
         >
           <svg viewBox="0 0 10 24" aria-hidden="true" fill="currentColor" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" className="h-6 w-2.5">
@@ -179,6 +188,8 @@ export default function TodoDock({ projects, isMobile }: TodoDockProps) {
           {panel}
         </aside>
       ))}
+
+      {isOpen && !isMobile && personId && <TodoTrash personId={personId} page />}
 
       {matrixOpen && personId && (
         <EisenhowerMatrix

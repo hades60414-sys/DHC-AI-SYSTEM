@@ -1,3 +1,20 @@
+// DHC CLI themes: gray and blue read CSS variables (defaults in index.css are Tailwind's own values),
+// so the hard-coded gray-* / blue-* classes across the app follow the theme too.
+const defaultColors = require('tailwindcss/colors');
+
+const themedScale = (name) => Object.fromEntries(
+  [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map((shade) => [shade, `rgb(var(--c-${name}-${shade}) / <alpha-value>)`]),
+);
+
+// 色澤微調 (2026-10-31): the other palettes read --c-<name>-<shade> too, falling back to Tailwind's own value.
+// Only the themes that scripts/gen-theme-tint.cjs writes a block for (not PRESENTER) set the variables.
+const hexToChannels = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(' ');
+const tintedScale = (name) => Object.fromEntries(
+  Object.entries(defaultColors[name]).map(([shade, hex]) => [shade, `rgb(var(--c-${name}-${shade}, ${hexToChannels(hex)}) / <alpha-value>)`]),
+);
+const TINTED = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'indigo',
+  'violet', 'purple', 'fuchsia', 'pink', 'rose', 'slate', 'zinc', 'neutral', 'stone'];
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
@@ -19,6 +36,9 @@ export default {
         serif: ['Merriweather', 'Georgia', 'Cambria', '"Times New Roman"', 'serif'],
       },
       colors: {
+        gray: themedScale('gray'),
+        blue: themedScale('blue'),
+        ...Object.fromEntries(TINTED.map((name) => [name, tintedScale(name)])),
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -52,6 +72,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      // Tailwind's default ring colour reads colors.blue.500 as a literal; with the var form it would fall back to blue-300.
+      ringColor: {
+        DEFAULT: 'rgb(var(--c-blue-500) / 0.5)',
       },
       borderRadius: {
         lg: "var(--radius)",

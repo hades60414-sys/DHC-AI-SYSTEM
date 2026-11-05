@@ -141,7 +141,7 @@ export function removeFeatureWish(id: string): void {
  */
 export function wishDiscussionPrompt({ title, description }: Pick<NewWish, 'title' | 'description'>): string {
   const lines = [
-    '我想許一個 AI 相關的願望（DHC CLI 介面功能、內部資料自動彙整報告、電腦操作自動化等都算），請陪我把它想清楚，最後整理成可以貼回「功能許願池」的版本。',
+    '我想許一個 AI 相關的願望（DHC AI System 介面功能、內部資料自動彙整報告、電腦操作自動化等都算），請陪我把它想清楚，最後整理成可以貼回「功能許願池」的版本。',
     '',
     `主題：${title.trim() || '（還沒想好）'}`,
     `描述：${description.trim() || '（還沒寫）'}`,

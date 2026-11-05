@@ -212,6 +212,19 @@ export function reviewBrief(review: Review, chosen: Finding[]): string {
   return lines.join('\n');
 }
 
+/** 10/25 R4 (稽核 P1-1): the review as plain text for the chat: the findings first, then where the versions differ. */
+export function reviewSummary(review: Review): string {
+  const lines = [`語言：${languageLabel(review.language)}`];
+  if (review.findings.length > 0) {
+    lines.push('', `【AI 標的問題】${severitySummary(review.findings)}`);
+    review.findings.forEach((finding, index) => {
+      lines.push(`${index + 1}. [${SEVERITY_LABEL[finding.severity]}] ${finding.title}（${sideLabel(finding.side)}第 ${finding.line} 行）${finding.detail ? `：${finding.detail.replace(/\s+/g, ' ')}` : ''}`);
+    });
+  }
+  lines.push('', '【兩版差異】', diffSummary(review.before, review.after));
+  return lines.join('\n');
+}
+
 // ---- import: files become the old / new side ----
 const EXTENSION_LANGUAGE: Record<string, LanguageId> = {
   sql: 'sql', py: 'python', js: 'javascript', mjs: 'javascript', cjs: 'javascript', jsx: 'javascript', ts: 'javascript', tsx: 'javascript',

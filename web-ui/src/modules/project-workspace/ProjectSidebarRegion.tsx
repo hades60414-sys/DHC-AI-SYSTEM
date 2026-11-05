@@ -29,7 +29,7 @@ function ProjectSidebarRegion({
 
   if (!isMobile) {
     return (
-      <div className="h-full flex-shrink-0 border-r border-border/50">
+      <div data-presenter-sidebar data-presenter-rail className="h-full flex-shrink-0 border-r border-border/50">
         <Sidebar {...sidebarSharedProps} />
       </div>
     );
@@ -48,6 +48,7 @@ function ProjectSidebarRegion({
         aria-label={t('versionUpdate.ariaLabels.closeSidebar')}
       />
       <div
+        data-presenter-sidebar
         className={`relative h-full w-[85vw] max-w-sm transform border-r border-border/40 bg-card transition-transform duration-150 ease-out sm:w-80 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}

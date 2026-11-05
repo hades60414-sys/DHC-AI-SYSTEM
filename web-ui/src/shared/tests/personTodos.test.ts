@@ -2,8 +2,6 @@ import assert from 'node:assert/strict';
 
 import { test, vi } from 'vitest';
 
-import type { TodoItem as TodoItemShape } from '@/shared/personTodos';
-
 /**
  * DHC CLI 待辦: one list per person under `dhc.todos:<projectId>`. The store must keep items another device
  * added, keep lists of different people apart, and survive junk in the stored value.
@@ -88,6 +86,7 @@ test('blank items are refused and junk in the stored value is dropped', () => {
 
 const tree = (...items: Array<Partial<TodoItemShape> & { id: string }>) =>
   todos.parsePersonTodos({ items: items.map((item) => ({ text: item.id, createdAt: '', today: false, ...item })) });
+type TodoItemShape = import('@/shared/personTodos').TodoItem;
 
 test('10/06: items saved before the matrix land on 今日待辦; new ones only when asked', async () => {
   assert.equal(todos.parsePersonTodos({ items: [{ id: 'old', text: '舊' }] }).items[0].today, true);

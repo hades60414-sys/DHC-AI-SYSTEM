@@ -79,3 +79,63 @@ test('a board mode changes what 開工 asks for, and an old board without a mode
   assert.equal(parseBoards({ items: [{ id: 'b1', mode: 'dataflow' }] })[0].mode, 'dataflow');
   assert.equal(parseBoards({ items: [{ id: 'b1', mode: 'nope' }] })[0].mode, 'free');
 });
+
+// 10/19 screenshot: dashed lines and a note left over after a redraw, which the AI could neither see nor clear.
+test('everything that is not a box or a bound arrow is listed as loose, with id and place; boxes carry their shape', () => {
+  const plan = sceneToPlan([
+    ...scene,
+    el({ id: 'dash', type: 'line', x: 10.4, y: 20.6, width: 300, height: 0 }),
+    el({ id: 'tl', type: 'text', text: '或許同一台', containerId: 'loose' }),
+  ]);
+  assert.deepEqual(plan.nodes.map((node) => node.shape), ['rectangle', 'diamond']);
+  assert.deepEqual(plan.loose, [
+    { id: 'loose', kind: 'arrow', text: '或許同一台', x: 0, y: 0, w: 200, h: 80 },
+    { id: 'pen', kind: 'freedraw', x: 0, y: 0, w: 200, h: 80 },
+    { id: 'note', kind: 'text', text: '記得\n週五不跑', x: 0, y: 300, w: 200, h: 80 },
+    { id: 'dash', kind: 'line', x: 10, y: 21, w: 300, h: 0 },
+  ], 'box and arrow labels and the deleted box are not loose');
+  assert.equal(plan.sketches, 3);
+});
+
+const linkedScene: SceneElement[] = [
+  el({
+    id: 'deid', type: 'rectangle', backgroundColor: '#e5dbff', strokeColor: '#7048e8', fillStyle: 'solid',
+    customData: { dhcRef: { kind: 'session', id: 's1', label: '去識別層' }, other: 1 },
+  }),
+  el({ id: 'plain', type: 'rectangle', customData: { other: 2 } }),
+];
+
+test('a box linked with @@ reads with its link', () => {
+  const plan = sceneToPlan(linkedScene);
+  assert.deepEqual(plan.nodes[0].link, { kind: 'session', id: 's1', label: '去識別層' });
+  assert.equal('link' in plan.nodes[1], false);
+});
+
+test('a redraw keeps customData and links; the AI can link, unlink and change a shape', () => {
+  const box = (id: string, extra: object = {}) => ({ id, x: 0, y: 0, w: 200, h: 80, text: id, ...extra });
+  const [kept, linked, unlinked, reshaped] = planToSkeletons([
+    box('deid'),
+    box('plain', { link: { kind: 'board', id: 'b9', label: '架構圖' } }),
+    box('deid', { link: null }),
+    box('plain', { shape: 'diamond' }),
+  ], [], linkedScene);
+  assert.deepEqual(kept.customData, linkedScene[0].customData, 'a box the AI did not touch keeps its link');
+  assert.equal(kept.backgroundColor, '#e5dbff');
+  assert.deepEqual(linked.customData, { other: 2, dhcRef: { kind: 'board', id: 'b9', label: '架構圖' } });
+  assert.deepEqual([linked.backgroundColor, linked.strokeColor, linked.fillStyle], ['#c3fae8', '#0ca678', 'solid']);
+  assert.deepEqual(unlinked.customData, { other: 1 }, 'unlinking only takes the reference off');
+  assert.deepEqual([unlinked.backgroundColor, unlinked.strokeColor], ['#e5dbff', '#7048e8'], 'colours stay');
+  assert.equal(reshaped.type, 'diamond');
+  assert.deepEqual(reshaped.customData, { other: 2 });
+});
+
+test('the AI\'s links are kept only when @@ offers them, with the offered label; null still unlinks', async () => {
+  const { acceptLinks } = await import('@/modules/plan-board/boxLinkData');
+  const box = (id: string, link?: unknown) => ({ id, x: 0, y: 0, w: 200, h: 80, text: id, ...(link === undefined ? {} : { link }) }) as never;
+  const out = acceptLinks(
+    [box('a', { kind: 'session', id: 's1', label: '亂寫' }), box('b', { kind: 'session', id: 'made-up', label: 'x' }), box('c', { kind: 'board', id: 's1', label: '' }), box('d', null), box('e')],
+    [{ kind: 'session', id: 's1', label: '去識別層' }],
+  );
+  assert.deepEqual(out.map((node) => node.link), [{ kind: 'session', id: 's1', label: '去識別層' }, undefined, undefined, null, undefined]);
+  assert.equal('link' in out[1], false, 'an unknown link leaves the box\'s own link alone');
+});

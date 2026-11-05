@@ -12,12 +12,15 @@ import type {
 import { useDropzone } from 'react-dropzone';
 
 import { api } from '@/shared/api';
+import { findPiiInTurn, piiBlockMessage } from '@/shared/piiGuard';
 import { PROVIDER_PERMISSION_PREFERENCE_KEYS } from '@/shared/constants';
 import { readActiveSettingsProfile, readUserPreference } from '@/shared/userSettings';
-import { readCoSession, withSenderPrefix } from '@/shared/coSessions';
+import { readCoSession, useCoSession, withSenderPrefix } from '@/shared/coSessions';
 import { DISTILL_SYSTEM_NOTE } from '@/shared/distillSessions';
+import { appendNotes, CANVAS_SYSTEM_NOTE, isCanvasMode } from '@/modules/canvas';
 import type { CommandModalPayload, CostCommandData, HelpCommandData, MarkSessionProcessing, ModelCommandData, QueuedDraft, SessionActivityMap, StatusCommandData,QueuedSendOptions,ChatAttachment,ChatMessage,PendingPermissionRequest,PermissionMode,SessionEstablishedContext,Project,ProjectSession,LLMProvider,SlashCommand } from '@/shared/types';
 import { grantClaudeToolPermission } from '@/modules/chat/utils/chatPermissions';
+import { CHUNKED_UPLOAD_MAX_SIZE, DIRECT_UPLOAD_MAX_SIZE, uploadFileInChunks } from '@/modules/chat/utils/chunkedUpload';
 import {
   clearQueuedMessage,
   hydrateChatDrafts,
@@ -32,7 +35,9 @@ import { useFileMentions } from '@/modules/chat/hooks/useFileMentions';
 import { useInputHistory } from '@/modules/chat/hooks/useInputHistory';
 import { useSlashCommands } from '@/modules/chat/hooks/useSlashCommands';
 import { markInterruptSend } from '@/modules/chat/utils/interruptSends';
-import { parseStartAnnotation, readQuotaReset } from '@/modules/chat/utils/nightQueueTime';
+import { parseStartAnnotation } from '@/modules/chat/utils/nightQueueTime';
+import { commitCommandModeTurn, prepareCommandModeAttachment } from '@/modules/command-mode';
+import { fetchModelAdvice, isOpusModel, readModelAdviceMode, SONNET_MODEL, type ModelAdviceChip } from '@/modules/chat/utils/modelAdvice';
 
 type UseChatComposerStateArgs = {
   selectedProject: Project | null;
@@ -54,6 +59,8 @@ type UseChatComposerStateArgs = {
   tokenBudget: Record<string, unknown> | null;
   sendMessage: (message: unknown) => void;
   sendByCtrlEnter?: boolean;
+  /** False when the selected provider never receives files or images: paste and drop then attach nothing. */
+  attachmentsEnabled?: boolean;
   onSessionProcessing?: MarkSessionProcessing;
   /**
    * Invoked with the freshly allocated session id when the user sends the
@@ -87,6 +94,8 @@ type UseChatComposerStateArgs = {
   ) => Promise<{ ok: true } | { ok: false; message: string | null }>;
   /** DHC CLI: the flask is on — every turn carries the 蒸餾模式 note as the system-prompt append. */
   distillMode?: boolean;
+  /** DHC CLI 開對話建議模型: records a model against one session only (the new-chat default stays). */
+  selectSessionModel?: (sessionId: string, model: string) => Promise<void> | void;
 };
 
 type MentionableFile = {
@@ -108,42 +117,75 @@ type CommandExecutionResult = {
 
 
 
+// files: 指揮模式附上的電腦畫面截圖（可能畫了圈點），走一般附件上傳。
+type VoiceTurnInput = { text: string; clientRequestId: string; appendSystemPrompt: string; files?: File[] };
+
 const createFakeSubmitEvent = () => {
   return { preventDefault: () => undefined } as unknown as FormEvent<HTMLFormElement>;
 };
 
+const EDIT_ANCHOR_PREFIX = 'dhc.editAnchor.';
 const MAX_ATTACHMENT_COUNT = 10;
-const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
+// DHC CLI: files up to 10MB go up in one request; larger ones (up to 2GB) in chunks.
+const MAX_ATTACHMENT_SIZE = CHUNKED_UPLOAD_MAX_SIZE;
 
 const isImageAttachment = (attachment: ChatAttachment) => {
   if (attachment.mimeType?.startsWith('image/')) return true;
   return /\.(gif|jpe?g|png|svg|webp)$/i.test(attachment.path || attachment.name || '');
 };
 
-const uploadAttachmentFiles = async (files: File[]): Promise<unknown[]> => {
+const uploadAttachmentFiles = async (
+  files: File[],
+  onProgress?: (fileName: string, fraction: number) => void,
+): Promise<unknown[]> => {
   if (files.length === 0) {
     return [];
   }
 
-  const formData = new FormData();
-  files.forEach((file) => {
-    formData.append('files', file);
-  });
+  const results: unknown[] = new Array(files.length);
+  const directIndexes = files.flatMap((file, index) => (file.size <= DIRECT_UPLOAD_MAX_SIZE ? [index] : []));
 
-  const response = await api.assets.uploadFiles(formData);
+  if (directIndexes.length > 0) {
+    const formData = new FormData();
+    directIndexes.forEach((index) => {
+      formData.append('files', files[index]);
+    });
 
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(body?.error || 'Failed to upload files');
+    const response = await api.assets.uploadFiles(formData);
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.error || 'Failed to upload files');
+    }
+
+    const result = await response.json();
+    if (!Array.isArray(result.attachments) || result.attachments.length !== directIndexes.length) {
+      throw new Error('File upload returned an incomplete result');
+    }
+    directIndexes.forEach((fileIndex, resultIndex) => {
+      results[fileIndex] = result.attachments[resultIndex];
+    });
   }
 
-  const result = await response.json();
-  if (!Array.isArray(result.attachments) || result.attachments.length !== files.length) {
-    throw new Error('File upload returned an incomplete result');
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    if (file.size > DIRECT_UPLOAD_MAX_SIZE) {
+      try {
+        results[index] = await uploadFileInChunks(file, (fraction) => onProgress?.(file.name, fraction));
+      } catch (error) {
+        onProgress?.(file.name, -1);
+        throw error;
+      }
+    }
   }
-  return result.attachments;
+  return results;
 };
 
+
+/** DHC CLI: a Co-Work session's draft scope, one per person (device profile). */
+const coWorkDraftScope = (sessionId: string): string => (
+  `${sessionId}#${readActiveSettingsProfile()?.id ?? 'shared'}`
+);
 
 const restoreQueuedDraft = (sessionKey: string): QueuedDraft | null => {
   const saved = readQueuedMessage(sessionKey);
@@ -190,10 +232,12 @@ export function useChatComposerState({
   tokenBudget,
   sendMessage,
   sendByCtrlEnter,
+  attachmentsEnabled = true,
   pendingPermissionRequests,
   nightMode = false,
   onNightQueueSubmit,
   distillMode = false,
+  selectSessionModel,
   onSessionProcessing,
   onSessionEstablished,
   onFileOpen,
@@ -228,8 +272,10 @@ export function useChatComposerState({
     if (typeof window === 'undefined') {
       return { scope: null, value: '' };
     }
-    const initialScope = selectedSession?.id || currentSessionId
-      || (selectedProject ? `project:${selectedProject.projectId}` : null);
+    const initialSessionId = selectedSession?.id || currentSessionId;
+    const initialScope = initialSessionId
+      ? (readCoSession(initialSessionId) ? coWorkDraftScope(initialSessionId) : initialSessionId)
+      : (selectedProject ? `project:${selectedProject.projectId}` : null);
     return {
       scope: initialScope,
       value: initialScope ? readDraftText(initialScope) : '',
@@ -238,7 +284,19 @@ export function useChatComposerState({
   const input = inputState.value;
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [fileErrors, setFileErrors] = useState<Map<string, string>>(new Map());
+  // DHC CLI: chunked-upload progress (0–1) per attachment name, cleared when the upload ends.
+  const [fileProgress, setFileProgress] = useState<Map<string, number>>(new Map());
+  const reportUploadProgress = useCallback((fileName: string, fraction: number) => {
+    setFileProgress((previous) => {
+      const next = new Map(previous);
+      // 1 = done, -1 = failed; either way the bar goes away.
+      if (fraction >= 1 || fraction < 0) next.delete(fileName);
+      else next.set(fileName, fraction);
+      return next;
+    });
+  }, []);
   const [isTextareaExpanded, setIsTextareaExpanded] = useState(false);
+  const [modelAdviceChip, setModelAdviceChip] = useState<ModelAdviceChip | null>(null);
   const [commandModalPayload, setCommandModalPayload] = useState<CommandModalPayload | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -260,9 +318,26 @@ export function useChatComposerState({
   // The chat scope a draft belongs to: the open session, or the project for a
   // chat that has not been sent yet and so has no session id. Drafts used to be
   // keyed by project alone, so every session in a project shared one draft.
-  const draftScope = sessionKey ?? (selectedProjectId ? `project:${selectedProjectId}` : null);
+  const baseDraftScope = sessionKey ?? (selectedProjectId ? `project:${selectedProjectId}` : null);
+  // DHC CLI: everyone shares one server account, so a Co-Work session's draft
+  // would sync what another participant is typing into this composer. Give each
+  // person (device profile) their own draft there; the queue stays per session.
+  const isCoWorkSession = Boolean(useCoSession(sessionKey));
+  const draftScope = isCoWorkSession && sessionKey ? coWorkDraftScope(sessionKey) : baseDraftScope;
   const draftScopeRef = useRef(draftScope);
   draftScopeRef.current = draftScope;
+  // The edit target goes with the draft: after a reload the text is back, so the anchor it replaces must be too.
+  const writeEditAnchor = (scope: string | null, anchorId: string | null) => {
+    if (!scope) return;
+    try {
+      if (anchorId) localStorage.setItem(EDIT_ANCHOR_PREFIX + scope, anchorId);
+      else localStorage.removeItem(EDIT_ANCHOR_PREFIX + scope);
+    } catch { /* storage unavailable: the edit just does not survive a reload */ }
+  };
+  const endEditing = useCallback(() => {
+    setEditingAnchorId(null);
+    writeEditAnchor(draftScopeRef.current, null);
+  }, []);
   const setInput = useCallback<Dispatch<SetStateAction<string>>>((next) => {
     setInputState((previous) => ({
       scope: draftScopeRef.current,
@@ -560,6 +635,7 @@ export function useChatComposerState({
   }, []);
 
   const handleAttachmentFiles = useCallback((files: File[]) => {
+    if (!attachmentsEnabled) return;
     const validFiles = files.filter((file) => {
       try {
         if (!file || typeof file !== 'object') {
@@ -568,11 +644,11 @@ export function useChatComposerState({
         }
 
         if (file.size > MAX_ATTACHMENT_SIZE) {
-          const fileName = file.name || 'Unknown file';
-          setFileErrors((previous) => {
-            const next = new Map(previous);
-            next.set(fileName, 'File too large (max 10MB)');
-            return next;
+          // DHC CLI: a rejected file never becomes a chip, so the old chip error was invisible.
+          addMessage({
+            type: 'error',
+            content: `「${file.name || 'Unknown file'}」超過 2GB 上限，沒有附加。請先壓縮或分割後再傳。`,
+            timestamp: new Date(),
           });
           return false;
         }
@@ -587,7 +663,7 @@ export function useChatComposerState({
     if (validFiles.length > 0) {
       setAttachedFiles((previous) => [...previous, ...validFiles].slice(0, MAX_ATTACHMENT_COUNT));
     }
-  }, []);
+  }, [addMessage, attachmentsEnabled]);
 
   const handlePaste = useCallback(
     (event: ClipboardEvent<HTMLTextAreaElement>) => {
@@ -597,7 +673,7 @@ export function useChatComposerState({
       // It becomes a text attachment instead — Claude gets the whole thing, the composer shows a chip.
       const pastedText = event.clipboardData.getData('text/plain');
       const pastedLines = pastedText ? pastedText.split('\n').length : 0;
-      if (pastedText && (pastedLines > 40 || pastedText.length > 6000)) {
+      if (attachmentsEnabled && pastedText && (pastedLines > 40 || pastedText.length > 6000)) {
         event.preventDefault();
         const stamp = new Date();
         const name = `貼上內容-${pastedLines}行-${String(stamp.getHours()).padStart(2, '0')}${String(stamp.getMinutes()).padStart(2, '0')}${String(stamp.getSeconds()).padStart(2, '0')}.txt`;
@@ -623,12 +699,12 @@ export function useChatComposerState({
         }
       }
     },
-    [handleAttachmentFiles],
+    [attachmentsEnabled, handleAttachmentFiles],
   );
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
-    maxSize: MAX_ATTACHMENT_SIZE,
     maxFiles: MAX_ATTACHMENT_COUNT,
+    disabled: !attachmentsEnabled,
     onDrop: handleAttachmentFiles,
     noClick: true,
     noKeyboard: true,
@@ -657,7 +733,7 @@ export function useChatComposerState({
       toolsSettings,
       skipPermissions: toolsSettings?.skipPermissions || false,
       sessionSummary: getNotificationSessionSummary(selectedSession, currentInput),
-      ...(distillMode ? { appendSystemPrompt: DISTILL_SYSTEM_NOTE } : {}),
+      ...appendNotes(distillMode && DISTILL_SYSTEM_NOTE, isCanvasMode() && CANVAS_SYSTEM_NOTE),
     };
   }, [
     currentProviderEffort,
@@ -666,6 +742,7 @@ export function useChatComposerState({
     permissionMode,
     provider,
     resolvePermissionModeForProvider,
+    selectedProject?.projectId,
     selectedSession,
   ]);
 
@@ -673,11 +750,13 @@ export function useChatComposerState({
     async (
       event: FormEvent<HTMLFormElement> | MouseEvent | TouchEvent | KeyboardEvent<HTMLTextAreaElement>,
       queuedSubmission?: QueuedDraft,
-      mode?: { queue?: boolean },
+      mode?: { queue?: boolean; interrupt?: boolean; voice?: VoiceTurnInput },
     ) => {
       event.preventDefault();
-      const currentInput = queuedSubmission?.content ?? inputValueRef.current;
-      const currentAttachments = queuedSubmission?.attachments ?? attachedFiles;
+      // DHC CLI 語音通話: a spoken turn brings its own text and leaves the typed draft and attachments alone.
+      const voice = mode?.voice;
+      const currentInput = voice?.text ?? queuedSubmission?.content ?? inputValueRef.current;
+      const currentAttachments = voice ? voice.files ?? [] : queuedSubmission?.attachments ?? attachedFiles;
       const previouslyUploadedAttachments = queuedSubmission?.uploadedAttachments ?? [];
       if (
         (
@@ -690,9 +769,17 @@ export function useChatComposerState({
         return;
       }
 
+      // DHC CLI 個資防誤傳: checked before any branch below can send or upload, so the text and files stay in the box.
+      const piiHits = await findPiiInTurn(currentInput, currentAttachments);
+      if (piiHits.length > 0) {
+        addMessage({ type: 'error', content: piiBlockMessage(piiHits), timestamp: new Date() });
+        return;
+      }
+
       // DHC CLI: while the assistant waits on an AskUserQuestion prompt, the typed reply IS the answer.
       // Before, the box was hidden behind the panel, so people stopped the session to get a word in.
-      const questionRequest = queuedSubmission
+      // Voice never answers a question for the user: it goes to the run as a message.
+      const questionRequest = queuedSubmission || voice
         ? undefined
         : pendingPermissionRequests?.find((request) => request.toolName === 'AskUserQuestion');
       if (questionRequest && currentInput.trim() && currentAttachments.length === 0) {
@@ -730,7 +817,7 @@ export function useChatComposerState({
       // A turn is already in flight and the user chose to queue: stash this message instead of sending it.
       // Upload attached files now so the queued record contains durable image
       // descriptors that can be sent even if another session is open later.
-      // DHC CLI: plain Enter while a turn runs no longer queues — it sends now and interrupts (below).
+      // DHC CLI: plain Enter while a turn runs no longer queues — it joins the running turn (below).
       if (isLoading && (queuedSubmission || mode?.queue)) {
         // A run can restart in the tiny gap between scheduling and flushing a
         // queued submission. Put the same durable draft back without uploading
@@ -745,7 +832,7 @@ export function useChatComposerState({
         const queuedSessionKey = sessionKey;
         let uploadedAttachments: unknown[] = [];
         try {
-          uploadedAttachments = await uploadAttachmentFiles(currentAttachments);
+          uploadedAttachments = await uploadAttachmentFiles(currentAttachments, reportUploadProgress);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unknown error';
           console.error('Queued file upload failed:', error);
@@ -806,7 +893,7 @@ export function useChatComposerState({
       // Also accept exact "help" as a convenience alias for users who expect CLI-style help.
       const commandInput = currentInput.trimEnd();
       const isHelpAlias = commandInput.trim().toLowerCase() === 'help';
-      if (commandInput.startsWith('/') || isHelpAlias) {
+      if (!voice && (commandInput.startsWith('/') || isHelpAlias)) {
         const firstSpace = commandInput.indexOf(' ');
         const commandName = isHelpAlias
           ? '/help'
@@ -838,39 +925,17 @@ export function useChatComposerState({
       }
 
       // DHC CLI: night mode stores the prompt for the night queue instead of sending it (below). Programmatic
-      // turns (the eraser's /compact) and edits of a sent message still go now. A night prompt may start with
-      // its own time — "@12:05 …" or "@重置 …" (quota reset) — which is read off here, before a session is
-      // created or files uploaded, so a time that cannot be read stops the store instead of going to 02:00.
-      const storesForNight = Boolean(nightMode && onNightQueueSubmit && !queuedSubmission && !editingAnchorId);
+      // turns (the eraser's /compact) and edits of a sent message still go now. 11/01: night only — a prompt's
+      // own time and the quota reset are the clock's (排程送出); a leading "@夜間" is read off here.
+      const storesForNight = Boolean(nightMode && onNightQueueSubmit && !queuedSubmission && !editingAnchorId && !voice);
       let messageContent = currentInput;
-      let nightStartAt: string | null = null;
+      const nightStartAt: string | null = null;
       if (storesForNight) {
         const annotation = parseStartAnnotation(currentInput);
-        let startAt: Date | null = null;
-        if (annotation.kind === 'invalid') {
-          addMessage({ type: 'error', content: annotation.message, timestamp: new Date() });
-          return;
-        }
-        if (annotation.kind === 'time') {
-          startAt = annotation.startAt;
-        } else if (annotation.kind === 'reset') {
-          const reset = await readQuotaReset();
-          if (!reset) {
-            addMessage({
-              type: 'error',
-              content: '讀不到額度重置時間（或額度已經是新的），請改寫成 @12:05 這樣的時間。',
-              timestamp: new Date(),
-            });
-            return;
-          }
-          // A minute past the reset, so the prompt meets the new quota even with the host clock behind.
-          startAt = new Date(reset.getTime() + 60_000);
-        }
-        if (annotation.kind === 'time' || annotation.kind === 'reset' || annotation.kind === 'night') {
+        if (annotation.kind === 'night') {
           messageContent = annotation.rest;
-          nightStartAt = startAt ? startAt.toISOString() : null;
           if (!messageContent.trim() && currentAttachments.length === 0 && previouslyUploadedAttachments.length === 0) {
-            addMessage({ type: 'error', content: '只有時間沒有內容，請在 @時間 後面寫要做的事。', timestamp: new Date() });
+            addMessage({ type: 'error', content: '@夜間 後面要寫要做的事。', timestamp: new Date() });
             return;
           }
         }
@@ -879,7 +944,7 @@ export function useChatComposerState({
       let uploadedAttachments = previouslyUploadedAttachments;
       if (uploadedAttachments.length === 0 && currentAttachments.length > 0) {
         try {
-          uploadedAttachments = await uploadAttachmentFiles(currentAttachments);
+          uploadedAttachments = await uploadAttachmentFiles(currentAttachments, reportUploadProgress);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unknown error';
           console.error('File upload failed:', error);
@@ -900,14 +965,58 @@ export function useChatComposerState({
       // via the session gateway. There is no client-visible session-id
       // handoff later — this id stays valid for the conversation's lifetime.
       let targetSessionId = selectedSession?.id || currentSessionId || null;
+      // DHC CLI 開對話建議模型: a new chat's first send with an Opus model asks whether Sonnet is enough.
+      // 'suggest' does not wait; 'auto' waits (capped) and sends this first message with Sonnet when advised.
+      const adviceMode = !targetSessionId && !storesForNight && !queuedSubmission && !editingAnchorId
+        && provider === 'claude' && isOpusModel(currentProviderModel)
+        ? readModelAdviceMode()
+        : 'off';
+      const advice = adviceMode === 'off'
+        ? null
+        : fetchModelAdvice({ text: messageContent, projectPath: resolvedProjectPath, hasAttachment: uploadedAttachments.length > 0 });
+      // DHC CLI 11/01: a new chat's bubble shows before the model advice and session creation, and the two run
+      // side by side, so the first send no longer sits on screen for the 2–3 s the Haiku judge takes. With no
+      // session yet, addMessage keeps it as the pending bubble, which moves into the session once it exists.
+      const attachmentRecords = uploadedAttachments as ChatAttachment[];
+      const buildUserMessage = (senderName: string, midTurnSend: boolean): ChatMessage => ({
+        type: 'user',
+        content: withSenderPrefix(currentInput, senderName),
+        images: attachmentRecords.filter(isImageAttachment),
+        files: attachmentRecords.filter((attachment) => !isImageAttachment(attachment)),
+        timestamp: new Date(),
+        ...(midTurnSend && !mode?.interrupt ? { midTurn: true } : {}),
+        // Tags this echo as the replacement, so the truncation the server
+        // broadcasts a moment later cuts the turns being replaced without
+        // taking the message the user just sent with them.
+        ...(editingAnchorId ? { replacesAnchorId: editingAnchorId } : {}),
+      });
+      const earlyBubble = !targetSessionId && !storesForNight;
+      // A spoken turn is not what the box holds, so it leaves the typed draft and its attachments alone.
+      const clearsComposer = earlyBubble && !voice;
+      if (earlyBubble) {
+        addMessage(buildUserMessage('', false));
+      }
+      if (clearsComposer) {
+        setInput('');
+        inputValueRef.current = '';
+        setAttachedFiles([]);
+      }
+      const sessionCreation = targetSessionId
+        ? null
+        : api.providers.createSession({
+          provider,
+          projectPath: resolvedProjectPath,
+          initialMessage: messageContent,
+        }).then((response) => ({ response }), (error: unknown) => ({ error }));
+      const firstSendModel = adviceMode === 'auto' && await advice === 'sonnet' ? SONNET_MODEL : null;
       if (!targetSessionId) {
         let createdSessionName = sessionSummary;
         try {
-          const response = await api.providers.createSession({
-            provider,
-            projectPath: resolvedProjectPath,
-            initialMessage: messageContent,
-          });
+          const created = await sessionCreation!;
+          if ('error' in created) {
+            throw created.error;
+          }
+          const { response } = created;
           if (!response.ok) {
             throw new Error(`Failed to create session (${response.status})`);
           }
@@ -924,6 +1033,11 @@ export function useChatComposerState({
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Unknown error';
           console.error('Session creation failed:', error);
+          if (clearsComposer) {
+            setInput(currentInput);
+            inputValueRef.current = currentInput;
+            setAttachedFiles(currentAttachments);
+          }
           addMessage({
             type: 'error',
             content: `Failed to start a new session: ${message}`,
@@ -933,6 +1047,11 @@ export function useChatComposerState({
         }
 
         if (!targetSessionId) {
+          if (clearsComposer) {
+            setInput(currentInput);
+            inputValueRef.current = currentInput;
+            setAttachedFiles(currentAttachments);
+          }
           addMessage({
             type: 'error',
             content: 'Failed to start a new session: no session id returned.',
@@ -985,20 +1104,12 @@ export function useChatComposerState({
         return;
       }
 
-      const attachmentRecords = uploadedAttachments as ChatAttachment[];
-      const userMessage: ChatMessage = {
-        type: 'user',
-        content: withSenderPrefix(currentInput, coSenderName),
-        images: attachmentRecords.filter(isImageAttachment),
-        files: attachmentRecords.filter((attachment) => !isImageAttachment(attachment)),
-        timestamp: new Date(),
-        // Tags this echo as the replacement, so the truncation the server
-        // broadcasts a moment later cuts the turns being replaced without
-        // taking the message the user just sent with them.
-        ...(editingAnchorId ? { replacesAnchorId: editingAnchorId } : {}),
-      };
-
-      addMessage(userMessage);
+      // DHC CLI: sending while a turn runs hands the message to that turn, the way the desktop app does —
+      // Claude reads it before its next step. The explicit "interrupt" action stops the turn instead.
+      const midTurnSend = isLoading && !editingAnchorId;
+      if (!earlyBubble) {
+        addMessage(buildUserMessage(coSenderName, midTurnSend));
+      }
       // Mark this request as processing in the per-session activity map (the
       // single source of truth the indicator derives from). The id is always
       // concrete at this point — no pending placeholder exists anymore.
@@ -1010,9 +1121,9 @@ export function useChatComposerState({
       setIsUserScrolledUp(false);
       setTimeout(() => scrollToBottom(), 100);
 
-      // DHC CLI: sending while a turn runs interrupts that turn server-side (Codex-style steer). Mark it so
-      // the interrupted run's `complete { aborted }` does not drop the indicator for the turn replacing it.
-      const interruptActiveRun = isLoading && !editingAnchorId;
+      // DHC CLI: "interrupt" stops the running turn server-side (Codex-style steer). Mark it so the
+      // interrupted run's `complete { aborted }` does not drop the indicator for the turn replacing it.
+      const interruptActiveRun = midTurnSend && mode?.interrupt === true;
       if (interruptActiveRun) {
         markInterruptSend(targetSessionId);
       }
@@ -1027,14 +1138,30 @@ export function useChatComposerState({
         type: editingAnchorId ? 'chat.edit-send' : 'chat.send',
         sessionId: targetSessionId,
         ...(editingAnchorId ? { anchorId: editingAnchorId } : {}),
-        ...(interruptActiveRun ? { interruptActiveRun: true } : {}),
+        ...(interruptActiveRun ? { interruptActiveRun: true } : midTurnSend ? { injectIntoActiveRun: true } : {}),
+        ...(voice ? { clientRequestId: voice.clientRequestId } : {}),
         content: messageContent,
         options: {
           ...(queuedSubmission?.options ?? buildSendOptions(messageContent)),
+          ...(firstSendModel ? { model: firstSendModel } : {}),
+          ...(voice ? { appendSystemPrompt: voice.appendSystemPrompt } : {}),
           attachments: uploadedAttachments,
         },
       });
-      setEditingAnchorId(null);
+      endEditing();
+      if (firstSendModel) {
+        void selectSessionModel?.(targetSessionId, firstSendModel);
+        setModelAdviceChip({ sessionId: targetSessionId, kind: 'auto', from: currentProviderModel });
+      } else if (adviceMode === 'suggest' && advice) {
+        const adviceSessionId = targetSessionId;
+        void advice.then((answer) => {
+          if (answer === 'sonnet') {
+            setModelAdviceChip({ sessionId: adviceSessionId, kind: 'suggest', from: currentProviderModel });
+          }
+        });
+      }
+
+      if (voice) return targetSessionId;
 
       // Recorded under the (possibly just-allocated) session id, so the first
       // message of a new chat lands in the history of the session the user is
@@ -1062,6 +1189,7 @@ export function useChatComposerState({
       buildSendOptions,
       currentSessionId,
       editingAnchorId,
+      endEditing,
       executeCommand,
       isLoading,
       onSessionProcessing,
@@ -1080,6 +1208,9 @@ export function useChatComposerState({
       setPendingPermissionRequests,
       nightMode,
       onNightQueueSubmit,
+      reportUploadProgress,
+      currentProviderModel,
+      selectSessionModel,
     ],
   );
 
@@ -1092,7 +1223,7 @@ export function useChatComposerState({
     async (
       event: FormEvent<HTMLFormElement> | MouseEvent | TouchEvent | KeyboardEvent<HTMLTextAreaElement>,
       queuedSubmission?: QueuedDraft,
-      mode?: { queue?: boolean },
+      mode?: { queue?: boolean; interrupt?: boolean },
     ) => {
       const turn = {
         content: queuedSubmission?.content ?? inputValueRef.current,
@@ -1117,6 +1248,13 @@ export function useChatComposerState({
   const queueMessage = useCallback(
     (event: FormEvent<HTMLFormElement> | MouseEvent | TouchEvent | KeyboardEvent<HTMLTextAreaElement>) =>
       handleSubmit(event, undefined, { queue: true }),
+    [handleSubmit],
+  );
+
+  // DHC CLI: the composer's explicit "interrupt" action — stop the running turn and send this as a new one.
+  const interruptMessage = useCallback(
+    (event: FormEvent<HTMLFormElement> | MouseEvent | TouchEvent | KeyboardEvent<HTMLTextAreaElement>) =>
+      handleSubmit(event, undefined, { interrupt: true }),
     [handleSubmit],
   );
 
@@ -1194,6 +1332,12 @@ export function useChatComposerState({
     };
 
     restoreDraft();
+    // The edit target belongs to this scope's draft; another scope starts without one.
+    let storedAnchor: string | null = null;
+    try {
+      storedAnchor = localStorage.getItem(EDIT_ANCHOR_PREFIX + draftScope);
+    } catch { /* ignore */ }
+    setEditingAnchorId(storedAnchor);
     return subscribeToChatDrafts(restoreDraft);
   }, [draftScope]);
 
@@ -1296,6 +1440,15 @@ export function useChatComposerState({
         return;
       }
 
+      // Esc backs out of an edit the way the banner's cancel does.
+      if (event.key === 'Escape' && editingAnchorId) {
+        event.preventDefault();
+        endEditing();
+        setInput('');
+        inputValueRef.current = '';
+        return;
+      }
+
       if (event.key === 'Tab' && !showFileDropdown && !showCommandMenu) {
         event.preventDefault();
         cyclePermissionMode();
@@ -1318,6 +1471,9 @@ export function useChatComposerState({
     },
     [
       cyclePermissionMode,
+      editingAnchorId,
+      endEditing,
+      setInput,
       handleCommandMenuKeyDown,
       handleFileMentionsKeyDown,
       handleHistoryKeyDown,
@@ -1427,13 +1583,14 @@ export function useChatComposerState({
   const beginEditMessage = useCallback((message: ChatMessage) => {
     if (!message.transcriptAnchorId) return;
     setEditingAnchorId(message.transcriptAnchorId);
+    writeEditAnchor(draftScopeRef.current, message.transcriptAnchorId);
     setInput(message.content || '');
     inputValueRef.current = message.content || '';
     textareaRef.current?.focus();
   }, [setInput]);
 
   const cancelEditMessage = useCallback(() => {
-    setEditingAnchorId(null);
+    endEditing();
     setInput('');
     inputValueRef.current = '';
   }, [setInput]);
@@ -1448,8 +1605,29 @@ export function useChatComposerState({
     });
   }, [handleSubmit, buildSendOptions]);
 
+  // DHC CLI 語音通話: a spoken turn takes the normal send path (same transcript, same session, injected into a
+  // running turn) and resolves to the session it went to. Refused while a sent message is being edited, because
+  // that send would replace the edited message instead.
+  const sendVoiceTurn = useCallback(async (turn: { text: string; clientRequestId: string; systemNote: string }) => {
+    if (editingAnchorId) return null;
+    const notes = [buildSendOptions(turn.text).appendSystemPrompt, turn.systemNote].filter(Boolean).join('\n\n');
+    // 指揮模式：這句講話期間有圈點就附合成圖，沒有就附有變過的最新電腦畫面。
+    const shot = await prepareCommandModeAttachment();
+    const sessionId = await submitTurn(createFakeSubmitEvent(), undefined, {
+      voice: {
+        text: shot ? `${turn.text}\n${shot.note}` : turn.text,
+        clientRequestId: turn.clientRequestId,
+        appendSystemPrompt: notes,
+        ...(shot ? { files: [shot.file] } : {}),
+      },
+    });
+    if (sessionId) commitCommandModeTurn(shot);
+    return sessionId ?? null;
+  }, [editingAnchorId, buildSendOptions, submitTurn]);
+
   return {
     input,
+    sendVoiceTurn,
     setInput,
     editingAnchorId,
     beginEditMessage,
@@ -1474,12 +1652,15 @@ export function useChatComposerState({
     attachedFiles,
     setAttachedFiles,
     fileErrors,
+    fileProgress,
     getRootProps,
     getInputProps,
     isDragActive,
     openAttachmentPicker: open,
+    attachFiles: handleAttachmentFiles,
     handleSubmit,
     queueMessage,
+    interruptMessage,
     submitText,
     queuedDraft,
     editQueuedDraft,
@@ -1500,5 +1681,7 @@ export function useChatComposerState({
     commandModalPayload,
     closeCommandModal,
     showCostModal,
+    modelAdviceChip,
+    setModelAdviceChip,
   };
 }

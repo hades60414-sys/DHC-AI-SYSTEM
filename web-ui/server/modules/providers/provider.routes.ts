@@ -1,5 +1,6 @@
 import express, { type Request, type Response } from 'express';
 
+import { checkAgyWorkspaceAccess } from '@/modules/providers/list/agy/agy-whitelist.js';
 import { providerAuthService } from '@/modules/providers/services/provider-auth.service.js';
 import { providerCapabilitiesService } from '@/modules/providers/services/provider-capabilities.service.js';
 import { providerMcpService } from '@/modules/providers/services/mcp.service.js';
@@ -12,6 +13,8 @@ import { providerRuntimeService } from '@/modules/providers/services/provider-ru
 import { sessionTitleSuggestService } from '@/modules/providers/services/session-title-suggest.service.js';
 import { planBoardAssistService } from '@/modules/providers/services/plan-board-assist.service.js';
 import { toolAssistService } from '@/modules/providers/services/tool-assist/tool-assist.service.js';
+import { adviseModel } from '@/modules/providers/services/model-advice.service.js';
+import { handoffSession, judgeHandoffMoment } from '@/modules/providers/services/session-handoff.service.js';
 import type {
   CustomProviderModelInput,
   LLMProvider,
@@ -291,6 +294,7 @@ const parseProvider = (value: unknown): LLMProvider => {
     || normalized === 'codex'
     || normalized === 'cursor'
     || normalized === 'opencode'
+    || normalized === 'agy'
   ) {
     return normalized;
   }
@@ -302,7 +306,7 @@ const parseProvider = (value: unknown): LLMProvider => {
 };
 
 /** Both fields are optional: an empty body forks the whole conversation. */
-const parseSessionForkPayload = (payload: unknown): { upToAnchorId?: string; title?: string } => {
+const parseSessionForkPayload = (payload: unknown): { upToAnchorId?: string; title?: string; projectId?: string } => {
   if (payload === undefined || payload === null) {
     return {};
   }
@@ -316,10 +320,12 @@ const parseSessionForkPayload = (payload: unknown): { upToAnchorId?: string; tit
   const body = payload as Record<string, unknown>;
   const upToAnchorId = typeof body.upToAnchorId === 'string' ? body.upToAnchorId.trim() : '';
   const title = typeof body.title === 'string' ? body.title.trim() : '';
+  const projectId = typeof body.projectId === 'string' ? body.projectId.trim() : '';
 
   return {
     ...(upToAnchorId ? { upToAnchorId } : {}),
     ...(title ? { title } : {}),
+    ...(projectId ? { projectId } : {}),
   };
 };
 
@@ -516,6 +522,19 @@ const parseCustomProviderModelPayload = (payload: unknown): CustomProviderModelI
 
   return { model, id };
 };
+
+/**
+ * Whether Google agy may be used for a project. agy sends content to Google
+ * without de-identification, so only whitelisted workspaces are allowed; the
+ * runtime enforces the same check, this route lets the UI explain the refusal.
+ */
+router.get(
+  '/agy/workspace-access',
+  asyncHandler(async (req: Request, res: Response) => {
+    const projectPath = typeof req.query.projectPath === 'string' ? req.query.projectPath : '';
+    res.json(createApiSuccessResponse(await checkAgyWorkspaceAccess(projectPath)));
+  }),
+);
 
 router.get(
   '/:provider/auth/status',
@@ -835,20 +854,74 @@ router.post(
   }),
 );
 
+/**
+ * DHC CLI 10/19: an AI answer can take longer than the 100 seconds Cloudflare waits for a response, which then cuts
+ * the request. The headers go out at once and a space every 20 seconds keeps the line alive (JSON ignores leading
+ * whitespace); the answer, or the error, follows as the body.
+ */
+async function sendWhileWaiting(res: Response, work: () => Promise<unknown>): Promise<void> {
+  res.status(200).type('application/json');
+  res.flushHeaders();
+  const beat = setInterval(() => res.write(' '), 20_000);
+  try {
+    res.end(JSON.stringify(createApiSuccessResponse(await work())));
+  } catch (error) {
+    const code = error instanceof AppError ? error.code : 'INTERNAL_ERROR';
+    res.end(JSON.stringify({ success: false, error: { code, message: (error as Error).message } }));
+  } finally {
+    clearInterval(beat);
+  }
+}
+
 // DHC CLI 10/13 規劃白板: the chat beside the canvas (answers, and may send back a redrawn board; saves nothing).
 router.post(
   '/plan-board/assist',
-  asyncHandler(async (req: Request, res: Response) => {
-    res.json(createApiSuccessResponse(await planBoardAssistService.assist(req.body)));
-  }),
+  (req: Request, res: Response) => sendWhileWaiting(res, () => planBoardAssistService.assist(req.body)),
 );
 
 // DHC CLI 10/14 工具庫: the chat beside each tool (answers, and may send back a change for the page to apply).
+// 10/24: the page stopping or closing drops the connection, which stops Claude. res 'close' fires on a dropped
+// client; req 'close' already fires once the body has been read.
 router.post(
   '/tool-assist',
+  (req: Request, res: Response) => {
+    const stop = new AbortController();
+    res.on('close', () => stop.abort());
+    return sendWhileWaiting(res, () => toolAssistService.assist(req.body, stop.signal));
+  },
+);
+
+// DHC CLI 10/24 開對話建議模型: whether a new chat's first message needs Opus. Never fails; off or any error → opus.
+router.post(
+  '/model-advice',
   asyncHandler(async (req: Request, res: Response) => {
-    res.json(createApiSuccessResponse(await toolAssistService.assist(req.body)));
+    res.json(await adviseModel(req.body));
   }),
+);
+
+// DHC CLI 10/24 長對話交接: is the last reply a natural stopping point? Never fails; off → {choice:'later', off:true}.
+router.post(
+  '/handoff-moment',
+  asyncHandler(async (req: Request, res: Response) => {
+    res.json(await judgeHandoffMoment(req.body));
+  }),
+);
+
+// DHC CLI 10/24 長對話交接: the old session writes a handoff note, a new session in the same project picks it up.
+// Takes about a minute, so it answers through sendWhileWaiting. The old session is left as it is.
+router.post(
+  '/sessions/:sessionId/handoff',
+  (req: Request, res: Response) => {
+    const sessionId = parseSessionId(req.params.sessionId);
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const user = (req as Request & { user?: { id?: unknown } }).user;
+    const userId = typeof user?.id === 'string' || typeof user?.id === 'number' ? user.id : null;
+    return sendWhileWaiting(res, () => handoffSession(sessionId, {
+      permissionMode: typeof body.permissionMode === 'string' ? body.permissionMode : undefined,
+      toolsSettings: body.toolsSettings,
+      skipPermissions: body.skipPermissions === true,
+    }, userId));
+  },
 );
 
 router.post(

@@ -41,6 +41,12 @@ type PendingSend = { message: unknown; queuedAt: number };
 // stamped with the host's clock, which serverClock needs, so the server must keep not handling chat.ping.
 const KEEPALIVE_MS = 25_000;
 const KEEPALIVE_FRAME = { type: 'chat.ping' };
+// DHC CLI: a leg that dies silently (tunnel, NAT, sleep) leaves the browser holding an "open" socket that
+// never delivers again, so another device's new conversation never reaches this sidebar. Every keepalive is
+// answered, so a keepalive that gets nothing back within this window means the socket is dead.
+const PROBE_WAIT_MS = 8_000;
+// Reported to the server on the reconnect URL (rc=4001) so these show apart from real closes in server.log.
+const STALE_CLOSE_CODE = 4001;
 type CloseDiag = { code: number; lifeSec: number };
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
@@ -91,6 +97,7 @@ const useWebSocketProviderState = (): WebSocketContextType => {
   const pendingSendsRef = useRef<PendingSend[]>([]);
   const connectRef = useRef<() => void>(() => undefined);
   const keepaliveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const probeRef = useRef<() => void>(() => undefined);
   const lastCloseRef = useRef<CloseDiag | null>(null);
   const sweepPendingSendsRef = useRef<(socket: WebSocket | null) => void>(() => undefined);
   const { isLoading: isAuthLoading, token, user } = useAuth();
@@ -161,20 +168,63 @@ const useWebSocketProviderState = (): WebSocketContextType => {
       // their handshake completes with stale credentials.
       wsRef.current = websocket;
       let openedAt = 0;
+      let lastInboundAt = 0;
+      let probeTimer: ReturnType<typeof setTimeout> | null = null;
       const stopKeepalive = () => {
         if (keepaliveTimerRef.current) { clearInterval(keepaliveTimerRef.current); keepaliveTimerRef.current = null; }
+        if (probeTimer) { clearTimeout(probeTimer); probeTimer = null; }
+      };
+
+      const handleGone = (code: number, delayMs?: number) => {
+        stopKeepalive();
+        lastCloseRef.current = {
+          code,
+          lifeSec: openedAt ? Math.round((Date.now() - openedAt) / 1000) : -1,
+        };
+        setIsConnected(false);
+        wsRef.current = null;
+
+        // DHC CLI: exponential backoff (3s -> 60s) instead of a fixed 3s. A tab left open while the host is
+        // down used to hit the Cloudflare Worker every 3s (~29k requests/day per tab) against a 100k/day quota.
+        const attempt = (reconnectAttemptRef.current = (reconnectAttemptRef.current ?? 0) + 1);
+        const delay = delayMs ?? Math.min(60000, 3000 * Math.pow(2, Math.max(0, attempt - 1)));
+        reconnectTimeoutRef.current = setTimeout(() => {
+          if (unmountedRef.current) return; // Prevent reconnection if unmounted
+          connect();
+        }, delay);
+      };
+
+      // A dead leg never fires onclose (close() waits for a handshake that cannot arrive), so the socket is
+      // abandoned here and replaced at once; the reconnect re-syncs the sidebar via websocket_reconnected.
+      const probe = () => {
+        if (websocket.readyState !== WebSocket.OPEN || probeTimer) return;
+        const sentAt = Date.now();
+        try { websocket.send(JSON.stringify(KEEPALIVE_FRAME)); } catch { return; }
+        probeTimer = setTimeout(() => {
+          probeTimer = null;
+          if (lastInboundAt >= sentAt || wsRef.current !== websocket) return;
+          websocket.onopen = null;
+          websocket.onmessage = null;
+          websocket.onclose = null;
+          websocket.onerror = null;
+          try { websocket.close(); } catch { /* already closing */ }
+          reconnectAttemptRef.current = 0;
+          handleGone(STALE_CLOSE_CODE, 0);
+        }, PROBE_WAIT_MS);
       };
 
       websocket.onopen = () => {
         reconnectAttemptRef.current = 0;
         openedAt = Date.now();
+        lastInboundAt = openedAt;
         stopKeepalive();
+        probeRef.current = probe;
         keepaliveTimerRef.current = setInterval(() => {
           if (websocket.readyState !== WebSocket.OPEN) { stopKeepalive(); return; }
-          try { websocket.send(JSON.stringify(KEEPALIVE_FRAME)); } catch { /* onclose follows */ }
+          probe();
         }, KEEPALIVE_MS);
         // DHC CLI: one right away, so its answer puts serverClock on the host's clock before the first send.
-        try { websocket.send(JSON.stringify(KEEPALIVE_FRAME)); } catch { /* onclose follows */ }
+        probe();
         setIsConnected(true);
         sweepPendingSendsRef.current(websocket);
         if (hasConnectedRef.current) {
@@ -185,6 +235,7 @@ const useWebSocketProviderState = (): WebSocketContextType => {
       };
 
       websocket.onmessage = (event) => {
+        lastInboundAt = Date.now();
         try {
           const data = JSON.parse(event.data) as ServerEvent;
           // DHC CLI: both are stamped by the host as it answers, never replayed, so they carry its clock.
@@ -201,21 +252,7 @@ const useWebSocketProviderState = (): WebSocketContextType => {
         if (wsRef.current !== websocket) {
           return;
         }
-        lastCloseRef.current = {
-          code: typeof event?.code === 'number' ? event.code : 0,
-          lifeSec: openedAt ? Math.round((Date.now() - openedAt) / 1000) : -1,
-        };
-        setIsConnected(false);
-        wsRef.current = null;
-
-        // DHC CLI: exponential backoff (3s -> 60s) instead of a fixed 3s. A tab left open while the host is
-        // down used to hit the Cloudflare Worker every 3s (~29k requests/day per tab) against a 100k/day quota.
-        const attempt = (reconnectAttemptRef.current = (reconnectAttemptRef.current ?? 0) + 1);
-        const delay = Math.min(60000, 3000 * Math.pow(2, Math.max(0, attempt - 1)));
-        reconnectTimeoutRef.current = setTimeout(() => {
-          if (unmountedRef.current) return; // Prevent reconnection if unmounted
-          connect();
-        }, delay);
+        handleGone(typeof event?.code === 'number' ? event.code : 0);
       };
 
       websocket.onerror = (error) => {
@@ -261,6 +298,22 @@ const useWebSocketProviderState = (): WebSocketContextType => {
       }
     };
   }, [connect, isAuthLoading, user]); // reconnect after authentication or token refresh
+
+  // DHC CLI: coming back to the tab (or the network) is when a dead socket matters, so check it right then
+  // instead of waiting up to a keepalive period.
+  useEffect(() => {
+    const check = () => {
+      if (document.visibilityState === 'visible') probeRef.current();
+    };
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('focus', check);
+    window.addEventListener('online', check);
+    return () => {
+      document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('focus', check);
+      window.removeEventListener('online', check);
+    };
+  }, []);
 
   const sendMessage = useCallback((message: unknown) => {
     const socket = wsRef.current;

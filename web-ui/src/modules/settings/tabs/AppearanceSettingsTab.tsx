@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 
 import { AvatarPickerDialog, UserAvatarFace } from '@/modules/user-avatar';
 import { readActiveSettingsProfile } from '@/shared/userSettings';
-import { DarkModeToggle } from '@/shared/ui';
+import { DarkModeToggle, ThemePicker } from '@/shared/ui';
+import { GraduationCap, Minimize2 } from 'lucide-react';
+import { useTheme } from '@/shared/context/ThemeContext';
 import type { CodeEditorSettingsState, ProjectSortOrder } from '@/shared/types';
 import { LanguageSelector } from '@/modules/i18n';
 import SettingsCard from '@/modules/settings/SettingsCard';
@@ -59,16 +61,31 @@ export default function AppearanceSettingsTab({
   onCodeEditorFontSizeChange,
 }: AppearanceSettingsTabProps) {
   const { t } = useTranslation('settings');
+  const { isPresenter, isMinimal, setMinimal, isTutorial, setTutorial } = useTheme();
 
   return (
     <div className="space-y-8">
       <SettingsSection title={t('appearanceSettings.darkMode.label')}>
         <SettingsCard>
           <SettingsRow
-            label={t('appearanceSettings.darkMode.label')}
-            description={t('appearanceSettings.darkMode.description')}
+            label="主題"
+            description="蒸氣夕陽、極光、抹茶和紙是新加的三套。投影：仿 PRESENTER（DHC CLI），開會投影用。DHC 自己加的按鈕平常藏起來，按住 Alt 浮出，連按兩下 Alt 固定。"
           >
-            <DarkModeToggle ariaLabel={t('appearanceSettings.darkMode.label')} />
+            <ThemePicker className="w-72" />
+          </SettingsRow>
+          <SettingsRow
+            label="極簡模式"
+            description={isPresenter
+              ? '投影 主題固定是極簡（用它自己的 Alt 方式）。'
+              : 'DHC 加的工具平常收起來：輸入框的小工具在點進輸入框或滑過時出現，頁首分頁、側欄底的用量和右緣把手在滑鼠靠近時出現。每個主題都能用。'}
+          >
+            <DarkModeToggle checked={isMinimal} onToggle={setMinimal} ariaLabel="極簡模式" disabled={isPresenter} icon={Minimize2} />
+          </SettingsRow>
+          <SettingsRow
+            label="教學模式"
+            description="給新手的說明文字平常收起來，開了才顯示。連按兩下 Ctrl 開關，按住 Ctrl 暫時看。"
+          >
+            <DarkModeToggle checked={isTutorial} onToggle={setTutorial} ariaLabel="教學模式" icon={GraduationCap} />
           </SettingsRow>
         </SettingsCard>
       </SettingsSection>

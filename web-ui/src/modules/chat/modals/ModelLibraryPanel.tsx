@@ -169,7 +169,7 @@ export default function ModelLibraryPanel({
               <Plus className="h-4 w-4" />
             </span>
             <div>
-              <p className="text-base font-semibold tracking-tight text-foreground">Model library</p>
+              <p className="text-base font-semibold tracking-tight text-foreground">{t('chat:misc.modelLibrary')}</p>
               <p className="text-xs leading-5 text-muted-foreground">
                 Add model IDs supported by your provider. Built-in models stay locked.
               </p>
@@ -286,7 +286,7 @@ export default function ModelLibraryPanel({
           <section>
             <div className="mb-2 flex items-center justify-between gap-3 px-1">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">Your models</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">{t('chat:misc.yourModels')}</p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">Editable and stored in auth.db</p>
               </div>
               <Badge variant="secondary" className="rounded-full text-[10px]">{customModels.length}</Badge>
@@ -294,7 +294,7 @@ export default function ModelLibraryPanel({
 
             {customModels.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border bg-background/60 px-4 py-7 text-center">
-                <p className="text-sm font-medium text-foreground">No custom models yet</p>
+                <p className="text-sm font-medium text-foreground">{t('chat:misc.noCustomModels')}</p>
                 <p className="mt-1 text-xs text-muted-foreground">Add one with the form and it will appear in every model picker.</p>
               </div>
             ) : (
@@ -362,7 +362,7 @@ export default function ModelLibraryPanel({
             <div className="mb-2 flex items-center justify-between gap-3 px-1">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground">Built-in models</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">Maintained by DHC CLI and read-only</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">Maintained by DHC AI System and read-only</p>
               </div>
               <Badge variant="secondary" className="rounded-full text-[10px]">{predefinedModels.length}</Badge>
             </div>

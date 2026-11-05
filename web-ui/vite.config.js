@@ -9,6 +9,17 @@ import { getConnectableHost, normalizeLoopbackHost } from './shared/networkHosts
 // injecting it keeps the frontend free of imports that reach outside src/.
 const pkg = createRequire(import.meta.url)('./package.json')
 
+// DHC CLI 10/14: Excalidraw's zh-TW locale calls its shape Library 「資料庫」, which reads as a database here.
+// Rename it 「素材庫」 everywhere except 「後端資料庫」 (the collab save errors really mean a backend database).
+// The locale file stores the text \u-escaped, so match the escapes (資料庫 = 8CC7 6599 5EAB, 後端 = 5F8C 7AEF).
+const excalidrawLibraryName = {
+  name: 'excalidraw-library-name',
+  transform(code, id) {
+    if (!/@excalidraw[\\/]excalidraw[\\/].*zh-TW[^\\/]*\.js$/.test(id)) return null
+    return code.replace(/(\\u5F8C\\u7AEF)?\\u8CC7\\u6599\\u5EAB/g, (match, backend) => backend ? match : '\\u7D20\\u6750\\u5EAB')
+  },
+}
+
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
   const env = loadEnv(mode, process.cwd(), '')
@@ -25,7 +36,7 @@ export default defineConfig(({ mode }) => {
   const serverPort = env.SERVER_PORT || env.PORT || 3001
 
   return {
-    plugins: [react()],
+    plugins: [react(), excalidrawLibraryName],
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version)
     },

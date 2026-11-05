@@ -156,6 +156,10 @@ export function useQuickSettingsDrag({ isMobile }: UseQuickSettingsDragProps) {
 
   const startDrag = useCallback((event: StartDragEvent) => {
     event.stopPropagation();
+    // 手機不做拖曳（避免滑動誤觸），只留點擊開關
+    if (isMobile) {
+      return;
+    }
 
     const clientY = getClientY(event);
     if (clientY === null) {
@@ -167,7 +171,7 @@ export function useQuickSettingsDrag({ isMobile }: UseQuickSettingsDragProps) {
     didDragRef.current = false;
     setIsDragging(false);
     setIsPointerDown(true);
-  }, [handlePosition]);
+  }, [handlePosition, isMobile]);
 
   // Persist only a position the user dragged to, so a later default change still reaches untouched browsers.
   useEffect(() => {

@@ -66,7 +66,7 @@ export type AuthenticatedWebSocketRequest = IncomingMessage & {
  * Use this as the source of truth whenever a function or payload needs to identify
  * a specific LLM integration.
  */
-export type LLMProvider = 'claude' | 'codex' | 'cursor' | 'opencode';
+export type LLMProvider = 'claude' | 'codex' | 'cursor' | 'opencode' | 'agy';
 
 /**
  * One selectable model row in a provider model catalog.
@@ -295,6 +295,8 @@ export type NormalizedMessage = {
   isLocalCommand?: boolean;
   isLocalCommandStdout?: boolean;
   isCompactSummary?: boolean;
+  /** DHC CLI: a user message that joined a turn already running instead of starting one. */
+  midTurn?: boolean;
   images?: unknown;
   /** Non-image files attached to a user turn after provider history normalization. */
   files?: unknown;
@@ -1281,10 +1283,14 @@ export type VoiceServiceResult<TValue> =
  * contract with handwritten fetch fakes and never patch global state.
  */
 export type VoiceService = {
-  getHealth(): { configured: boolean };
+  getHealth(): { configured: boolean; callStt: boolean };
   transcribe(input: {
     audio: VoiceAudioUpload;
     overrides: VoiceRequestOverrides;
+    /** DHC CLI 語音通話: 'call' uses the faster call transcriber when one is configured. */
+    profile?: 'call';
+    /** Clip length the browser measured; long call clips get whisper's full audio window. */
+    durationMs?: number;
   }): Promise<VoiceServiceResult<{ text: string }>>;
   synthesizeSpeech(input: {
     text: string;

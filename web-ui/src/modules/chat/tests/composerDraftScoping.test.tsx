@@ -160,3 +160,38 @@ test('clearing the composer clears that session\'s stored draft', async () => {
 
   assert.equal(readDraftText('session-a'), '');
 });
+
+const SENT_MESSAGE = { type: 'user', content: 'old text', transcriptAnchorId: 'anchor-1' } as never;
+
+test('the edit target survives a reload together with the draft, and does not leak to another session', async () => {
+  const first = renderComposer({ id: 'session-a' });
+  await act(async () => {
+    first.result.current.beginEditMessage(SENT_MESSAGE);
+  });
+  assert.equal(first.result.current.editingAnchorId, 'anchor-1');
+  first.unmount();
+
+  const reloaded = renderComposer({ id: 'session-a' });
+  await act(async () => {});
+  assert.equal(reloaded.result.current.editingAnchorId, 'anchor-1');
+  assert.equal(reloaded.result.current.input, 'old text');
+
+  await act(async () => {
+    reloaded.rerender({ session: { id: 'session-b' } });
+  });
+  assert.equal(reloaded.result.current.editingAnchorId, null);
+});
+
+test('Esc in the box cancels an edit and clears the stored target', async () => {
+  const view = renderComposer({ id: 'session-a' });
+  await act(async () => {
+    view.result.current.beginEditMessage(SENT_MESSAGE);
+  });
+  const preventDefault = () => undefined;
+  await act(async () => {
+    view.result.current.handleKeyDown({ key: 'Escape', preventDefault, nativeEvent: {} } as never);
+  });
+  assert.equal(view.result.current.editingAnchorId, null);
+  assert.equal(view.result.current.input, '');
+  assert.equal(localStorage.getItem('dhc.editAnchor.session-a'), null);
+});

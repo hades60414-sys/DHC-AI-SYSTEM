@@ -5,6 +5,7 @@ import { beforeEach, test } from 'vitest';
 import {
   readStoredUiPreferences,
   uiPreferencesReducer,
+  withPersistFlags,
 } from '@/shared/uiPreferences';
 import type { UiPreferences } from '@/shared/uiPreferences';
 import { writeUserPreference, resetUserPreferences } from '@/shared/userSettings';
@@ -36,12 +37,22 @@ test('a fresh install gets the documented defaults', () => {
     showThinking: true,
     sendByCtrlEnter: false,
     sidebarVisible: true,
-    voiceEnabled: false,
+    voiceEnabled: true,
   });
 });
 
+test('舊存檔的 voiceEnabled:false 沒有旗標：當成還沒表態，語音開', () => {
+  storeUiPreferences({ showThinking: true, voiceEnabled: false });
+  assert.equal(readStoredUiPreferences().voiceEnabled, true);
+});
+
+test('帶旗標的存檔：使用者明確關掉的語音維持關', () => {
+  storeUiPreferences({ ...withPersistFlags(readStoredUiPreferences()), voiceEnabled: false });
+  assert.equal(readStoredUiPreferences().voiceEnabled, false);
+});
+
 test('the stored blob is read back', () => {
-  storeUiPreferences({ showThinking: false, voiceEnabled: true });
+  storeUiPreferences({ ...withPersistFlags(baseline()), showThinking: false, voiceEnabled: true });
 
   const preferences = readStoredUiPreferences();
   assert.equal(preferences.showThinking, false);

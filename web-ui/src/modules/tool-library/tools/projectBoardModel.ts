@@ -172,6 +172,16 @@ export function boardBrief(board: ProjectBoardData): string {
   return lines.join('\n');
 }
 
+/** 10/25 R4 (稽核 P1-1): the board as plain text for the chat, column by column. */
+export function boardSummary(board: ProjectBoardData): string {
+  const lines: string[] = [];
+  for (const column of COLUMNS) {
+    const inColumn = board.items.filter((item) => item.column === column.id);
+    if (inColumn.length > 0) lines.push(`【${column.label}】`, ...inColumn.map((item) => itemLine(item, board.items)), '');
+  }
+  return lines.join('\n').trim() || '（板上還沒有工作）';
+}
+
 // ---- gantt date math: dates are whole days counted from the Unix epoch, in UTC so daylight saving cannot shift them ----
 const DAY_MS = 86_400_000;
 export const dayNumber = (date: string) => Math.round(Date.parse(`${date}T00:00:00Z`) / DAY_MS);

@@ -19,11 +19,12 @@ import { usePermission } from '@/modules/chat/context/PermissionContext';
 import ProviderSelectionEmptyState from '@/modules/chat/transcript/ProviderSelectionEmptyState';
 import ToolGroupContainer from '@/modules/chat/transcript/ToolGroupContainer';
 import LoadAllMessagesOverlay from '@/modules/chat/transcript/LoadAllMessagesOverlay';
-import ChatExportMenu from '@/modules/chat/transcript/ChatExportMenu';
 import ConversationJumpRail from '@/modules/chat/transcript/ConversationJumpRail';
 import type { JumpPrompt } from '@/modules/chat/transcript/ConversationJumpRail';
 import { useCoLog, useCoPeople, useCoSession, type CoLogEntry } from '@/shared/coSessions';
 import CoWorkLogRow from '@/modules/chat/transcript/CoWorkLogRow';
+import { SessionNotePlacement, SessionNotesLayer } from '@/modules/chat-room';
+import { useChatPanel } from '@/shared/chatRoom';
 
 /**
  * How many of the newest rows mount with real content on the first commit,
@@ -148,6 +149,10 @@ function ChatMessagesPane({
   const coSession = useCoSession(selectedSession?.id ?? currentSessionId);
   // DHC CLI Co-Work log: who shared with whom (and the note), who left — placed by time between the messages.
   const coLog = useCoLog(selectedSession?.id ?? currentSessionId);
+  // DHC CLI 10/16 便利貼: notes on this session, drawn over the transcript; the header supplies who can see it.
+  const noteSessionId = selectedSession?.id ?? currentSessionId;
+  const chatContext = useChatPanel().context;
+  const noteContext = chatContext?.kind === 'session' && chatContext.id === noteSessionId ? chatContext : null;
   const coPeople = useCoPeople();
   const groupedVisibleMessages = useMemo(
     () => groupConsecutiveTools(visibleMessages, Boolean(showThinking)),
@@ -238,20 +243,7 @@ function ChatMessagesPane({
         hasActivityIndicator ? 'pb-12 sm:pb-14' : 'pb-3 sm:pb-4'
       }`}
     >
-      {chatMessages.length > 0 && (
-        <div className="pointer-events-none sticky right-4 top-3 z-10 mb-2 flex justify-end sm:px-4">
-          <div className="pointer-events-auto">
-            <ChatExportMenu
-              messages={chatMessages}
-              sessionTitle={selectedSession?.summary || selectedSession?.title}
-              provider={provider}
-              selectedProject={selectedProject}
-              createDiff={createDiff}
-              onLoadFullTranscript={onLoadFullTranscript}
-            />
-          </div>
-        </div>
-      )}
+      <SessionNotesLayer sessionId={noteSessionId} scrollContainerRef={scrollContainerRef} context={noteContext} />
       <div className="mx-auto w-full max-w-[54.25rem] space-y-2 px-4 sm:space-y-3">
       {(isLoadingSessionMessages || isProcessing) && chatMessages.length === 0 ? (
         <div className="mt-8 text-center text-gray-500 dark:text-gray-400">
@@ -277,6 +269,7 @@ function ChatMessagesPane({
           onShowAllTasks={onShowAllTasks}
           setInput={setInput}
           projectId={selectedProject?.projectId}
+          projectPath={selectedProject?.fullPath}
         />
       ) : (
         <>
@@ -388,11 +381,17 @@ function ChatMessagesPane({
                 if (isPlanToolName(row.toolName)) pendingPlanIndex = i;
               });
             }
+            // Only short one-line progress notes fold. A conclusion is not always the turn's last text:
+            // a background-task notification after it gets its own short reply, which used to bury it.
+            const isProgressNote = (row: ChatMessage): boolean => {
+              const text = typeof row.content === 'string' ? row.content.trim() : '';
+              return text.length <= 240 && !text.includes('\n');
+            };
             const isFoldable = (row: (typeof groupedVisibleMessages)[number], i: number): boolean => {
               if (i === pendingPlanIndex) return false;
               if (isToolGroupItem(row)) return true;
               if (row.isToolUse || row.isThinking) return true;
-              return isTextReply(row) && !turnEndIndexes.has(i) && !row.isCompactSummary;
+              return isTextReply(row) && !turnEndIndexes.has(i) && !row.isCompactSummary && isProgressNote(row);
             };
             const foldedByTurn = new Map<number, { tools: number; notes: number }>();
             if (quiet) {
@@ -533,6 +532,7 @@ function ChatMessagesPane({
       )}
       </div>
     </div>
+    <SessionNotePlacement sessionId={noteSessionId} title={noteContext?.title ?? ''} scrollContainerRef={scrollContainerRef} />
     <ConversationJumpRail
       prompts={jumpPrompts}
       scrollContainerRef={scrollContainerRef}

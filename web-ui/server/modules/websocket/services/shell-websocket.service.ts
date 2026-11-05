@@ -210,6 +210,11 @@ function buildShellCommand(
     return 'codex';
   }
 
+  if (provider === 'agy') {
+    const agyPath = process.env.AGY_PATH || 'agy';
+    return resumeSessionId ? `& "${agyPath}" --conversation "${resumeSessionId}"` : `& "${agyPath}"`;
+  }
+
   if (provider === 'opencode') {
     if (resumeSessionId) {
       return `opencode --session "${resumeSessionId}"`;
@@ -543,6 +548,8 @@ export function handleShellConnection(
                 ? 'Codex'
                 : provider === 'opencode'
                     ? 'OpenCode'
+                  : provider === 'agy'
+                    ? 'Google agy'
                   : 'Claude';
           welcomeMsg = hasSession && resumeSessionId
             ? `\x1b[36mResuming ${providerName} session ${resumeSessionId} in: ${projectPath}\x1b[0m\r\n`

@@ -1,17 +1,21 @@
 import {
   Brain,
   Eye,
+  GraduationCap,
   Languages,
   Mic,
+  Minimize2,
   Moon,
   Sun,
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { DarkModeToggle } from '@/shared/ui';
+import { DarkModeToggle, ThemePicker } from '@/shared/ui';
+import { useTheme } from '@/shared/context/ThemeContext';
 import { LanguageSelector } from '@/modules/i18n';
 import { SETTING_ROW_CLASS } from '@/shared/constants';
+import { cn } from '@/shared/utils';
 import type { PreferenceToggleKey, QuickSettingsPreferences } from '@/shared/types';
 import QuickSettingsSection from '@/modules/quick-settings-panel/QuickSettingsSection';
 import QuickSettingsToggleRow from '@/modules/quick-settings-panel/QuickSettingsToggleRow';
@@ -62,6 +66,7 @@ export default function QuickSettingsContent({
   onPreferenceChange,
 }: QuickSettingsContentProps) {
   const { t } = useTranslation('settings');
+  const { isPresenter, isMinimal, setMinimal, isTutorial, setTutorial } = useTheme();
   const inputSettingToggles = preferences.voiceEnabled
     ? INPUT_SETTING_TOGGLES
     : INPUT_SETTING_TOGGLES.filter(({ key }) => key !== 'voiceEnabled');
@@ -81,16 +86,30 @@ export default function QuickSettingsContent({
   return (
     <div className="flex-1 space-y-6 overflow-y-auto overflow-x-hidden bg-background p-4">
       <QuickSettingsSection title={t('quickSettings.sections.appearance')}>
-        <div className={SETTING_ROW_CLASS}>
+        <div className={cn(SETTING_ROW_CLASS, 'flex-col items-stretch gap-2')}>
           <span className="flex items-center gap-2 text-sm text-foreground">
             {isDarkMode ? (
               <Moon className="h-4 w-4 text-muted-foreground" />
             ) : (
               <Sun className="h-4 w-4 text-muted-foreground" />
             )}
-            {t('quickSettings.darkMode')}
+            主題
           </span>
-          <DarkModeToggle />
+          <ThemePicker />
+        </div>
+        <div className={cn(SETTING_ROW_CLASS, 'justify-between')}>
+          <span className="flex items-center gap-2 text-sm text-foreground">
+            <Minimize2 className="h-4 w-4 text-muted-foreground" />
+            {isPresenter ? '極簡模式（投影 固定開）' : '極簡模式'}
+          </span>
+          <DarkModeToggle checked={isMinimal} onToggle={setMinimal} ariaLabel="極簡模式" disabled={isPresenter} icon={Minimize2} />
+        </div>
+        <div className={cn(SETTING_ROW_CLASS, 'justify-between')}>
+          <span className="flex items-center gap-2 text-sm text-foreground">
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            教學模式
+          </span>
+          <DarkModeToggle checked={isTutorial} onToggle={setTutorial} ariaLabel="教學模式" icon={GraduationCap} />
         </div>
         <LanguageSelector compact />
       </QuickSettingsSection>

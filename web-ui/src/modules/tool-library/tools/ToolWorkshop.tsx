@@ -9,7 +9,7 @@ import {
 } from '@/modules/tool-library/tools/workshopModel';
 import type { WorkshopData, WorkshopTool } from '@/modules/tool-library/tools/workshopModel';
 import { createToolSaver, loadToolData } from '@/shared/customTools';
-import { MAX_SHARED_HTML, removeSharedTool, shareTool, startSharedToolsSync, useSharedTools } from '@/shared/sharedTools';
+import { MAX_SHARED_HTML, findListing, removeSharedTool, shareTool, startSharedToolsSync, useSharedTools } from '@/shared/sharedTools';
 import { cn } from '@/shared/utils';
 
 const TOOL_ID = 'tool-workshop';
@@ -32,7 +32,7 @@ function download(name: string, html: string) {
   URL.revokeObjectURL(url);
 }
 
-export default function ToolWorkshop({ profileId, profileName, isMobile, onClose, onStartWork }: ToolProps) {
+export default function ToolWorkshop({ profileId, profileName, projectId, isMobile, onClose, onStartWork }: ToolProps) {
   const [data, setData] = useState<WorkshopData | null>(null);
   const [failed, setFailed] = useState(false);
   const [tab, setTab] = useState<'mine' | 'shared'>('mine');
@@ -135,20 +135,29 @@ export default function ToolWorkshop({ profileId, profileName, isMobile, onClose
   };
 
   const remove = () => {
-    if (!active || !window.confirm(`刪除「${active.name}」？（已分享到大家的工具的副本不會刪）`)) return;
+    if (!active || !window.confirm(`刪除「${active.name}」？（已上架到工具庫的卡片不會刪）`)) return;
     update((current) => {
       const tools = current.tools.filter((tool) => tool.id !== active.id);
       return { tools, activeId: tools[0]?.id ?? null };
     });
   };
 
-  const share = () => {
+  // 10/22 上架: the tool becomes a card in 工具庫 that everyone can open or put in 自選; publishing again updates that card.
+  const listing = active ? findListing(shared, active.id, profileName) : null;
+  const publish = () => {
     if (!active?.html) return;
     if (new Blob([active.html]).size > MAX_SHARED_HTML) {
-      window.alert('這個工具超過 200KB，太大無法分享。請請 AI 精簡後再試。');
+      window.alert('這個工具超過 200KB，太大無法上架。請請 AI 精簡後再試。');
       return;
     }
-    if (window.confirm(`把「${active.name}」的目前版本分享給所有人？（署名：${profileName}）`)) shareTool({ name: active.name, html: active.html, author: profileName });
+    const summary = window.prompt(
+      listing ? `更新工具庫裡的「${listing.name}」成目前版本。卡片上的一句說明：` : `把「${active.name}」上架到工具庫，所有人都能打開、加入自選（署名：${profileName}）。卡片上的一句說明：`,
+      listing?.summary ?? '',
+    );
+    if (summary === null) return;
+    if (shareTool({ name: active.name, html: active.html, author: profileName, sourceId: active.id, summary })) {
+      window.alert(listing ? '已更新工具庫裡的卡片。' : '已上架。到工具庫「同事上架」可以看到，也能加入自選。');
+    }
   };
 
   const sharedActive = shared.find((item) => item.id === sharedPick) ?? null;
@@ -156,7 +165,7 @@ export default function ToolWorkshop({ profileId, profileName, isMobile, onClose
   const headerExtra = (
     <>
       <div className="flex shrink-0 overflow-hidden rounded-md border border-border text-xs">
-        {([['mine', '我的工具'], ['shared', '大家的工具']] as const).map(([id, label]) => (
+        {([['mine', '我的工具'], ['shared', '已上架']] as const).map(([id, label]) => (
           <button key={id} type="button" onClick={() => setTab(id)} className={cn('px-2 py-1', tab === id ? 'bg-primary text-primary-foreground' : 'bg-background text-foreground hover:bg-muted')}>{label}</button>
         ))}
       </div>
@@ -189,7 +198,7 @@ export default function ToolWorkshop({ profileId, profileName, isMobile, onClose
               <button type="button" onClick={rename} className={buttonClass}><Pencil className="h-3.5 w-3.5" />改名</button>
               <button type="button" onClick={undo} disabled={undoCount === 0} className={buttonClass}><Undo2 className="h-3.5 w-3.5" />復原</button>
               <button type="button" onClick={() => download(active.name, active.html)} disabled={!active.html} className={buttonClass}><Download className="h-3.5 w-3.5" />下載</button>
-              <button type="button" onClick={share} disabled={!active.html} className={buttonClass}><Share2 className="h-3.5 w-3.5" />分享到大家的工具</button>
+              <button type="button" onClick={publish} disabled={!active.html} className={buttonClass}><Share2 className="h-3.5 w-3.5" />{listing ? '更新上架' : '上架到工具庫'}</button>
               <button type="button" onClick={remove} className={buttonClass}><Trash2 className="h-3.5 w-3.5" />刪除</button>
             </>
           )}
@@ -212,12 +221,14 @@ export default function ToolWorkshop({ profileId, profileName, isMobile, onClose
       importer={{ accept: '.html,.htm', hint: '匯入 .html 檔，每個檔變成「我的工具」裡的一個新工具（單檔、200KB 內）', onFiles: importFiles }}
       assist={tab === 'mine' && active ? {
         tool: TOOL_ID,
+        projectId,
         getContext: () => ({ name: active.name, html: active.html, template: active.template }),
         onResult: applyResult,
         chat: active.chat,
         onChatChange: (chat) => patchActive({ chat }),
         intro: '描述你想要的小工具，例如「算股票手續費和證交稅的計算機」。做好後可以在左邊直接試用，再叫我修改。',
-        placeholder: '想做什麼工具？（Enter 送出）',
+        placeholder: '想做什麼工具？',
+        busyText: 'AI 正在做網頁（通常 1–2 分鐘，要先查記憶再寫整份網頁）',
       } : undefined}
       startWork={tab === 'mine' ? {
         hint: '把這個小工具交給 AI，做成正式的頁面或功能。',
@@ -248,7 +259,7 @@ export default function ToolWorkshop({ profileId, profileName, isMobile, onClose
       {data && tab === 'shared' && (
         <div className={cn('flex h-full', isMobile && 'flex-col')}>
           <div className={cn('shrink-0 space-y-1 overflow-y-auto border-border p-2', isMobile ? 'max-h-48 border-b' : 'w-72 border-r')}>
-            {shared.length === 0 && <p className="p-2 text-xs text-muted-foreground">還沒有人分享。在「我的工具」按「分享到大家的工具」。</p>}
+            {shared.length === 0 && <p className="p-2 text-xs text-muted-foreground">還沒有人上架。在「我的工具」按「上架到工具庫」。</p>}
             {shared.map((item) => (
               <div key={item.id} className={cn('rounded-md border p-2', sharedPick === item.id ? 'border-primary bg-muted' : 'border-border')}>
                 <button type="button" onClick={() => setSharedPick(item.id)} className="block w-full text-left">
@@ -259,7 +270,7 @@ export default function ToolWorkshop({ profileId, profileName, isMobile, onClose
                   <div className="mt-1.5 flex gap-1.5">
                     <button type="button" onClick={() => addTool(`${item.name}（複製）`, '空白', item.html)} className={buttonClass}><Copy className="h-3.5 w-3.5" />複製一份來改</button>
                     {item.author === profileName && (
-                      <button type="button" onClick={() => { if (window.confirm(`刪除分享的「${item.name}」？`)) { removeSharedTool(item.id); setSharedPick(null); } }} className={buttonClass}><Trash2 className="h-3.5 w-3.5" />刪除</button>
+                      <button type="button" onClick={() => { if (window.confirm(`從工具庫下架「${item.name}」？`)) { removeSharedTool(item.id); setSharedPick(null); } }} className={buttonClass}><Trash2 className="h-3.5 w-3.5" />下架</button>
                     )}
                   </div>
                 )}

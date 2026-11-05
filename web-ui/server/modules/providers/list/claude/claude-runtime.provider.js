@@ -29,6 +29,7 @@ import {
   CLAUDE_ULTRACODE_EFFORT
 } from '@/modules/providers/list/claude/claude-models.provider.js';
 import { resolveClaudeCodeExecutablePath } from '@/shared/claude-cli-path.js';
+import { spawnTrackedCli, sweepCliProcessTree } from './claude-stop-sweep.js';
 import {
   createNotificationEvent,
   notifyBackgroundWorkCompleted,
@@ -37,8 +38,6 @@ import {
   notifyUserIfEnabled
 } from '@/modules/notifications/index.js';
 import { createCompleteMessage, createNormalizedMessage } from '@/shared/utils.js';
-
-import { spawnTrackedCli, sweepCliProcessTree } from './claude-stop-sweep.js';
 
 const activeSessions = new Map();
 const pendingToolApprovals = new Map();
@@ -50,6 +49,58 @@ const abortedSessionIds = new Set();
 // (see addSession). Their run loops must stay silent on wind-down: the map
 // entry, the abort flag, and all client-facing events belong to the new run.
 const supersededInstances = new WeakSet();
+
+// DHC CLI 2026-10-24: one CLI process per provider session. A run is "complete" for the UI as soon as its
+// `result` lands, but the CLI may live on (background subagents hold it for up to BG_WAIT_CEILING_MS), so a
+// second send used to spawn another `--resume` process on the same transcript and the two wrote over each
+// other. The map is in memory and the entry is released in queryClaudeSDK's finally, so a dead process (or a
+// dead server) can never leave a stale lock behind.
+const PROCESS_STOP_WAIT_MS = 20 * 1000;
+const PROCESS_KILL_WAIT_MS = 5 * 1000;
+const processLocks = new Map();
+
+function waitFor(promise, ms) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(false), ms);
+    timer.unref?.();
+    promise.then(() => { clearTimeout(timer); resolve(true); });
+  });
+}
+
+/**
+ * Registers the caller as the only live CLI process for `key` (synchronously, so concurrent starts queue up
+ * behind each other), then waits until the previous holder has exited. A previous holder that has not exited
+ * after PROCESS_STOP_WAIT_MS is closed (process killed); one that still lingers is logged and passed.
+ * @returns {Promise<{setInstance: Function, release: Function, previous: boolean}>}
+ */
+async function acquireProcessLock(key, { stopWaitMs = PROCESS_STOP_WAIT_MS, killWaitMs = PROCESS_KILL_WAIT_MS, stopPrevious = () => {}, log = console.warn } = {}) {
+  const prev = processLocks.get(key);
+  let resolveDone;
+  const mine = { instance: null, done: new Promise((resolve) => { resolveDone = resolve; }) };
+  processLocks.set(key, mine);
+  if (prev) {
+    log(`[Claude SDK] session ${key} still has a live CLI process; waiting for it to exit before starting another`);
+    try { stopPrevious(prev); } catch {}
+    if (!(await waitFor(prev.done, stopWaitMs))) {
+      try { prev.instance?.close?.(); } catch {}
+      if (!(await waitFor(prev.done, killWaitMs))) {
+        log(`[Claude SDK] session ${key}: previous CLI process did not exit after close; starting anyway`);
+      } else {
+        log(`[Claude SDK] session ${key}: previous CLI process closed after ${stopWaitMs} ms`);
+      }
+    }
+  }
+  return {
+    previous: Boolean(prev),
+    setInstance: (instance) => { mine.instance = instance; },
+    release: () => {
+      resolveDone();
+      if (processLocks.get(key) === mine) {
+        processLocks.delete(key);
+      }
+    },
+  };
+}
 
 const TOOL_APPROVAL_TIMEOUT_MS = parseInt(process.env.CLAUDE_TOOL_APPROVAL_TIMEOUT_MS, 10) || 55000;
 
@@ -73,6 +124,11 @@ const TOOL_APPROVAL_TIMEOUT_MS = parseInt(process.env.CLAUDE_TOOL_APPROVAL_TIMEO
 const BG_WAIT_CEILING_MS = 30 * 60 * 1000;
 
 const TOOLS_REQUIRING_INTERACTION = new Set(['AskUserQuestion', 'ExitPlanMode']);
+
+// DHC CLI: after a turn that took an injected message ends, how long to wait for the follow-up turn
+// the CLI starts when the message arrived after the turn's last step (it opens with system/init within
+// a fraction of a second). The client keeps seeing the turn as running until this settles.
+const INJECT_FOLLOW_UP_WAIT_MS = 2500;
 
 // Ultracode is a session-scoped setting rather than an SDK effort level: it pairs xhigh
 // effort with standing dynamic-workflow orchestration, and the CLI only honours it when
@@ -217,6 +273,16 @@ function matchesToolPermission(entry, toolName, input) {
   return false;
 }
 
+// DHC CLI: decides whether a turn may be adopted by a process held open for background work. Returns the
+// setters to apply (permission mode, model) or null when something a running process cannot change differs
+// (the system prompt, e.g. a queued run's appended instructions).
+export function planHeldAdoption(held, next) {
+  if (!held || !next || JSON.stringify(held.systemPrompt) !== JSON.stringify(next.systemPrompt)) {
+    return null;
+  }
+  return { permissionMode: next.permissionMode || 'default', model: next.model };
+}
+
 function mapCliOptionsToSDK(options = {}) {
   const { providerSessionId, cwd, toolsSettings, permissionMode, effort, resumeAnchorId, resumeFromScratch } = options;
 
@@ -318,8 +384,10 @@ function mapCliOptionsToSDK(options = {}) {
  * @param {Object} queryInstance - SDK query instance
  * @param {Object} writer - WebSocket writer for reconnect support
  * @param {Function} releaseInput - Closes the held stdin stream so the CLI can exit
+ * @param {Function} injectInput - DHC CLI: hands a user message to the running turn (see injectClaudeSDKMessage)
+ * @param {Function} adoptTurn - DHC CLI: hands a new send to a process held open for background work (see queryClaudeSDK)
  */
-function addSession(sessionId, queryInstance, writer = null, releaseInput = null) {
+function addSession(sessionId, queryInstance, writer = null, releaseInput = null, injectInput = null, adoptTurn = null) {
   const existing = activeSessions.get(sessionId);
   // A different live instance under the same key means an earlier run was
   // superseded without being stopped (e.g. an abort that raced run setup and
@@ -347,7 +415,9 @@ function addSession(sessionId, queryInstance, writer = null, releaseInput = null
     status: 'active',
     writer,
     // Re-registered mid-run once the provider session id lands; keep the closer.
-    releaseInput: releaseInput || carried?.releaseInput || null
+    releaseInput: releaseInput || carried?.releaseInput || null,
+    injectInput: injectInput || carried?.injectInput || null,
+    adoptTurn: adoptTurn || carried?.adoptTurn || null
   });
 }
 
@@ -668,22 +738,44 @@ async function buildPromptMessages(command, images, files, cwd) {
  * of the run and kills anything still going in the background, so the iterable
  * has to stay pending until we actually want the process gone.
  *
+ * DHC CLI: push() feeds a later message into the same stdin. The CLI takes one that arrives mid-turn
+ * before its next step; one that lands after the turn's last step starts a follow-up turn.
+ *
  * @param {Array<Object>} messages - SDKUserMessage records to send
- * @returns {{ stream: AsyncIterable, release: () => void }} Stream plus its closer
+ * @returns {{ stream: AsyncIterable, release: () => void, push: (message: Object) => boolean }}
  */
 function createHeldPromptStream(messages) {
-  let release;
-  const held = new Promise((resolve) => { release = resolve; });
+  const pending = [...messages];
+  let released = false;
+  let wake = null;
+  const release = () => {
+    released = true;
+    wake?.();
+  };
+  const push = (message) => {
+    if (released) {
+      return false;
+    }
+    pending.push(message);
+    wake?.();
+    return true;
+  };
 
   const stream = (async function* () {
-    for (const message of messages) {
-      yield message;
-    }
     // Keeps stdin open — the CLI stays alive until release() is called.
-    await held;
+    while (true) {
+      while (pending.length > 0) {
+        yield pending.shift();
+      }
+      if (released) {
+        return;
+      }
+      await new Promise((resolve) => { wake = resolve; });
+      wake = null;
+    }
   })();
 
-  return { stream, release };
+  return { stream, release, push };
 }
 
 /**
@@ -776,6 +868,71 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
   // stream exists; the finally block calls it no matter how the run ends.
   let releasePromptStream = () => {};
   let idleReleaseTimer = null;
+  // DHC CLI: mid-turn messages. pushPromptMessage writes into the held stdin; injectedThisTurn makes
+  // the turn's `result` wait for a possible follow-up turn (INJECT_FOLLOW_UP_WAIT_MS) before completing.
+  let pushPromptMessage = () => false;
+  let injectedThisTurn = false;
+  let injectFollowUpTimer = null;
+  const injectInput = async (injectedCommand, injectOptions = {}) => {
+    if (turnCompleteSent) {
+      return false;
+    }
+    const messages = await buildPromptMessages(
+      injectedCommand,
+      injectOptions.images,
+      injectOptions.files,
+      injectOptions.cwd ?? options.cwd,
+    );
+    // The turn may have reported complete while attachments were being read.
+    if (turnCompleteSent) {
+      return false;
+    }
+    injectedThisTurn = true;
+    return messages.every((message) => pushPromptMessage(message));
+  };
+  // DHC CLI 2026-10-30: a new send while this process is only held open for background work becomes this
+  // process's next turn instead of a fresh `--resume` process; replacing the process killed the subagents,
+  // shells and Monitors it was holding. Returns a promise settled when that turn reports complete, or null
+  // when this process cannot take a turn (one is still in flight, or stdin is already closed).
+  let resolveAdoptedTurn = null;
+  // The options the running process was started (or last re-pointed) with; a new turn may only adopt it when
+  // nothing the process cannot change at runtime differs (see planHeldAdoption).
+  let heldSdkOptions = null;
+  const adoptTurn = async (messages, newWriter, newSdkOptions) => {
+    const canTake = () => turnCompleteSent && heldForBackgroundWork && !resolveAdoptedTurn;
+    if (!canTake()) {
+      return null;
+    }
+    const plan = planHeldAdoption(heldSdkOptions, newSdkOptions);
+    if (!plan || !queryInstance) {
+      return null;
+    }
+    // Same settings the turn would have started a fresh process with, applied before its message goes in.
+    try {
+      await queryInstance.setPermissionMode(plan.permissionMode);
+      await queryInstance.setModel(plan.model);
+    } catch (error) {
+      console.warn('[Claude SDK] Unable to apply new turn settings to the held process:', error?.message || error);
+      return null;
+    }
+    if (!canTake() || !messages.every((message) => pushPromptMessage(message))) {
+      return null;
+    }
+    heldSdkOptions = newSdkOptions;
+    ws = newWriter;
+    const entry = sessionKey() ? getSession(sessionKey()) : null;
+    if (entry) {
+      entry.writer = newWriter;
+    }
+    turnCompleteSent = false;
+    injectedThisTurn = true;
+    return { done: new Promise((resolve) => { resolveAdoptedTurn = resolve; }) };
+  };
+  const settleAdoptedTurn = () => {
+    const resolve = resolveAdoptedTurn;
+    resolveAdoptedTurn = null;
+    resolve?.();
+  };
   // The client is told the turn is over as soon as `result` lands, even though
   // the process lingers, so the UI never waits out the idle hold.
   let turnCompleteSent = false;
@@ -794,11 +951,30 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
   const backgroundWorkOwner = {};
   let backgroundWorkKey = null;
 
+  // DHC CLI 2026-10-30: the process still holding this session's background work takes the turn itself.
+  const heldEntry = sessionKey() ? getSession(sessionKey()) : null;
+  if (heldEntry?.adoptTurn) {
+    const adoptMessages = await buildPromptMessages(command, options.images, options.files, options.cwd);
+    const adoptModel = (await context.resolveResumeModel(sessionId, options.model)) || options.model;
+    const adoptSdkOptions = mapCliOptionsToSDK({ ...options, providerSessionId, model: adoptModel, effortModels: await context.getProviderModels().catch(() => CLAUDE_PREDEFINED_MODELS) });
+    const adopted = await heldEntry.adoptTurn(adoptMessages, ws, adoptSdkOptions);
+    if (adopted) {
+      console.log(`[Claude SDK] session ${sessionKey()}: new turn handed to the process holding background work`);
+      await adopted.done;
+      return;
+    }
+  }
+
   // A new turn supersedes any earlier one still holding this session's process
   // open, so held runs cannot stack up across a conversation.
   if (sessionKey()) {
     getSession(sessionKey())?.releaseInput?.();
   }
+
+  // One live CLI process per provider session (see acquireProcessLock). Taken before anything is spawned.
+  const processLock = await acquireProcessLock(providerSessionId || sessionKey() || 'unkeyed:' + Math.random(), {
+    stopPrevious: (prev) => { getSession(sessionKey())?.releaseInput?.(); prev.instance?.interrupt?.()?.catch?.(() => {}); },
+  });
 
   // Arms (or re-arms) the idle countdown that eventually closes stdin.
   const scheduleRelease = () => {
@@ -838,6 +1014,7 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
     if (mcpServers) {
       sdkOptions.mcpServers = mcpServers;
     }
+    heldSdkOptions = sdkOptions;
 
     // Every turn uses streaming input so stdin stays open past the turn's
     // `result`. The message list is reusable, but each query attempt needs its
@@ -955,14 +1132,15 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
     // DHC CLI 2026-10-27: remember the CLI's pid so 停止 can end what it leaves behind (claude-stop-sweep.js).
     const cliProcess = {};
     sdkOptions.spawnClaudeCodeProcess = spawnTrackedCli(cliProcess);
-
     let heldPrompt = createHeldPromptStream(promptMessages);
     releasePromptStream = heldPrompt.release;
+    pushPromptMessage = heldPrompt.push;
     try {
       queryInstance = query({
         prompt: heldPrompt.stream,
         options: sdkOptions
       });
+      processLock.setInstance(queryInstance);
     } catch (hookError) {
       // Older/newer SDK versions may not accept hook shapes yet.
       // Keep notification behavior operational via runtime events even if hook registration fails.
@@ -972,17 +1150,63 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
       heldPrompt.release();
       heldPrompt = createHeldPromptStream(promptMessages);
       releasePromptStream = heldPrompt.release;
+    pushPromptMessage = heldPrompt.push;
       queryInstance = query({
         prompt: heldPrompt.stream,
         options: sdkOptions
       });
+      processLock.setInstance(queryInstance);
     }
-    queryInstance.dhcCliProcess = cliProcess;
 
+    queryInstance.dhcCliProcess = cliProcess;
     // Track the query instance for abort capability
     if (sessionKey()) {
-      addSession(sessionKey(), queryInstance, ws, releasePromptStream);
+      addSession(sessionKey(), queryInstance, ws, releasePromptStream, injectInput, adoptTurn);
     }
+
+    // A turn's `result`: tell the client the turn is over and decide whether to keep the CLI around.
+    const settleTurnResult = (message) => {
+      // The turn is done as far as the client is concerned.
+      const abortPending = sessionKey() ? abortedSessionIds.has(sessionKey()) : false;
+      if (!turnCompleteSent && !abortPending) {
+        turnCompleteSent = true;
+        // DHC CLI: a result that is itself an error (usage limit, API error, max turns) ends the run with exit
+        // code 1 so the night queue can tell it from a finished turn. The chat UI does not read the exit code.
+        ws.send(createCompleteMessage({ provider: 'claude', sessionId: capturedSessionId || sessionId || null, exitCode: message.is_error ? 1 : 0 }));
+        notifyRunStopped({
+          userId: ws?.userId || null,
+          provider: 'claude',
+          sessionId: sessionId || capturedSessionId || null,
+          sessionName: sessionSummary,
+          stopReason: 'completed'
+        });
+        settleAdoptedTurn();
+      } else if (heldForBackgroundWork && !abortPending) {
+        // A result after the turn already reported complete means the work we
+        // held the process open for has finished and pushed a follow-up turn.
+        notifyBackgroundWorkCompleted({
+          userId: ws?.userId || null,
+          provider: 'claude',
+          sessionId: sessionId || capturedSessionId || null,
+          sessionName: sessionSummary
+        });
+      }
+      // DHC CLI 2026-10-30: background subagents count too. They are not tool calls the detector recognises,
+      // but the CLI lists them in background_tasks_changed until they report back.
+      if (backgroundWorkPending || (backgroundWork.snapshot()?.tasks.length ?? 0) > 0) {
+        // Work started during this turn is still running. Hold the process
+        // open so it can finish and report back in a follow-up turn; the
+        // ceiling is only a backstop for work that never reports.
+        backgroundWorkPending = false;
+        heldForBackgroundWork = true;
+        scheduleRelease();
+      } else {
+        // Either nothing was backgrounded, or the background work just
+        // reported in — let the CLI exit now, as it always has.
+        heldForBackgroundWork = false;
+        releasePromptStream();
+      }
+    };
 
     // Process streaming messages
     console.log('Starting async generator loop for session:', capturedSessionId || 'NEW');
@@ -991,7 +1215,7 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
       if (message.session_id && !capturedSessionId) {
 
         capturedSessionId = message.session_id;
-        addSession(sessionKey(), queryInstance, ws, releasePromptStream);
+        addSession(sessionKey(), queryInstance, ws, releasePromptStream, injectInput, adoptTurn);
 
         // Set session ID on writer
         if (ws.setSessionId && typeof ws.setSessionId === 'function') {
@@ -1041,43 +1265,23 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
       }
 
       if (message.type === 'result') {
-        // The turn is done as far as the client is concerned.
-        const abortPending = sessionKey() ? abortedSessionIds.has(sessionKey()) : false;
-        if (!turnCompleteSent && !abortPending) {
-          turnCompleteSent = true;
-          // DHC CLI: a result that is itself an error (usage limit, API error, max turns) ends the run with exit
-          // code 1 so the night queue can tell it from a finished turn. The chat UI does not read the exit code.
-          ws.send(createCompleteMessage({ provider: 'claude', sessionId: capturedSessionId || sessionId || null, exitCode: message.is_error ? 1 : 0 }));
-          notifyRunStopped({
-            userId: ws?.userId || null,
-            provider: 'claude',
-            sessionId: sessionId || capturedSessionId || null,
-            sessionName: sessionSummary,
-            stopReason: 'completed'
-          });
-        } else if (heldForBackgroundWork && !abortPending) {
-          // A result after the turn already reported complete means the work we
-          // held the process open for has finished and pushed a follow-up turn.
-          notifyBackgroundWorkCompleted({
-            userId: ws?.userId || null,
-            provider: 'claude',
-            sessionId: sessionId || capturedSessionId || null,
-            sessionName: sessionSummary
-          });
-        }
-        if (backgroundWorkPending) {
-          // Work started during this turn is still running. Hold the process
-          // open so it can finish and report back in a follow-up turn; the
-          // ceiling is only a backstop for work that never reports.
-          backgroundWorkPending = false;
-          heldForBackgroundWork = true;
-          scheduleRelease();
+        if (injectedThisTurn && !turnCompleteSent) {
+          // DHC CLI: a message injected after this turn's last step starts a follow-up turn; hold the
+          // completion briefly so the client does not see the run end and then resume.
+          injectedThisTurn = false;
+          const resultMessage = message;
+          clearTimeout(injectFollowUpTimer);
+          injectFollowUpTimer = setTimeout(() => {
+            injectFollowUpTimer = null;
+            settleTurnResult(resultMessage);
+          }, INJECT_FOLLOW_UP_WAIT_MS);
         } else {
-          // Either nothing was backgrounded, or the background work just
-          // reported in — let the CLI exit now, as it always has.
-          heldForBackgroundWork = false;
-          releasePromptStream();
+          settleTurnResult(message);
         }
+      } else if (injectFollowUpTimer && message.type === 'system' && message.subtype === 'init') {
+        // DHC CLI: the follow-up turn for an injected message began; its own `result` settles the run.
+        clearTimeout(injectFollowUpTimer);
+        injectFollowUpTimer = null;
       } else if (idleReleaseTimer) {
         // Background activity after the turn — push the countdown back out.
         scheduleRelease();
@@ -1164,15 +1368,36 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
   } finally {
     // Always close stdin — otherwise an aborted or failed run leaves the CLI
     // process (and its MCP servers) alive until the server exits.
+    if (injectFollowUpTimer) {
+      clearTimeout(injectFollowUpTimer);
+      injectFollowUpTimer = null;
+    }
     if (idleReleaseTimer) {
       clearTimeout(idleReleaseTimer);
       idleReleaseTimer = null;
     }
     releasePromptStream();
+    processLock.release();
+    settleAdoptedTurn();
     if (backgroundWorkKey) {
       context.reportBackgroundWork?.(backgroundWorkKey, backgroundWorkOwner, null);
     }
   }
+}
+
+/**
+ * DHC CLI: hands a user message to the session's running turn (desktop-app style mid-turn message).
+ * @param {string} sessionId - Session identifier
+ * @param {string} command - Message text
+ * @param {Object} options - images / files / cwd, already validated by the caller
+ * @returns {Promise<boolean>} False when no turn is running to take it
+ */
+async function injectClaudeSDKMessage(sessionId, command, options = {}) {
+  const session = getSession(sessionId);
+  if (!session || session.status !== 'active' || !session.injectInput) {
+    return false;
+  }
+  return session.injectInput(command, options);
 }
 
 /**
@@ -1209,7 +1434,7 @@ async function abortClaudeSDKSession(sessionId) {
     // Clean up session
     removeSession(sessionId);
 
-    // Subagent shells outlive the interrupted CLI; end the whole tree shortly after.
+    // DHC CLI 2026-10-27: subagent shells outlive the interrupted CLI; end the whole tree shortly after.
     sweepCliProcessTree(cli?.pid, cli?.startedAt);
 
     return true;
@@ -1281,6 +1506,7 @@ function reconnectSessionWriter(sessionId, newRawWs) {
 export const claudeRuntime = {
   run: queryClaudeSDK,
   abort: abortClaudeSDKSession,
+  inject: injectClaudeSDKMessage,
   permissions: {
     resolve: resolveToolApproval,
     listPending: getPendingApprovalsForSession,
@@ -1289,6 +1515,7 @@ export const claudeRuntime = {
 
 // Export public API
 export {
+  acquireProcessLock,
   queryClaudeSDK,
   abortClaudeSDKSession,
   isClaudeSDKSessionActive,

@@ -35,6 +35,8 @@ class FakeWebSocket {
 
   readyState = FakeWebSocket.CONNECTING;
   sent: string[] = [];
+  /** Answer each keepalive the way the server does; off by default so a test opts into a live host. */
+  echoKeepalive = false;
   onopen: (() => void) | null = null;
   onmessage: ((event: { data: string }) => void) | null = null;
   onclose: ((event?: { code: number }) => void) | null = null;
@@ -46,6 +48,9 @@ class FakeWebSocket {
 
   send(data: string) {
     this.sent.push(data);
+    if (this.echoKeepalive && JSON.parse(data).type === 'chat.ping') {
+      this.onmessage?.({ data: JSON.stringify({ kind: 'protocol_error', code: 'UNKNOWN_MESSAGE_TYPE', error: 'Unknown message type "chat.ping".', sessionId: null }) });
+    }
   }
 
   close() {
@@ -92,6 +97,7 @@ afterEach(() => {
 test('an open socket sends a keepalive frame on open and every 25s, and stops once closed', () => {
   renderProvider();
   const socket = latestSocket();
+  socket.echoKeepalive = true;
   act(() => {
     socket.acceptConnection();
   });
@@ -146,6 +152,7 @@ test("the old server's UNKNOWN_MESSAGE_TYPE reply to the keepalive is swallowed"
 test('the reconnect upgrade URL reports the previous close code and lifetime', () => {
   renderProvider();
   const first = latestSocket();
+  first.echoKeepalive = true;
   assert.equal(first.url.includes('rc='), false, 'the first connection has nothing to report');
   act(() => {
     first.acceptConnection();
@@ -162,4 +169,51 @@ test('the reconnect upgrade URL reports the previous close code and lifetime', (
   const second = latestSocket();
   assert.notEqual(second, first, 'a reconnect should follow the drop');
   assert.match(second.url, /[?&]rc=1006&life=200(&|$)/);
+});
+
+test('a socket that stops answering is replaced at once and the sidebar is told to re-sync', () => {
+  const { events } = renderProvider();
+  const first = latestSocket();
+  first.echoKeepalive = true;
+  act(() => {
+    first.acceptConnection();
+  });
+  act(() => {
+    vi.advanceTimersByTime(60_000);
+  });
+  assert.equal(latestSocket(), first, 'an answering socket is kept');
+
+  first.echoKeepalive = false;
+  act(() => {
+    vi.advanceTimersByTime(25_000 + 8_000);
+  });
+  const second = latestSocket();
+  assert.notEqual(second, first, 'an unanswered keepalive means the leg is dead');
+  assert.equal(first.readyState, FakeWebSocket.CLOSED);
+  assert.match(second.url, /[?&]rc=4001&life=83(&|$)/);
+  act(() => {
+    second.acceptConnection();
+  });
+  assert.deepEqual(events.map((event) => event.kind), ['websocket_reconnected']);
+});
+
+test('returning to the tab checks the socket right away instead of waiting for the next keepalive', () => {
+  renderProvider();
+  const first = latestSocket();
+  first.echoKeepalive = true;
+  act(() => {
+    first.acceptConnection();
+  });
+  act(() => {
+    vi.advanceTimersByTime(10_000);
+  });
+  first.echoKeepalive = false;
+  act(() => {
+    window.dispatchEvent(new Event('focus'));
+  });
+  assert.equal(pingsOn(first), 2, 'focus sends a probe');
+  act(() => {
+    vi.advanceTimersByTime(8_100);
+  });
+  assert.notEqual(latestSocket(), first, 'replaced within the probe window, long before the next keepalive');
 });

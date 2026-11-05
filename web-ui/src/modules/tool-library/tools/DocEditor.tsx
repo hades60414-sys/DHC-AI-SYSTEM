@@ -12,7 +12,7 @@ import type { ToolProps } from '@/modules/tool-library/catalog';
 import { MAX_DOCS, MAX_DOC_CHARS, applyDocResult, buildDocx, docBrief, docContext, emptyDoc, parseDocsData } from '@/modules/tool-library/tools/docModel';
 import type { DocItem, DocsData, Selection } from '@/modules/tool-library/tools/docModel';
 import { applyDocHandoff, docToDeckHandoff } from '@/modules/tool-library/tools/handoffModel';
-import SendMenu from '@/modules/tool-library/tools/SendMenu';
+import SendMenu, { chatItems } from '@/modules/tool-library/tools/SendMenu';
 import { createToolSaver, loadToolData } from '@/shared/customTools';
 import type { AssistMessage } from '@/shared/customTools';
 import { sendToTool, takeHandoff } from '@/shared/toolHandoff';
@@ -212,7 +212,8 @@ export default function DocEditor({ profileId, profileName, isMobile, onClose, o
       theme={dark ? oneDark : undefined}
       height="100%"
       style={{ height: '100%', fontSize: '14px' }}
-      placeholder="在這裡寫 Markdown（# 標題、- 清單、**粗體**、| 表格 |）…"
+      placeholder="在這裡寫"
+      data-tutorial-tip="用 Markdown 寫：# 標題、- 清單、**粗體**、| 表格 |"
       basicSetup={{ lineNumbers: false, foldGutter: false, highlightActiveLine: false }}
     />
   );
@@ -245,7 +246,7 @@ export default function DocEditor({ profileId, profileName, isMobile, onClose, o
           <button type="button" onClick={addDoc} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground" title="新文件" aria-label="新文件"><Plus className="h-4 w-4" /></button>
           <button type="button" onClick={renameDoc} className="shrink-0 rounded px-1.5 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground">改名</button>
           <button type="button" onClick={removeDoc} className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-destructive" title="刪除這份文件" aria-label="刪除這份文件"><Trash2 className="h-4 w-4" /></button>
-          <SendMenu items={[{ label: '做成簡報', disabled: !active.markdown.trim(), onPick: () => { void saver.flush(); sendToTool(docToDeckHandoff(active.title, active.markdown)); } }]} />
+          <SendMenu items={[{ label: '做成簡報', disabled: !active.markdown.trim(), onPick: () => { void saver.flush(); sendToTool(docToDeckHandoff(active.title, active.markdown)); } }, ...chatItems('文件共編', () => ({ title: active.title, body: active.markdown }), !active.markdown.trim(), () => void saver.flush())]} />
           {notice && <span className="shrink-0 text-xs text-destructive">{notice}</span>}
           {handoffNote && <button type="button" onClick={() => setHandoffNote('')} title="按一下關掉" className="max-w-[24rem] shrink-0 truncate text-xs text-muted-foreground hover:text-foreground">{handoffNote}</button>}
         </>
@@ -262,8 +263,8 @@ export default function DocEditor({ profileId, profileName, isMobile, onClose, o
         chat: data.chat,
         onChatChange: setChat,
         intro: '請我幫你寫、補章節、改寫或統一用語。想只改某一段，先在左邊選取那段文字再跟我說。改完可以按「復原 AI 修改」退回。',
-        placeholder: '要寫什麼、改什麼？（Enter 送出）',
-        busyText: 'AI 正在寫（約 15–60 秒）',
+        placeholder: '要寫什麼、改什麼？',
+        busyText: 'AI 正在寫（通常 10–30 秒，文件越長越久）',
       }}
       startWork={{
         hint: '寫到一半可以按「開工」：會開新對話，請 AI 接著把這份文件寫完。',

@@ -79,11 +79,11 @@ beforeEach(() => {
   resetInterruptSends();
 });
 
-test('Enter while a turn runs sends now and asks the server to interrupt that turn', async () => {
+test('Enter while a turn runs hands the message to that turn instead of stopping it', async () => {
   const sent: Sent[] = [];
   const view = renderComposer(sent, { isLoading: true });
   await act(async () => {
-    view.result.current.setInput('先停，改用另一個做法');
+    view.result.current.setInput('順便把 B 換成 ZZZ');
   });
   await act(async () => {
     await view.result.current.handleSubmit(ENTER);
@@ -91,10 +91,28 @@ test('Enter while a turn runs sends now and asks the server to interrupt that tu
 
   const sends = sent.filter((message) => message.type === 'chat.send');
   assert.equal(sends.length, 1, 'the reply goes out immediately instead of being queued');
-  assert.equal(sends[0].content, '先停，改用另一個做法');
-  assert.equal(sends[0].interruptActiveRun, true);
+  assert.equal(sends[0].content, '順便把 B 換成 ZZZ');
+  assert.equal(sends[0].injectIntoActiveRun, true);
+  assert.equal('interruptActiveRun' in sends[0], false);
   assert.equal(view.result.current.queuedDraft, null);
   assert.equal(view.result.current.input, '');
+  assert.equal(consumeInterruptSend(SESSION.id), false, 'nothing is aborted, so no aborted complete is expected');
+});
+
+test('the interrupt action sends now and asks the server to stop the running turn', async () => {
+  const sent: Sent[] = [];
+  const view = renderComposer(sent, { isLoading: true });
+  await act(async () => {
+    view.result.current.setInput('先停，改用另一個做法');
+  });
+  await act(async () => {
+    await view.result.current.interruptMessage(ENTER);
+  });
+
+  const sends = sent.filter((message) => message.type === 'chat.send');
+  assert.equal(sends.length, 1);
+  assert.equal(sends[0].interruptActiveRun, true);
+  assert.equal('injectIntoActiveRun' in sends[0], false);
   assert.equal(consumeInterruptSend(SESSION.id), true, 'the interrupted run\'s aborted complete is expected');
 });
 
@@ -111,6 +129,7 @@ test('Enter while idle is a plain send without the interrupt flag', async () => 
   const sends = sent.filter((message) => message.type === 'chat.send');
   assert.equal(sends.length, 1);
   assert.equal('interruptActiveRun' in sends[0], false);
+  assert.equal('injectIntoActiveRun' in sends[0], false);
   assert.equal(consumeInterruptSend(SESSION.id), false);
 });
 

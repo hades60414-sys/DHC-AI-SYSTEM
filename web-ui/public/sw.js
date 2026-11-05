@@ -1,7 +1,7 @@
 // Service Worker for DHC CLI PWA
 // Cache only manifest (needed for PWA install). HTML and JS are never pre-cached
 // so a rebuild + refresh always picks up the latest assets.
-const CACHE_NAME = 'claude-ui-v2';
+const CACHE_NAME = 'claude-ui-v3';
 const urlsToCache = [
   '/manifest.json'
 ];
@@ -79,7 +79,7 @@ self.addEventListener('push', event => {
   try {
     payload = event.data.json();
   } catch {
-    payload = { title: 'DHC CLI', body: event.data.text() };
+    payload = { title: 'DHC AI System', body: event.data.text() };
   }
 
   const options = {
@@ -92,7 +92,7 @@ self.addEventListener('push', event => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(payload.title || 'DHC CLI', options)
+    self.registration.showNotification(payload.title || 'DHC AI System', options)
   );
 });
 

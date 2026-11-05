@@ -167,7 +167,7 @@ test('normalizeDate accepts slashes, dashes, dots and 民國 years; junk becomes
 test('itemsFromRows maps header columns by name, statuses to columns, and counts empty rows', () => {
   const result = model.itemsFromRows([
     ['項目', '備註', '開始', '到期', '狀態'],
-    ['抓部位', '.41', '2026/10/14', '2026/10/20', '進行中'],
+    ['抓部位', 'DB1', '2026/10/14', '2026/10/20', '進行中'],
     ['', '', '', '', ''],
     ['寫說明', '', '115/10/21', '', '完成'],
     ['', 'x', '', '', ''],
@@ -176,7 +176,7 @@ test('itemsFromRows maps header columns by name, statuses to columns, and counts
   assert.equal(result.items.length, 3);
   assert.equal(result.skipped, 2);
   assert.deepEqual(result.items.map((entry) => entry.column), ['doing', 'done', 'todo']);
-  assert.equal(result.items[0].note, '.41');
+  assert.equal(result.items[0].note, 'DB1');
   assert.equal(result.items[0].end, '2026-10-20');
   assert.equal(result.items[1].start, '2026-10-21');
 });

@@ -20,16 +20,13 @@ export const WORKSHOP_TEMPLATES: Array<{ name: string; hint: string }> = [
 
 /** The iframe sandbox: scripts and forms run, but the page is an opaque origin (no allow-same-origin). */
 export const PREVIEW_SANDBOX = 'allow-scripts allow-forms allow-modals';
-export const PREVIEW_CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:";
+export const PREVIEW_CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; form-action 'none'; base-uri 'none'";
 const CSP_META = `<meta http-equiv="Content-Security-Policy" content="${PREVIEW_CSP}">`;
 
 /** The document for the preview iframe's srcdoc: the page with the network-forbidding CSP first in its head. */
 export function buildSrcdoc(html: string): string {
-  const head = /<head(\s[^>]*)?>/i.exec(html);
-  if (head) return html.slice(0, head.index + head[0].length) + CSP_META + html.slice(head.index + head[0].length);
-  const root = /<html(\s[^>]*)?>/i.exec(html);
-  if (root) return `${html.slice(0, root.index + root[0].length)}<head>${CSP_META}</head>${html.slice(root.index + root[0].length)}`;
-  return `<!doctype html><html><head><meta charset="utf-8">${CSP_META}</head><body>${html}</body></html>`;
+  // The CSP goes first, ahead of anything the page itself says (no regex on the page's own tags to fool); the parser puts it in the implicit head.
+  return `<!doctype html><meta charset="utf-8">${CSP_META}${html.replace(/^\s*<!doctype[^>]*>/i, '')}`;
 }
 
 export const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;

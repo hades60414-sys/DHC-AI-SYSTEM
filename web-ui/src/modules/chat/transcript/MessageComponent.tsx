@@ -18,6 +18,8 @@ import { useIsExportingTranscript } from '@/modules/chat/context/TranscriptRende
 import { MemoryCitations } from '@/modules/chat/transcript/MemoryCitations';
 import { PersonAvatar, UserAvatarButton } from '@/modules/user-avatar';
 import { resolveCoSender, useCoPeople, type CoSession } from '@/shared/coSessions';
+import { stripFreshStartNote } from '@/modules/chat/utils/freshStart';
+
 import { useIsTeamMode } from '@/shared/dhcConfig';
 
 type MessageComponentProps = {
@@ -54,6 +56,9 @@ type MessageComponentProps = {
 
 const COPY_HIDDEN_TOOL_NAMES = new Set(['Bash', 'Edit', 'Write', 'ApplyPatch']);
 
+/** 「Stop hook feedback:」「PreToolUse:Bash hook feedback:」… — what Claude Code sends as the user when a hook blocks. */
+const isHookRelayText = (content: unknown) => /^[A-Za-z]+(?::\S*)? hook feedback:/.test(String(content ?? '').trimStart());
+
 /**
  * Rendered by chat's ChatMessagesPane and ToolGroupContainer to draw one
  * transcript entry — user turn, assistant turn, or a tool call and its result.
@@ -76,7 +81,11 @@ const MessageComponent = memo(({ message, prevMessage, turnStartedAt, isTurnEnd,
     ? resolveCoSender(coSession, coPeople, String(prevMessage.content || ''))
     : null;
   const showCoSender = coSender !== null && (!isGrouped || prevCoSender?.person.name !== coSender.person.name);
-  const userCopyContent = coSender ? coSender.body : String(message.content || '');
+  // DHC CLI 10/29: a hook's feedback is addressed to Claude, not the user, so it is not shown at all.
+  const isHookRelay = message.type === 'user' && isHookRelayText(message.content);
+  // The CLI's placeholder after an interrupt or a background wake-up; it says nothing to the user.
+  const isEmptyReply = message.type === 'assistant' && String(message.content ?? '').trim() === 'No response requested.';
+  const userCopyContent = coSender ? coSender.body : stripFreshStartNote(String(message.content || ''));
   const formattedMessageContent = useMemo(
     () => {
       const content = formatUsageLimitText(String(message.content || ''));
@@ -115,7 +124,7 @@ const MessageComponent = memo(({ message, prevMessage, turnStartedAt, isTurnEnd,
   );
   const shouldHideThinkingMessage = Boolean(message.isThinking && !showThinking);
 
-  if (shouldHideThinkingMessage) {
+  if (shouldHideThinkingMessage || isHookRelay || isEmptyReply) {
     return null;
   }
 
@@ -161,13 +170,13 @@ const MessageComponent = memo(({ message, prevMessage, turnStartedAt, isTurnEnd,
               <div className="text-xs text-muted-foreground" data-co-sender={coSender.person.name}>{coSender.person.name}</div>
             )}
             {userCopyContent.trim().length > 0 || (!message.images?.length && !message.files?.length) ? (
-              <div className="group max-w-full rounded-2xl rounded-br-md border border-border/60 bg-muted/60 px-3 py-2 text-foreground shadow-sm dark:bg-gray-800/60 sm:px-4">
+              <div data-presenter="user-bubble" className="group max-w-full rounded-2xl rounded-br-md border border-border/60 bg-muted/60 px-3 py-2 text-foreground shadow-sm dark:bg-gray-800/60 sm:px-4">
                 <div dir="auto" className="break-words font-serif text-sm">
                   <Markdown
                     breaks
                     className="prose prose-sm max-w-none font-serif dark:prose-invert"
                   >
-                    {coSender ? coSender.body : message.content}
+                    {userCopyContent}
                   </Markdown>
                 </div>
                 <div className="mt-1 flex items-center justify-end gap-1 text-xs text-muted-foreground">
@@ -177,7 +186,7 @@ const MessageComponent = memo(({ message, prevMessage, turnStartedAt, isTurnEnd,
                       onClick={() => onEditMessage(message)}
                       title={t('message.editAndResend')}
                       aria-label={t('message.editAndResend')}
-                      className="rounded p-1 opacity-0 transition-opacity hover:bg-muted focus-visible:opacity-100 group-hover:opacity-100"
+                      className="rounded p-1 opacity-0 transition-opacity hover:bg-muted focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
                     >
                       <PencilIcon className="h-3.5 w-3.5" />
                     </button>
@@ -188,13 +197,18 @@ const MessageComponent = memo(({ message, prevMessage, turnStartedAt, isTurnEnd,
                       onClick={() => onForkFromMessage(message)}
                       title={t('message.forkFromHere')}
                       aria-label={t('message.forkFromHere')}
-                      className="rounded p-1 opacity-0 transition-opacity hover:bg-muted focus-visible:opacity-100 group-hover:opacity-100"
+                      className="rounded p-1 opacity-0 transition-opacity hover:bg-muted focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100"
                     >
                       <GitBranchIcon className="h-3.5 w-3.5" />
                     </button>
                   )}
                   {shouldShowUserCopyControl && (
                     <MessageCopyControl content={userCopyContent} messageType="user" />
+                  )}
+                  {message.midTurn && (
+                    <span title={t('message.midTurn', { defaultValue: 'Sent while the turn was running; Claude read it before its next step' })}>
+                      {t('message.midTurnLabel', { defaultValue: 'Mid-turn' })} ·
+                    </span>
                   )}
                   <span title={fullStamp}>{formattedTime}</span>
                 </div>
@@ -212,7 +226,7 @@ const MessageComponent = memo(({ message, prevMessage, turnStartedAt, isTurnEnd,
               className={`hidden h-8 w-8 flex-shrink-0 text-sm sm:flex ${showCoSender ? '' : 'invisible'}`}
             />
           ) : !isGrouped && (
-            <UserAvatarButton className="hidden h-8 w-8 flex-shrink-0 sm:block" />
+            <UserAvatarButton className="presenter-hide hidden h-8 w-8 flex-shrink-0 sm:block" />
           )}
         </div>
       ) : message.isTaskNotification ? (
@@ -238,11 +252,11 @@ const MessageComponent = memo(({ message, prevMessage, turnStartedAt, isTurnEnd,
                   🔧
                 </div>
               ) : (
-                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full p-0.5 text-sm text-foreground">
+                <div data-presenter="ai-logo" className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full p-0.5 text-sm text-foreground">
                   <LLMProviderLogo provider={provider} className="h-full w-full" />
                 </div>
               )}
-              <div className="text-xs font-medium text-foreground/80">
+              <div data-presenter="ai-name" className="text-xs font-medium text-foreground/80">
                 {message.type === 'error'
                   ? t('messageTypes.error')
                   : message.type === 'tool'
@@ -253,7 +267,9 @@ const MessageComponent = memo(({ message, prevMessage, turnStartedAt, isTurnEnd,
                           ? t('messageTypes.codex')
                           : provider === 'opencode'
                               ? t('messageTypes.opencode', { defaultValue: 'OpenCode' })
-                              : t('messageTypes.claude'))}
+                              : provider === 'agy'
+                                ? t('messageTypes.agy', { defaultValue: 'Google agy' })
+                                : t('messageTypes.claude'))}
               </div>
             </div>
           )}

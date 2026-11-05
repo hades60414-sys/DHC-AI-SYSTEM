@@ -8,6 +8,14 @@ import {
   isAllowedImageMimeType,
   openStoredAttachmentAsset,
 } from '@/modules/assets/services/image-assets.service.js';
+import {
+  CHUNK_SIZE,
+  ChunkedUploadError,
+  cancelChunkedUpload,
+  completeChunkedUpload,
+  startChunkedUpload,
+  writeUploadChunk,
+} from '@/modules/assets/services/chunked-upload.service.js';
 
 const router = express.Router();
 
@@ -94,6 +102,49 @@ router.post('/files', (req, res) => {
   });
 });
 
+// DHC CLI: chunked upload for attachments over 10MB (see chunked-upload.service.ts).
+const sendChunkedError = (res: express.Response, error: unknown) => {
+  if (error instanceof ChunkedUploadError) {
+    return res.status(error.status).json({ error: error.message });
+  }
+  console.error('Chunked upload failed:', error);
+  return res.status(500).json({ error: error instanceof Error ? error.message : 'Upload failed' });
+};
+
+router.post('/uploads', async (req, res) => {
+  try {
+    res.json(await startChunkedUpload(req.body ?? {}));
+  } catch (error) {
+    sendChunkedError(res, error);
+  }
+});
+
+router.put(
+  '/uploads/:id/chunks/:index',
+  express.raw({ type: () => true, limit: CHUNK_SIZE + 1024 }),
+  async (req, res) => {
+    try {
+      const sha256 = req.get('x-chunk-sha256');
+      res.json(await writeUploadChunk(req.params.id, Number(req.params.index), req.body, sha256));
+    } catch (error) {
+      sendChunkedError(res, error);
+    }
+  },
+);
+
+router.post('/uploads/:id/complete', async (req, res) => {
+  try {
+    res.json(await completeChunkedUpload(req.params.id));
+  } catch (error) {
+    sendChunkedError(res, error);
+  }
+});
+
+router.delete('/uploads/:id', async (req, res) => {
+  await cancelChunkedUpload(req.params.id);
+  res.json({ ok: true });
+});
+
 /**
  * Serves one stored image asset by filename. Only files directly inside the
  * global assets folder are reachable; traversal attempts resolve to null.
@@ -114,7 +165,7 @@ router.get('/images/:filename', async (req, res) => {
   // fetches assets as blobs and shows them through <img>, where SVG scripts
   // never execute.
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  if (asset.contentType === 'image/svg+xml') {
+  if (!/^image\/(png|jpeg|gif|webp|bmp|avif)$/.test(asset.contentType)) {
     res.setHeader('Content-Disposition', 'attachment');
   }
   asset.stream.pipe(res);
@@ -141,7 +192,12 @@ router.get('/files/:filename', async (req, res) => {
 
   res.setHeader('Content-Type', asset.contentType);
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Content-Disposition', `attachment; filename="${req.params.filename.replace(/["\r\n]/g, '_')}"`);
+  // RFC 5987: header values must be latin1-safe, so non-ASCII names go in filename*.
+  const asciiName = req.params.filename.replace(/[^\x20-\x7e]|["\\%]/g, '_');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(req.params.filename).replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)}`,
+  );
   asset.stream.pipe(res);
   asset.stream.on('error', (error) => {
     console.error('Error streaming attachment asset:', error);

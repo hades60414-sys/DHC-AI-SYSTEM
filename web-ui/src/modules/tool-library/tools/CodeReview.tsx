@@ -16,10 +16,11 @@ import { Decoration, EditorView, GutterMarker, drawSelection, gutter, keymap, li
 import { GitCompare, Plus, Trash2 } from 'lucide-react';
 
 import ToolFrame from '@/modules/tool-library/ToolFrame';
+import SendMenu, { chatItems } from '@/modules/tool-library/tools/SendMenu';
 import { readTextFile } from '@/modules/tool-library/importers';
 import type { ToolProps } from '@/modules/tool-library/catalog';
 import {
-  LANGUAGES, MAX_REVIEWS, SEVERITY_LABEL, diffStats, emptyReview, findingDecorations, lineDiff, parseFindings, parseReviews, planCodeImport, reviewBrief, severitySummary,
+  LANGUAGES, MAX_REVIEWS, SEVERITY_LABEL, diffStats, emptyReview, findingDecorations, lineDiff, parseFindings, parseReviews, planCodeImport, reviewBrief, reviewSummary, severitySummary,
 } from '@/modules/tool-library/tools/codeReviewModel';
 import type { Finding, ImportedSource, LanguageId, LineDecoration, Review, Severity } from '@/modules/tool-library/tools/codeReviewModel';
 import { sqlLanguage } from '@/modules/tool-library/tools/sqlLanguage';
@@ -391,6 +392,7 @@ export default function CodeReview({ profileId, profileName, isMobile, onClose, 
             {LANGUAGES.map((language) => <option key={language.id} value={language.id}>{language.label}</option>)}
           </select>
           {stats && <span className="shrink-0 text-[11px] text-muted-foreground">{stats.hunks === 0 ? '兩版相同' : `${stats.hunks} 處差異（+${stats.added} −${stats.removed}）`}</span>}
+          {active && <SendMenu items={chatItems('程式差異審閱台', () => ({ title: active.name, body: reviewSummary(active) }), !active.before.trim() && !active.after.trim(), () => void saver.flush())} />}
         </>
       )}
       assist={active ? {
@@ -408,8 +410,8 @@ export default function CodeReview({ profileId, profileName, isMobile, onClose, 
         chat: active.chat,
         onChatChange: (chat: AssistMessage[]) => updateReview(active.id, { chat }),
         intro: '先把舊版貼在左邊、新版貼在右邊，再說「幫我審閱這次修改」，或指定重點，例如「看 JOIN 條件有沒有讓筆數變多」。AI 會把風險列在下方，點一項就跳到那一行。',
-        placeholder: '要審什麼？（Enter 送出）',
-        busyText: 'AI 正在審閱（約 30–120 秒）',
+        placeholder: '要審什麼？',
+        busyText: 'AI 正在審閱（通常 15–40 秒，程式越長越久）',
       } : undefined}
       startWork={{
         hint: chosenFindings.length > 0 ? `已勾選 ${chosenFindings.length} 項問題，開工會連同兩版差異交給對話去改。` : '勾選下方要處理的問題，按「開工」把差異與清單交給對話去改。',

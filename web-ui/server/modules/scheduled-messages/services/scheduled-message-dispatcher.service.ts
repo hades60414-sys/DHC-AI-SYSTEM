@@ -13,7 +13,6 @@ import type { ProviderRuntimeGateway } from '@/modules/websocket/index.js';
 const POLL_INTERVAL_MS = 30_000;
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
-let dispatchInFlight = false;
 let unsubscribeRunCompleted: (() => void) | null = null;
 
 type StoredQueuedMessage = {
@@ -105,6 +104,10 @@ async function sendClaimedMessage(
   row: ScheduledMessageRow,
   runtime: ProviderRuntimeGateway,
 ): Promise<void> {
+  // Cancelled while it waited behind an earlier message in the same session.
+  if (!scheduledMessagesDb.markSent(row.id)) {
+    return;
+  }
   try {
     const result = await runDetachedChatTurn(
       {
@@ -149,11 +152,21 @@ export async function dispatchDueScheduledMessages(
     return 0;
   }
 
-  // Sequentially: a session can only have one run at a time, and two due
-  // messages for the same session must not race each other into it.
+  // Sequentially within a session: it can only have one run at a time, and two
+  // due messages for it must not race each other into it. Sessions run side by
+  // side — a turn is awaited to its end, so one long run must not hold back
+  // every other session's message (2026-11-03: three due at 16:00, one ran).
+  const bySession = new Map<string, ScheduledMessageRow[]>();
   for (const row of due) {
-    await sendClaimedMessage(row, runtime);
+    const rows = bySession.get(row.session_id) ?? [];
+    rows.push(row);
+    bySession.set(row.session_id, rows);
   }
+  await Promise.all([...bySession.values()].map(async (rows) => {
+    for (const row of rows) {
+      await sendClaimedMessage(row, runtime);
+    }
+  }));
 
   return due.length;
 }
@@ -170,22 +183,16 @@ export function initializeScheduledMessageDispatcher(runtime: ProviderRuntimeGat
     return;
   }
 
+  const logFailure = (error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[ScheduledMessages] Dispatch pass failed', { error: message });
+  };
+  // Not awaited: both passes claim synchronously before their first await, so
+  // overlapping passes cannot double-send, and waiting on the runs would keep
+  // the next poll from firing while any scheduled turn is still going.
   const poll = () => {
-    // A pass that overruns the interval must not be started again underneath
-    // itself; the claim is transactional but the runs are not.
-    if (dispatchInFlight) {
-      return;
-    }
-    dispatchInFlight = true;
-    void dispatchDueScheduledMessages(runtime)
-      .then(() => dispatchQueuedMessages(runtime))
-      .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error('[ScheduledMessages] Dispatch pass failed', { error: message });
-      })
-      .finally(() => {
-        dispatchInFlight = false;
-      });
+    void dispatchDueScheduledMessages(runtime).catch(logFailure);
+    void dispatchQueuedMessages(runtime).catch(logFailure);
   };
 
   pollTimer = setInterval(poll, POLL_INTERVAL_MS);
@@ -196,7 +203,9 @@ export function initializeScheduledMessageDispatcher(runtime: ProviderRuntimeGat
   // not up to 30 seconds later. A pass already running picks the freed session up on its own next poll.
   unsubscribeRunCompleted = chatRunRegistry.onRunCompleted(() => poll());
 
-  // Catch up on anything that came due while the server was not running.
+  // Catch up on anything that came due while the server was not running,
+  // including messages that were waiting their turn when it stopped.
+  scheduledMessagesDb.releaseUnstarted();
   poll();
 }
 

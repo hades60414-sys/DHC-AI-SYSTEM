@@ -9,8 +9,8 @@ import {
   parsePaste, parseStep, replaySteps, toCsv, toTable,
 } from '@/modules/tool-library/tools/sheetModel';
 import type { BenchData, SheetData, Step, Table } from '@/modules/tool-library/tools/sheetModel';
-import SendMenu from '@/modules/tool-library/tools/SendMenu';
-import { sheetToDocHandoff, sheetToSlideHandoff } from '@/modules/tool-library/tools/handoffModel';
+import SendMenu, { chatItems } from '@/modules/tool-library/tools/SendMenu';
+import { sheetToDocHandoff, sheetToSlideHandoff, tableToMarkdown } from '@/modules/tool-library/tools/handoffModel';
 import { createToolSaver, loadToolData } from '@/shared/customTools';
 import { sendToTool } from '@/shared/toolHandoff';
 import type { AssistMessage } from '@/shared/customTools';
@@ -104,7 +104,7 @@ function PasteBox({ onGrid }: { onGrid: (text: string) => void }) {
   const [text, setText] = useState('');
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-2 p-6">
-      <p className="text-sm text-foreground">從 Excel 選好範圍複製（Ctrl+C），在下面的框按 Ctrl+V 貼上；CSV 文字也可以。</p>
+      <p data-tutorial className="text-sm text-foreground">從 Excel 選好範圍複製（Ctrl+C），在下面的框按 Ctrl+V 貼上；CSV 文字也可以。</p>
       <textarea
         aria-label="貼上表格"
         value={text}
@@ -117,6 +117,7 @@ function PasteBox({ onGrid }: { onGrid: (text: string) => void }) {
         }}
         rows={10}
         placeholder="在這裡貼上"
+        data-tutorial-tip="Excel 選範圍按 Ctrl+C，在此按 Ctrl+V 貼上；CSV 文字也可"
         className="rounded-md border border-border bg-background p-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
       />
       <button
@@ -388,6 +389,8 @@ export default function SheetBench({ profileId, profileName, isMobile, onClose, 
             items={[
               { label: '表格放進文件', disabled: !hasData, onPick: () => sendTable(sheetToDocHandoff) },
               { label: '做成一頁簡報', disabled: !hasData, onPick: () => sendTable(sheetToSlideHandoff) },
+              // 10/25 R4: the first 40 rows as a table (the summary keeps the first 1500 characters).
+              ...chatItems('試算工作台', () => ({ title: active.name, body: tableToMarkdown(table, 40).markdown }), !hasData, () => void saver.flush()),
             ]}
           />
         </>
@@ -400,8 +403,8 @@ export default function SheetBench({ profileId, profileName, isMobile, onClose, 
         chat: active.chat,
         onChatChange: setChat,
         intro: '先貼上一份表格，再跟我說要怎麼整理，例如「去掉前後空白、把金額轉成數字、算每個客戶的金額合計」。我只會給步驟，由頁面精確計算，每一步都能復原。',
-        placeholder: '要怎麼整理這份表？（Enter 送出）',
-        busyText: 'AI 正在想步驟（約 15–60 秒）',
+        placeholder: '要怎麼整理這份表？',
+        busyText: 'AI 正在想步驟（通常 5–15 秒）',
       }}
       startWork={{
         hint: '整理好了按「開工」：會開新對話，請 AI 把這些步驟寫成可重跑的 Node.js 腳本。',

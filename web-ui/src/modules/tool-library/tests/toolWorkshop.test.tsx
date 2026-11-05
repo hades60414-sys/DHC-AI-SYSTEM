@@ -37,10 +37,15 @@ afterEach(cleanup);
 
 test('srcdoc puts the no-network CSP first in the head, whatever shape the html has', () => {
   assert.ok(PREVIEW_CSP.includes("default-src 'none'"));
+  assert.ok(PREVIEW_CSP.includes("form-action 'none'") && PREVIEW_CSP.includes("base-uri 'none'"));
+  const first = /^<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy"[^>]*default-src 'none'[^>]*>/;
   const withHead = buildSrcdoc('<!doctype html><html><head><title>x</title></head><body></body></html>');
-  assert.match(withHead, /<head><meta http-equiv="Content-Security-Policy"[^>]*default-src 'none'[^>]*><title>/);
-  assert.match(buildSrcdoc('<html><body>a</body></html>'), /<html><head><meta http-equiv="Content-Security-Policy"/);
-  assert.match(buildSrcdoc('<p>bare</p>'), /<head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy".*<body><p>bare<\/p>/);
+  assert.match(withHead, first);
+  assert.match(withHead, /<html><head><title>x<\/title>/);
+  assert.match(buildSrcdoc('<html><body>a</body></html>'), first);
+  assert.match(buildSrcdoc('<p>bare</p>'), /^<!doctype html>.*<p>bare<\/p>$/);
+  // A fake <head> inside a comment can no longer pull the CSP out of first place.
+  assert.match(buildSrcdoc('<!-- <head> --><p>x</p>'), first);
 });
 
 test('the preview iframe is sandboxed without allow-same-origin and uses srcdoc', async () => {

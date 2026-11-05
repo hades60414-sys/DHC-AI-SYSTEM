@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
 } from 'react';
 import type { ReactNode } from 'react';
 
@@ -88,6 +89,9 @@ export function SessionProtectionProvider({ children }: { children: ReactNode })
     isSessionProcessing,
   } = useSessionProtection();
 
+  // DHC CLI 2026-10-22: every poll is one Cloudflare Worker request (100k/day for the whole team). Hidden tabs
+  // do not poll; with nothing running or waiting the poll slows to 15s. `busyRef` is what the last answer said.
+  const busyRef = useRef(true);
   const refreshRunningSessions = useCallback(async () => {
     try {
       const response = await api.runningSessions();
@@ -97,6 +101,9 @@ export function SessionProtectionProvider({ children }: { children: ReactNode })
 
       const payload = (await response.json()) as RunningSessionsApiPayload;
       const sessions = Array.isArray(payload.data?.sessions) ? payload.data.sessions : [];
+      const { background, waiting } = payload.data ?? {};
+      busyRef.current = sessions.length > 0 || (Array.isArray(background) && background.length > 0)
+        || (Array.isArray(waiting) && waiting.length > 0);
       setBackgroundWork(payload.data?.background);
       setWaitingFromServer(payload.data?.waiting);
 
@@ -126,11 +133,24 @@ export function SessionProtectionProvider({ children }: { children: ReactNode })
   }, [refreshRunningSessions]);
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      void refreshRunningSessions();
-    }, 5000);
-
-    return () => window.clearInterval(interval);
+    let timer: number | undefined;
+    const schedule = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void tick(), busyRef.current ? 5000 : 15000);
+    };
+    const tick = async () => {
+      if (document.visibilityState === 'visible') await refreshRunningSessions();
+      schedule();
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void tick();
+    };
+    schedule();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [refreshRunningSessions]);
 
   // DHC CLI: the sidebar's moons. Once a minute; a server without the list route is asked every 10 minutes.

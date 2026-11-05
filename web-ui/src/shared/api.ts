@@ -224,6 +224,9 @@ export const api = {
   deleteSession: (sessionId: string, hardDelete = false) =>
     del(`/api/providers/sessions/${sessionId}${query({ force: hardDelete })}`),
   getArchivedSessions: () => get('/api/providers/sessions/archived'),
+  // Google agy is only allowed in whitelisted projects (it bypasses de-identification).
+  agyWorkspaceAccess: (projectPath: string) =>
+    get(`/api/providers/agy/workspace-access${query({ projectPath })}`),
   // Resolves one session (by app id or provider-native id) to its metadata and
   // owning project — used when a /session/<id> URL isn't in loaded payloads.
   sessionDetails: (sessionId: string) =>
@@ -236,19 +239,20 @@ export const api = {
   restoreSession: (sessionId: string) => post(`/api/providers/sessions/${sessionId}/restore`),
   // Creates an independent session holding this one's conversation up to
   // `upToAnchorId` (all of it when omitted). The source is left untouched.
-  forkSession: (sessionId: string, body: { upToAnchorId?: string; title?: string } = {}) =>
+  forkSession: (sessionId: string, body: { upToAnchorId?: string; title?: string; projectId?: string } = {}) =>
     post(`/api/providers/sessions/${encodeURIComponent(sessionId)}/fork`, body),
   renameSession: (sessionId: string, summary: string) =>
     put(`/api/providers/sessions/${sessionId}`, { summary }),
   // DHC CLI 「快速取名」: a short name for what the session is doing now; saves nothing.
   suggestSessionTitle: (sessionId: string) =>
     post(`/api/providers/sessions/${encodeURIComponent(sessionId)}/suggest-title`, {}),
-  // DHC CLI 10/13 規劃白板: the chat beside the canvas; may return a redrawn board.
-  planBoardAssist: (body: { board: unknown; chat: unknown; message: string }) =>
+  // DHC CLI 10/13 規劃白板: the chat beside the canvas; may return a redrawn board. 10/14: runs in the person's
+  // project with their memory; the conversation the board was opened from and the selected boxes come along.
+  planBoardAssist: (body: { board: unknown; chat: unknown; message: string; projectId?: string | null; sessionId?: string | null; selected?: string[]; linkables?: unknown[]; image?: string }) =>
     post('/api/providers/plan-board/assist', body),
   // DHC CLI 10/14 工具庫: the AI chat beside each tool (專案板、試算工作台…); the tool id picks the instructions.
-  toolAssist: (body: { tool: string; context: unknown; chat: unknown; message: string }) =>
-    post('/api/providers/tool-assist', body),
+  toolAssist: (body: { tool: string; context: unknown; chat: unknown; message: string; projectId?: string | null }, signal?: AbortSignal) =>
+    post('/api/providers/tool-assist', body, { signal }),
 
   // Scheduled messages: send a message to a session at a future time.
   scheduledMessages: {
@@ -401,6 +405,14 @@ export const api = {
       projectPath: string;
       initialMessage?: unknown;
     }) => post('/api/providers/sessions', payload),
+    // DHC CLI 10/24 開對話建議模型: is Sonnet enough for a new chat's first message? Answers 'opus' when off.
+    modelAdvice: (body: { text: string; projectPath: string; hasAttachment: boolean }, signal?: AbortSignal) =>
+      post('/api/providers/model-advice', body, { signal }),
+    // DHC CLI 10/24 長對話交接: is the last reply a natural stopping point; and the handoff itself (about a minute).
+    handoffMoment: (body: { lastUser: string; lastAssistant: string }, signal?: AbortSignal) =>
+      post('/api/providers/handoff-moment', body, { signal }),
+    handoffSession: (sessionId: string, body: { permissionMode?: string; toolsSettings?: unknown; skipPermissions?: boolean }) =>
+      post(`/api/providers/sessions/${encodeURIComponent(sessionId)}/handoff`, body),
     sessionMessages: (
       sessionId: string,
       pagination: { limit?: number | null; offset?: number } = {},
@@ -457,6 +469,19 @@ export const api = {
         headers: {}, // Let browser set Content-Type for FormData
         body: formData,
       }),
+    // DHC CLI: chunked upload for attachments over 10MB.
+    startUpload: (payload: { name: string; size: number; mimeType: string }) =>
+      authenticatedFetch('/api/assets/uploads', { method: 'POST', body: JSON.stringify(payload) }),
+    uploadChunk: (id: string, index: number, chunk: Blob, sha256: string) =>
+      authenticatedFetch(`/api/assets/uploads/${encodeURIComponent(id)}/chunks/${index}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/octet-stream', 'X-Chunk-Sha256': sha256 },
+        body: chunk,
+      }),
+    completeUpload: (id: string) =>
+      authenticatedFetch(`/api/assets/uploads/${encodeURIComponent(id)}/complete`, { method: 'POST' }),
+    cancelUpload: (id: string) =>
+      authenticatedFetch(`/api/assets/uploads/${encodeURIComponent(id)}`, { method: 'DELETE' }),
     file: (storedName: string) => get(`/api/assets/files/${encodeURIComponent(storedName)}`),
     image: (filename: string, options: ApiRequestOptions = {}) =>
       get(`/api/assets/images/${encodeURIComponent(filename)}`, options),
@@ -602,7 +627,7 @@ export function voiceConfigSignature(): string {
  * Transcribes recorded audio, posting directly to the user's configured OpenAI-compatible
  * endpoint when one is set and otherwise going through the DHC CLI voice proxy.
  */
-export function transcribeVoice(blob: Blob, filename: string): Promise<Response> {
+export function transcribeVoice(blob: Blob, filename: string, profile?: 'call', durationMs?: number): Promise<Response> {
   const config = readVoiceConfig();
   const body = new FormData();
 
@@ -616,6 +641,9 @@ export function transcribeVoice(blob: Blob, filename: string): Promise<Response>
     });
   }
 
+  // DHC CLI 語音通話: the server sends call clips to its faster transcriber when it has one.
+  if (profile) body.append('profile', profile);
+  if (durationMs) body.append('durationMs', String(Math.round(durationMs)));
   body.append('audio', blob, filename);
   return api.voice.transcribe(body, voiceConfigHeaders());
 }

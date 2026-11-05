@@ -5,10 +5,10 @@ import type { NightQueueItem } from '@/shared/types';
 import type { NightQueueControls } from '@/modules/chat/composer/useNightQueue';
 import { formatStartAt } from '@/modules/chat/utils/nightQueueTime';
 
-/** The server's window (02:00–07:00 local); only used to word the waiting label. */
+/** The server's window (01:00–06:00 local); only used to word the waiting label. */
 function isNightWindowNow(): boolean {
   const hour = new Date().getHours();
-  return hour >= 2 && hour < 7;
+  return hour >= 1 && hour < 6;
 }
 
 /** Shown when the moon is pressed in a chat that is not in bypass mode: nobody is there at night to approve. */

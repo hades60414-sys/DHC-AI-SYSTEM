@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, ShieldAlert } from 'lucide-react';
 
+import { authenticatedFetch } from '@/shared/api';
 import { readActiveSettingsProfile } from '@/shared/userSettings';
 import { resolveSiteAlert, startSiteAlertsSync, useSiteAlerts } from '@/shared/siteAlerts';
 import type { AlertLevel, SiteAlert } from '@/shared/siteAlerts';
 import { cn } from '@/shared/utils';
-import { authenticatedFetch } from '@/shared/api';
 
 // DHC CLI 10/14 警示: a quiet button next to refresh / new project. Grey when nothing is open; a small dot when
 // something is. Besides the stored list (src/shared/siteAlerts.ts) it shows the host's Claude login running out,
@@ -58,7 +58,7 @@ function AlertRow({ item, onResolve }: { item: SiteAlert; onResolve?: () => void
           className="flex flex-shrink-0 items-center gap-0.5 rounded-md border border-border/60 px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-accent hover:text-foreground"
         >
           <Check className="h-3 w-3" />
-          已處理
+          標成已處理
         </button>
       )}
     </li>
@@ -69,7 +69,7 @@ export default function AlertBell({ size = 'sm' }: { size?: 'sm' | 'md' }) {
   const stored = useSiteAlerts();
   const [login, setLogin] = useState<LoginInfo | null>(null);
   const [open, setOpen] = useState(false);
-  const [spot, setSpot] = useState({ top: 0, left: 0 });
+  const [spot, setSpot] = useState<{ top?: number; bottom?: number; left: number }>({ top: 0, left: 0 });
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => startSiteAlertsSync(), []);
@@ -86,10 +86,17 @@ export default function AlertBell({ size = 'sm' }: { size?: 'sm' | 'md' }) {
       }
     };
     void load();
-    const timer = setInterval(load, LOGIN_POLL_MS);
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void load();
+    }, LOGIN_POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void load();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       alive = false;
       clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, []);
 
@@ -114,12 +121,13 @@ export default function AlertBell({ size = 'sm' }: { size?: 'sm' | 'md' }) {
   const resolve = (id: string) => resolveSiteAlert(id, readActiveSettingsProfile()?.name ?? '');
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative" data-tutorial-tip="警示：站內異常會在這裡亮點，例如 Claude 登入快到期">
       <button
         onClick={(event) => {
-          // Fixed to the viewport so the narrow sidebar does not clip it; kept on screen on phones.
+          // Fixed to the viewport so the narrow sidebar does not clip it; kept on screen on phones. Opens upward from the sidebar footer.
           const rect = event.currentTarget.getBoundingClientRect();
-          setSpot({ top: rect.bottom + 4, left: Math.max(8, Math.min(rect.right - POPOVER_WIDTH, window.innerWidth - POPOVER_WIDTH - 8)) });
+          const upward = rect.bottom > window.innerHeight / 2;
+          setSpot({ ...(upward ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }), left: Math.max(8, Math.min(rect.right - POPOVER_WIDTH, window.innerWidth - POPOVER_WIDTH - 8)) });
           setOpen((value) => !value);
         }}
         title={openAlerts.length ? `警示：${openAlerts.length} 則待處理` : '警示：目前沒有'}
@@ -134,7 +142,7 @@ export default function AlertBell({ size = 'sm' }: { size?: 'sm' | 'md' }) {
         {worst && <span className={cn('absolute right-1 top-1 h-1.5 w-1.5 rounded-full ring-1 ring-background', DOT[worst])} />}
       </button>
       {open && (
-        <div style={{ top: spot.top, left: spot.left, width: POPOVER_WIDTH }} className="fixed z-50 max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
+        <div style={{ ...spot, width: POPOVER_WIDTH }} className="fixed z-50 max-w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
           <div className="border-b border-border/60 px-3 py-2 text-xs font-medium text-foreground">警示</div>
           <div className="max-h-80 overflow-y-auto">
             {openAlerts.length === 0 ? (

@@ -20,7 +20,7 @@ import {
 const line = (value: unknown) => JSON.stringify(value);
 
 test('the automatic name is the start of the first message or the creation phrase; a typed name is not', () => {
-  const prompt = '我有一個新任務，是要做乾淨版RAG跟OUTLOOK信件資料存儲，這包會建立在另一台電腦上';
+  const prompt = '我有一個新任務，是要做乾淨版RAG跟OUTLOOK信件資料存儲，這包會建立在我主管的電腦上';
   assert.equal(isAutoSessionName('我有一個新任務，是要做乾淨版RAG跟OUTLOOK信件資料存儲，這包', prompt), true, 'old style: a prefix');
   assert.equal(isAutoSessionName(fallbackTitle(prompt), prompt), true, 'new style: the creation phrase');
   assert.equal(isAutoSessionName('【同事A】我有一個新任務', '【同事A】 我有一個新任務，是要做'), true, 'the Co-Work speaker mark is ignored');
@@ -47,11 +47,11 @@ test('round 1: titles are tidied and cut by display width at a natural break', (
   assert.equal(tidyTitle('  「月報 數據蒐集測試」 '), '月報 數據蒐集測試', 'quotes wrapping the whole title go');
   assert.equal(tidyTitle('主視窗「正式」區的「送出」'), '主視窗「正式」區的「送出」', 'brackets inside stay');
   assert.equal(tidyTitle('改網頁： 把預測頁面換成Q3。'), '改網頁：把預測頁面換成Q3', 'space after a colon and the final stop go');
-  assert.equal(tidyTitle('demo_tbl_monthly_report 契約調整邏輯檢視'), 'demo_tbl_monthly_report 契約調整邏輯檢視', '40 columns fit');
+  assert.equal(tidyTitle('PL_DHC_tblDemo_DailyPL 契約調整邏輯檢視'), 'PL_DHC_tblDemo_DailyPL 契約調整邏輯檢視', '40 columns fit');
   assert.equal(tidyTitle('CCS and RAG integration progress'), 'CCS and RAG integration progress', 'English is not cut twice as early');
   const long = tidyTitle('這是一個非常非常長的標題，裡面有很多很多的字，一直講一直講停不下來');
   assert.ok([...long].length <= 24 && !long.endsWith('，'), long);
-  assert.equal(tidyTitle('到DB1的資料庫查詢domain.dbo.tradingdate_history_table'), '到DB1的資料庫查詢', 'a code name is not cut in half');
+  assert.equal(tidyTitle('到DB1的資料庫查詢demo.dbo.market_calendar_history_table'), '到DB1的資料庫查詢', 'a code name is not cut in half');
 });
 
 test('round 2: the creation phrase drops greetings, links, code and files and keeps the point', () => {
@@ -69,7 +69,7 @@ test('the ai-title is made traditional and tidied; simplified-only characters ar
   assert.equal(finalizeTitle('X1 RAG处理与DB2电脑操作架构优化', ''), 'X1 RAG處理與DB2電腦操作架構優化');
   assert.equal(finalizeTitle('Session cleanup strategy', '我想清理'), 'Session cleanup strategy', 'English titles are kept');
   assert.equal(finalizeTitle(null, 'x'), null);
-  assert.equal(toTraditional('ABC 測試工單核准'), 'ABC 測試工單核准');
+  assert.equal(toTraditional('DHC 測試工單核准'), 'DHC 測試工單核准');
 });
 
 test('round 3: only sessions created after the rollout are renamed', () => {

@@ -120,6 +120,7 @@ export const MCP_PROVIDER_NAMES: Record<McpProvider, string> = {
   cursor: 'Cursor',
   codex: 'Codex',
   opencode: 'OpenCode',
+  agy: 'Google agy',
 };
 
 /** Scopes each provider can install an MCP server into; drives the scope selector and validation. */
@@ -128,6 +129,8 @@ export const MCP_SUPPORTED_SCOPES: Record<McpProvider, McpScope[]> = {
   cursor: ['user', 'project'],
   codex: ['user', 'project'],
   opencode: ['user', 'project'],
+  // Google agy MCP is managed with `agy mcp` on the CLI, not from this UI.
+  agy: [],
 };
 
 /** Transports each provider can talk to an MCP server over; drives the transport selector and validation. */
@@ -136,6 +139,7 @@ export const MCP_SUPPORTED_TRANSPORTS: Record<McpProvider, McpTransport[]> = {
   cursor: ['stdio', 'http'],
   codex: ['stdio', 'http'],
   opencode: ['stdio', 'http'],
+  agy: [],
 };
 
 /** Transports offered when configuring a global (provider-agnostic) MCP server. */
@@ -147,6 +151,7 @@ export const MCP_SUPPORTS_WORKING_DIRECTORY: Record<McpProvider, boolean> = {
   cursor: false,
   codex: true,
   opencode: false,
+  agy: false,
 };
 
 // ---------------------------
@@ -217,4 +222,5 @@ export const PROVIDER_PERMISSION_PREFERENCE_KEYS: Record<LLMProvider, UserPrefer
   cursor: 'cursorPermissions',
   codex: 'codexPermissions',
   opencode: 'opencodePermissions',
+  agy: 'agyPermissions',
 };

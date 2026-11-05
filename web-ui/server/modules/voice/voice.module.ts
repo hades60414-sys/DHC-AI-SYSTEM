@@ -17,6 +17,7 @@ const voiceService = createVoiceService({
     apiKey: process.env.VOICE_API_KEY || '',
     sttModel: process.env.VOICE_STT_MODEL || 'whisper-1',
     ttsModel: process.env.VOICE_TTS_MODEL || 'tts-1',
+    callSttBaseUrl: (process.env.VOICE_CALL_STT_BASE_URL || '').replace(/\/$/, ''),
     ttsVoice: process.env.VOICE_TTS_VOICE || 'alloy',
   },
   timeoutMs: voiceTimeoutMs,

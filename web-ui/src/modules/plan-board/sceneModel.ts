@@ -1,12 +1,15 @@
+import { routeArrows } from '@/modules/plan-board/boardLayout';
 import { BOARD_MODES } from '@/modules/plan-board/boardModes';
+import { linkOf, linkPatch } from '@/modules/plan-board/boxLinkData';
 import { BOX_HEIGHT, BOX_WIDTH } from '@/shared/planBoards';
-import type { PlanChatMessage, PlanEdge, PlanNode } from '@/shared/planBoards';
+import type { PlanChatMessage, PlanEdge, PlanLink, PlanLoose, PlanNode, PlanShape } from '@/shared/planBoards';
 
 /**
  * DHC CLI 10/13 規劃白板: what the AI and 開工 understand of an Excalidraw scene. Shapes (rectangle, ellipse,
  * diamond) with their label are boxes; arrows bound at both ends to boxes are connections; free text is a note;
  * freehand strokes and loose lines are only counted. The AI redraws boxes and connections; everything else on the
- * canvas stays as drawn.
+ * canvas stays as drawn. 10/19: everything else is also listed as `loose` (id and place), so the AI can move a note or
+ * clear a stale line.
  */
 
 /** The element fields read here; the canvas keeps every other field as Excalidraw wrote it. */
@@ -29,6 +32,7 @@ export type SceneElement = {
   startBinding?: { elementId: string } | null;
   endBinding?: { elementId: string } | null;
   boundElements?: ReadonlyArray<{ id: string; type: string }> | null;
+  customData?: Record<string, unknown>;
 };
 
 const SHAPES = new Set(['rectangle', 'ellipse', 'diamond']);
@@ -42,6 +46,8 @@ export type ScenePlan = {
   notes: string[];
   /** Freehand strokes and loose lines or arrows, which only a person can read. */
   sketches: number;
+  /** Free text, loose lines and arrows, freehand: what the AI may move (text) or clear. */
+  loose: PlanLoose[];
   colors: Map<string, { stroke?: string; fill?: string }>;
 };
 
@@ -62,6 +68,8 @@ export function sceneToPlan(all: ReadonlyArray<SceneElement>): ScenePlan {
     w: Math.round(shape.width),
     h: Math.round(shape.height),
     text: labelOf.get(shape.id) ?? '',
+    shape: shape.type as PlanShape,
+    ...(linkOf(shape) ? { link: linkOf(shape) as PlanLink } : {}),
   }));
   const colors = new Map<string, { stroke?: string; fill?: string }>();
   for (const shape of shapes) {
@@ -70,6 +78,13 @@ export function sceneToPlan(all: ReadonlyArray<SceneElement>): ScenePlan {
     if (stroke || fill) colors.set(shape.id, { stroke, fill });
   }
   const edges: PlanEdge[] = [];
+  const loose: PlanLoose[] = [];
+  const place = (element: SceneElement) => ({
+    x: Math.round(element.x), y: Math.round(element.y), w: Math.round(element.width), h: Math.round(element.height),
+  });
+  const addLoose = (element: SceneElement, kind: PlanLoose['kind'], text: string) => {
+    loose.push({ id: element.id, kind, ...(text ? { text } : {}), ...place(element) });
+  };
   let sketches = 0;
   for (const element of elements) {
     if (element.type === 'arrow') {
@@ -79,16 +94,20 @@ export function sceneToPlan(all: ReadonlyArray<SceneElement>): ScenePlan {
         edges.push({ id: element.id, from, to, text: labelOf.get(element.id) ?? '' });
       } else {
         sketches += 1;
+        addLoose(element, 'arrow', clean(labelOf.get(element.id) ?? ''));
       }
     } else if (element.type === 'freedraw' || element.type === 'line') {
       sketches += 1;
+      addLoose(element, element.type, clean(labelOf.get(element.id) ?? ''));
+    } else if (element.type === 'text' && !element.containerId && (element.text ?? '').trim()) {
+      addLoose(element, 'text', (element.text ?? '').trim());
     }
   }
   const notes = elements
     .filter((element) => element.type === 'text' && !element.containerId && clean(element.text ?? ''))
     .sort((a, b) => a.y - b.y || a.x - b.x)
     .map((element) => clean(element.text ?? ''));
-  return { nodes, edges, notes, sketches, colors };
+  return { nodes, edges, notes, sketches, loose, colors };
 }
 
 /** Ids the AI owns when it redraws: boxes, their labels, bound arrows and the arrows' labels. */
@@ -103,8 +122,9 @@ export function redrawnIds(all: ReadonlyArray<SceneElement>, plan: ScenePlan): S
 type Skeleton = Record<string, unknown>;
 
 /**
- * The AI's boxes and arrows as Excalidraw skeletons. A box the AI kept (same id) keeps its shape and colours; new
- * ones are plain rectangles.
+ * The AI's boxes and arrows as Excalidraw skeletons. A box the AI kept (same id) keeps its colours, and its shape
+ * unless the AI gave one; a new box without a shape is a rectangle. 10/19: its customData (an @@ link) stays too; the
+ * AI's link puts on the link and its colours, its null takes the link off and leaves the colours.
  */
 export function planToSkeletons(nodes: PlanNode[], edges: PlanEdge[], previous: ReadonlyArray<SceneElement>): Skeleton[] {
   const before = new Map(previous.map((element) => [element.id, element]));
@@ -117,28 +137,44 @@ export function planToSkeletons(nodes: PlanNode[], edges: PlanEdge[], previous: 
     roughness: element.roughness,
   } : {});
   const byId = new Map(nodes.map((node) => [node.id, node]));
+  const routes = routeArrows(nodes, edges);
   const boxes: Skeleton[] = nodes.map((node) => {
     const old = before.get(node.id);
+    const had = old ? linkOf(old) : null;
+    let linked: Skeleton = old?.customData ? { customData: old.customData } : {};
+    // The same link sent back changes nothing, so a box someone recoloured after linking keeps its colours.
+    if (node.link && (node.link.kind !== had?.kind || node.link.id !== had?.id)) linked = linkPatch(old ?? {}, node.link);
+    else if (node.link === null) {
+      const { dhcRef: _unlinked, ...rest } = old?.customData ?? {};
+      linked = { customData: rest };
+    }
     return {
-      type: old && SHAPES.has(old.type) ? old.type : 'rectangle',
+      type: node.shape ?? (old && SHAPES.has(old.type) ? old.type : 'rectangle'),
       id: node.id,
       x: node.x,
       y: node.y,
       width: node.w || BOX_WIDTH,
       height: node.h || BOX_HEIGHT,
       ...style(old),
+      ...linked,
       ...(node.text.trim() ? { label: { text: node.text } } : {}),
     };
   });
   const arrows: Skeleton[] = edges.flatMap((edge) => {
     const from = byId.get(edge.from);
-    if (!from) return [];
+    const to = byId.get(edge.to);
+    if (!from || !to) return [];
     const old = before.get(edge.id);
+    const route = routes.get(edge.id);
+    if (!route) return [];
     return [{
       type: 'arrow',
       id: edge.id,
-      x: from.x + from.w,
-      y: from.y + from.h / 2,
+      // Excalidraw's converter binds an arrow to its boxes but leaves it at its default length, so the whole path is
+      // given here (routeArrows: own end points per side, bends so the label sits on a straight stretch).
+      x: route.x,
+      y: route.y,
+      points: route.points,
       start: { id: edge.from },
       end: { id: edge.to },
       ...(old ? { strokeColor: old.strokeColor, strokeWidth: old.strokeWidth, strokeStyle: old.strokeStyle } : {}),
@@ -226,4 +262,14 @@ export function splitAlpha(color: string): { base: string; alpha: number } {
 export function withAlpha(base: string, alpha: number): string {
   if (base === 'transparent' || alpha >= 100) return base;
   return `${base}${Math.round((Math.max(0, alpha) / 100) * 255).toString(16).padStart(2, '0')}`;
+}
+
+
+type GroupedElement = { id: string; groupIds: readonly string[] };
+/** The group a selection exactly is: every selected element shares one outermost group and the whole group is selected. */
+export function wholeGroupOf(elements: ReadonlyArray<GroupedElement>, selectedIds: Readonly<Record<string, boolean>>): string | null {
+  const selected = elements.filter((element) => selectedIds[element.id]);
+  const groupId = selected[0]?.groupIds.at(-1);
+  if (!groupId || !selected.every((element) => element.groupIds.at(-1) === groupId)) return null;
+  return elements.every((element) => !element.groupIds.includes(groupId) || selectedIds[element.id]) ? groupId : null;
 }

@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 
 import { api } from '@/shared/api';
 import type { LLMProvider } from '@/shared/types';
+import { resolveSettingsProjectId } from '@/shared/userSettings';
 
 /**
  * DHC CLI 10/08 Co-workspace: a session shared with other people. A person is a workspace project, so sharing
@@ -408,6 +409,14 @@ export function readCoSession(sessionId: string | null | undefined): CoSession |
   return sessionId ? sessions[sessionId] ?? null : null;
 }
 
+/** DHC CLI 10/16: a member's fork of someone else's shared session belongs in the member's own project. */
+export function coForkProjectId(sessionId: string | null | undefined): string | null {
+  const shared = readCoSession(sessionId);
+  if (!shared) return null;
+  const me = resolveSettingsProjectId(Array.from(projectNames, ([projectId, displayName]) => ({ projectId, displayName })));
+  return me && me !== shared.ownerProjectId ? me : null;
+}
+
 export function useCoSession(sessionId: string | null | undefined): CoSession | null {
   return useSyncExternalStore(subscribe, () => readCoSession(sessionId), () => null);
 }
@@ -478,4 +487,14 @@ export function resolveCoSender(
     .map((projectId) => knownPeople.get(projectId))
     .find((person) => person?.name === parsed.name);
   return { person: participant ?? { name: parsed.name, avatarId: null }, body: parsed.body };
+}
+
+/** 10/16 聊天室: every session's Co-Work log, so 動態 can show the invitations someone may have missed. */
+export function useCoLogs(): CoLogs {
+  return useSyncExternalStore(subscribe, () => logs, () => logs);
+}
+
+/** 10/16: every shared session, for the 聊天室 @@ list (a member can tag a session shared with them). */
+export function useCoSessions(): CoSessions {
+  return useSyncExternalStore(subscribe, () => sessions, () => EMPTY);
 }

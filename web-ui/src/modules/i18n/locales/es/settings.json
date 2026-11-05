@@ -472,7 +472,7 @@
     },
     "managed": {
       "badge": "Gestionado",
-      "hint": "Gestionado por DHC CLI."
+      "hint": "Gestionado por DHC AI System."
     },
     "help": {
       "title": "Acerca de MCP en Codex",
@@ -504,7 +504,7 @@
     "docs": "Docs",
     "sections": {
       "officialTitle": "Plugins oficiales",
-      "officialDescription": "Mantenidos por el equipo de DHC CLI y listos para instalar directamente.",
+      "officialDescription": "Mantenidos por el equipo de DHC AI System y listos para instalar directamente.",
       "unofficialTitle": "Otros plugins",
       "unofficialDescription": "Plugins e integraciones no oficiales de otros usuarios. Revisa el código fuente antes de instalar."
     },
@@ -533,9 +533,9 @@
       "install": "Instalar"
     },
     "prismCloudCLI": {
-      "name": "PRISM DHC CLI",
+      "name": "PRISM DHC AI System",
       "badge": "no oficial",
-      "description": "Inteligencia de sesiones para Claude Code, dentro de DHC CLI. Descubre por qué tus sesiones queman tokens sin salir del navegador.",
+      "description": "Inteligencia de sesiones para Claude Code, dentro de DHC AI System. Descubre por qué tus sesiones queman tokens sin salir del navegador.",
       "install": "Instalar"
     },
     "sessionManagerPlugin": {

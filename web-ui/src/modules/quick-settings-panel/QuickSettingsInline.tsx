@@ -4,6 +4,7 @@ import { useUiPreferences, useSetUiPreference } from '@/shared/context/UiPrefere
 import { useTheme } from '@/shared/context/ThemeContext';
 import type { QuickSettingsPreferences } from '@/shared/types';
 import QuickSettingsContent from '@/modules/quick-settings-panel/QuickSettingsContent';
+import ModelAdviceSetting from '@/modules/quick-settings-panel/ModelAdviceSetting';
 
 /** DHC CLI: the quick settings rows, rendered by Settings under 快速設定 (the right-edge drawer is gone). */
 export default function QuickSettingsInline() {
@@ -24,10 +25,15 @@ export default function QuickSettingsInline() {
   ]);
 
   return (
-    <QuickSettingsContent
-      isDarkMode={isDarkMode}
-      preferences={quickSettingsPreferences}
-      onPreferenceChange={setPreference}
-    />
+    <>
+      <QuickSettingsContent
+        isDarkMode={isDarkMode}
+        preferences={quickSettingsPreferences}
+        onPreferenceChange={setPreference}
+      />
+      <div className="px-4 pb-4">
+        <ModelAdviceSetting />
+      </div>
+    </>
   );
 }

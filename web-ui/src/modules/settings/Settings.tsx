@@ -153,6 +153,16 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
     });
   };
 
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      // Do not close while an IME is composing (Esc cancels the composition).
+      if (e.key === 'Escape' && !e.isComposing && e.keyCode !== 229) onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) {
     return null;
   }
@@ -161,7 +171,7 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
 
   return (
     <div className="modal-backdrop fixed inset-0 z-[9999] flex items-center justify-center bg-background/80 backdrop-blur-sm md:p-4">
-      <div className="flex h-full w-full flex-col overflow-hidden border border-border bg-background shadow-2xl md:h-[90vh] md:max-w-4xl md:rounded-xl">
+      <div role="dialog" aria-modal="true" aria-label={t('title')} className="flex h-full w-full flex-col overflow-hidden border border-border bg-background shadow-2xl md:h-[90vh] md:max-w-4xl md:rounded-xl">
         {/* Header */}
         <div className="flex flex-shrink-0 items-center justify-between border-b border-border px-4 py-3 md:px-5">
           <nav className="flex items-center gap-1" aria-label={t('title')}>
@@ -169,6 +179,7 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
               <button
                 key={item.id}
                 type="button"
+                aria-current={group === item.id ? 'page' : undefined}
                 onClick={() => setGroup(item.id)}
                 className={cn(
                   'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
@@ -189,6 +200,7 @@ function Settings({ isOpen, onClose, projects = [], initialTab = 'agents' }: Set
               variant="ghost"
               size="sm"
               onClick={onClose}
+              aria-label={t('close', '關閉設定')}
               className="h-10 w-10 touch-manipulation p-0 text-muted-foreground hover:text-foreground active:bg-accent/50"
             >
               <X className="h-5 w-5" />

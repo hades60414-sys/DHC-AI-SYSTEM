@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Loader2, MessageSquare, Play, Send, Upload, X } from 'lucide-react';
+import { Loader2, MessageSquare, Play, Send, Square, Upload, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-import { askToolAssist } from '@/shared/customTools';
+import WhoAmI from '@/modules/sidebar/WhoAmI';
+import { askToolAssist, claimsChange } from '@/shared/customTools';
 import type { AssistMessage } from '@/shared/customTools';
+import { useEscapeClose } from '@/shared/escapeStack';
 import { cn } from '@/shared/utils';
 
 export type AssistOptions = {
@@ -20,6 +22,8 @@ export type AssistOptions = {
   intro: string;
   placeholder?: string;
   busyText?: string;
+  /** The person's project: the AI runs there with their CLAUDE.md and memory (tools the server allows it for). */
+  projectId?: string | null;
 };
 
 export type ImportOptions = {
@@ -59,9 +63,13 @@ type ToolFrameProps = {
 
 const MAX_CHAT = 40;
 
-function AssistPanel({ assist, isMobile }: { assist: AssistOptions; isMobile: boolean }) {
+/** Stays mounted while the chat is hidden so a running answer still lands; unmounting (closing the tool) stops it. */
+function AssistPanel({ assist, isMobile, hidden }: { assist: AssistOptions; isMobile: boolean; hidden: boolean }) {
   const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const running = useRef<AbortController | null>(null);
+  const busy = startedAt !== null;
   const chatRef = useRef(assist.chat);
   chatRef.current = assist.chat;
   const end = useRef<HTMLDivElement>(null);
@@ -70,6 +78,18 @@ function AssistPanel({ assist, isMobile }: { assist: AssistOptions; isMobile: bo
     end.current?.scrollIntoView({ block: 'end' });
   }, [assist.chat, busy]);
 
+  useEffect(() => {
+    if (startedAt === null) return undefined;
+    const tick = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(tick);
+  }, [startedAt]);
+
+  useEffect(() => () => {
+    const controller = running.current;
+    running.current = null;
+    controller?.abort();
+  }, []);
+
   const send = async () => {
     const text = message.trim();
     if (!text || busy) return;
@@ -77,8 +97,20 @@ function AssistPanel({ assist, isMobile }: { assist: AssistOptions; isMobile: bo
     const withQuestion = [...history, { role: 'user' as const, text }].slice(-MAX_CHAT);
     assist.onChatChange(withQuestion);
     setMessage('');
-    setBusy(true);
-    const answer = await askToolAssist(assist.tool, { message: text, context: assist.getContext(), chat: history });
+    const controller = new AbortController();
+    running.current = controller;
+    const started = Date.now();
+    setStartedAt(started);
+    setNow(started);
+    const answer = await askToolAssist(assist.tool, { message: text, context: assist.getContext(), chat: history, projectId: assist.projectId }, controller.signal);
+    // Closed while waiting: nobody is looking at this answer any more.
+    if (running.current !== controller) return;
+    running.current = null;
+    setStartedAt(null);
+    if (controller.signal.aborted) {
+      assist.onChatChange([...chatRef.current, { role: 'assistant' as const, text: '已停止，這次沒有套用任何修改。' }].slice(-MAX_CHAT));
+      return;
+    }
     let reply = answer.reply || '（沒有回覆文字）';
     if (answer.result !== null && answer.result !== undefined) {
       try {
@@ -87,15 +119,18 @@ function AssistPanel({ assist, isMobile }: { assist: AssistOptions; isMobile: bo
       } catch {
         reply += '\n（AI 給的內容格式不對，沒有套用）';
       }
+    } else if (answer.lostResult || claimsChange(reply)) {
+      reply += '\n（AI 有回覆但沒產生可套用的結果，工具沒有變動）';
     }
     assist.onChatChange([...chatRef.current, { role: 'assistant' as const, text: reply }].slice(-MAX_CHAT));
-    setBusy(false);
   };
 
+  const waited = startedAt === null ? 0 : Math.max(0, Math.floor((now - startedAt) / 1000));
+
   return (
-    <div className={cn('flex min-h-0 flex-col border-l border-border bg-background', isMobile ? 'absolute inset-x-0 bottom-0 z-20 h-1/2 border-t' : 'w-80 shrink-0')}>
+    <div className={cn('flex min-h-0 flex-col border-l border-border bg-background', isMobile ? 'absolute inset-x-0 bottom-0 z-20 h-1/2 border-t' : 'w-80 shrink-0', hidden && 'hidden')} data-tutorial-tip="AI 助手：跟它說要做什麼，它會幫你改這個工具的內容">
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3 text-sm">
-        {assist.chat.length === 0 && <p className="text-xs leading-relaxed text-muted-foreground">{assist.intro}</p>}
+        {assist.chat.length === 0 && <p data-tutorial className="text-xs leading-relaxed text-muted-foreground">{assist.intro}</p>}
         {assist.chat.map((item, index) => (
           <div
             key={index}
@@ -110,7 +145,7 @@ function AssistPanel({ assist, isMobile }: { assist: AssistOptions; isMobile: bo
         {busy && (
           <div className="mr-6 flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1.5 text-xs text-muted-foreground">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            {assist.busyText ?? 'AI 正在想（約 15–60 秒）'}
+            {assist.busyText ?? 'AI 正在想（通常 10–30 秒）'}，已等 {waited} 秒
           </div>
         )}
         <div ref={end} />
@@ -128,18 +163,31 @@ function AssistPanel({ assist, isMobile }: { assist: AssistOptions; isMobile: bo
             }
           }}
           rows={2}
-          placeholder={assist.placeholder ?? '要做什麼？（Enter 送出）'}
+          placeholder={assist.placeholder ?? '要做什麼？'}
           className="min-h-0 flex-1 resize-none rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary"
         />
-        <button
-          type="button"
-          onClick={() => void send()}
-          disabled={busy || !message.trim()}
-          aria-label="送出"
-          className="rounded-md bg-primary p-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
-        >
-          <Send className="h-4 w-4" />
-        </button>
+        {busy ? (
+          <button
+            type="button"
+            onClick={() => running.current?.abort()}
+            aria-label="停止"
+            title="停止這次 AI 回覆"
+            className="flex items-center gap-1 rounded-md border border-border bg-background px-2 py-2 text-xs text-foreground hover:bg-muted"
+          >
+            <Square className="h-3.5 w-3.5" />
+            停止
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void send()}
+            disabled={!message.trim()}
+            aria-label="送出"
+            className="rounded-md bg-primary p-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
+          >
+            <Send className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -169,13 +217,7 @@ export default function ToolFrame({
   };
   const hasFiles = (event: React.DragEvent) => Array.from(event.dataTransfer?.types ?? []).includes('Files');
 
-  useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !event.defaultPrevented) onClose();
-    };
-    window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [onClose]);
+  useEscapeClose(onClose);
 
   return (
     <div
@@ -241,7 +283,7 @@ export default function ToolFrame({
       </div>
       <div className="relative flex min-h-0 flex-1">
         <div className="relative min-w-0 flex-1 overflow-auto">{children}</div>
-        {assist && showChat && <AssistPanel assist={assist} isMobile={isMobile} />}
+        {assist && <AssistPanel assist={assist} isMobile={isMobile} hidden={!showChat} />}
       </div>
       {(assist || startWork || footerExtra) && (
         <div className="flex flex-shrink-0 items-center gap-2 border-t border-border bg-muted/40 px-3 py-2">
@@ -255,9 +297,10 @@ export default function ToolFrame({
               AI 對話
             </button>
           )}
-          <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-            {startWork && (startWork.onStart ? startWork.hint : '這台裝置的專案設定沒有對應的專案，先到 設定 → 專案設定 選好你的專案才能開工。')}
-          </span>
+          {/* 10/25: no project for this device yet: pick it right here instead of 設定 → 專案設定. */}
+          {startWork && !startWork.onStart
+            ? <WhoAmI note="開工要知道你的專案，選好就能開工。" className="min-w-0 flex-1" />
+            : <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{startWork?.hint}</span>}
           {footerExtra}
           {startWork && (
             <button

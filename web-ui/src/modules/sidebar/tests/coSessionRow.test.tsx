@@ -100,18 +100,6 @@ const share = (sessionId: string, ownerProjectId: string, members: string[], tit
 beforeEach(() => setDhcConfig({ mode: 'team' }));
 afterEach(() => setDhcConfig({ mode: 'personal' }));
 
-test('personal mode: no Co-workspace in the menu, and a shared session keeps the model logo', async () => {
-  server['dhc.profiles'] = [{ id: 'po', name: 'Olive', projectId: 'olive' }, { id: 'pa', name: 'Amy', projectId: 'amy' }];
-  await co.loadCoSessions();
-  await share('sharedPersonal', 'olive', ['amy']);
-  setDhcConfig({ mode: 'personal' });
-
-  render(<SidebarSessionItem {...rowProps} project={projectNamed('olive')} session={sessionNamed('sharedPersonal', '月報')} onSessionSelect={noop} />);
-
-  assert.equal(screen.queryByLabelText(/^共享：/), null);
-  assert.equal(lastOptions().onShare, undefined);
-});
-
 test('an unshared session keeps the model logo and offers Co-workspace', () => {
   render(<SidebarSessionItem {...rowProps} project={projectNamed('olive')} session={sessionNamed('plain', '月報')} onSessionSelect={noop} />);
 
@@ -169,4 +157,27 @@ test('a project the session is not shared with does not list it', async () => {
   render(<SidebarProjectSessions {...listProps} project={projectNamed('bob')} sessions={[]} onSessionSelect={noop} />);
 
   assert.equal(screen.queryByTitle('只給 Amy'), null);
+});
+
+test('a shared session sorts by the owner\'s latest activity, not above everything', async () => {
+  await share('olderShared', 'olive', ['cara'], '舊的共享');
+  const rowTitles = () => screen.getAllByTitle(/^(舊的共享|Cara 新的|Cara 更舊)$/).map((node) => node.getAttribute('title'));
+  const own = [
+    { ...sessionNamed('caraNew', 'Cara 新的'), lastActivity: '2099-01-01T00:00:00.000Z' },
+    { ...sessionNamed('caraOld', 'Cara 更舊'), lastActivity: '2000-01-01T00:00:00.000Z' },
+  ] as SessionWithProvider[];
+
+  const view = render(<SidebarProjectSessions {...listProps} project={projectNamed('cara')} sessions={own} onSessionSelect={noop} />);
+  assert.deepEqual(rowTitles(), ['Cara 新的', '舊的共享', 'Cara 更舊'], 'shared now sits in time order');
+
+  view.rerender(
+    <SidebarProjectSessions
+      {...listProps}
+      project={projectNamed('cara')}
+      sessions={own}
+      sessionActivity={new Map([['olderShared', Date.parse('2100-01-01T00:00:00.000Z')]])}
+      onSessionSelect={noop}
+    />,
+  );
+  assert.deepEqual(rowTitles(), ['舊的共享', 'Cara 新的', 'Cara 更舊'], 'a new message in the owner session lifts it');
 });

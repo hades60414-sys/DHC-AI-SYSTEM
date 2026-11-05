@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Clock } from 'lucide-react';
 
 import { cn } from '@/shared/utils';
 import { useComposerMenuAnchor } from '@/modules/chat/hooks/useComposerMenuAnchor';
+import { formatStartAt, readQuotaReset } from '@/modules/chat/utils/nightQueueTime';
 import {
   ComposerMenuHeading,
   ComposerMenuItem,
@@ -14,6 +15,8 @@ import {
 
 type ScheduleMessagePopoverProps = {
   disabled: boolean;
+  /** Why scheduling is off right now (shown as the tooltip), when it is off for a reason the user can fix. */
+  disabledReason?: string | null;
   onSchedule: (scheduledFor: Date) => void;
 };
 
@@ -41,7 +44,7 @@ function toLocalInputValue(date: Date): string {
  * Rendered by chat's ChatComposer beside the send button so the message in the
  * box can be sent later instead of now.
  */
-export function ScheduleMessagePopover({ disabled, onSchedule }: ScheduleMessagePopoverProps) {
+export function ScheduleMessagePopover({ disabled, disabledReason, onSchedule }: ScheduleMessagePopoverProps) {
   const { t } = useTranslation('chat');
   const [isOpen, setIsOpen] = useState(false);
   const close = useCallback(() => setIsOpen(false), []);
@@ -52,6 +55,21 @@ export function ScheduleMessagePopover({ disabled, onSchedule }: ScheduleMessage
   // Seeded an hour out, because a picker that opens on "now" is never what
   // scheduling means.
   const [customValue, setCustomValue] = useState(() => toLocalInputValue(new Date(Date.now() + 3_600_000)));
+
+  // DHC CLI 11/01: "when the 5-hour quota resets" moved here from 分流's "@重置". Read on each open; the
+  // reset could not be read ('unknown') or is past ('fresh').
+  const [quotaReset, setQuotaReset] = useState<Date | 'fresh' | 'unknown' | 'loading'>('loading');
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    setQuotaReset('loading');
+    void readQuotaReset().then((reset) => {
+      if (!cancelled) setQuotaReset(reset);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
 
   const commit = (scheduledFor: Date) => {
     onSchedule(scheduledFor);
@@ -65,7 +83,7 @@ export function ScheduleMessagePopover({ disabled, onSchedule }: ScheduleMessage
       <button
         ref={triggerRef}
         type="button"
-        disabled={disabled}
+        disabled={disabled || Boolean(disabledReason)}
         onClick={() => {
           updateAnchor();
           setIsOpen((current) => !current);
@@ -73,10 +91,11 @@ export function ScheduleMessagePopover({ disabled, onSchedule }: ScheduleMessage
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label={ariaLabel}
-        title={ariaLabel}
+        title={disabledReason || ariaLabel}
+        data-tutorial-tip="排程送出：把輸入框的訊息排到之後再送，可選快速時間或自訂"
         className={cn(
           'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-muted-foreground transition-colors',
-          disabled ? 'cursor-not-allowed opacity-40' : 'hover:bg-muted hover:text-foreground',
+          disabled || disabledReason ? 'cursor-not-allowed opacity-40' : 'hover:bg-muted hover:text-foreground',
           isOpen && 'text-foreground',
         )}
       >
@@ -98,6 +117,16 @@ export function ScheduleMessagePopover({ disabled, onSchedule }: ScheduleMessage
               onSelect={() => commit(new Date(Date.now() + minutes * 60_000))}
             />
           ))}
+          <ComposerMenuItem
+            label="額度重置時"
+            description={quotaReset === 'loading' ? '讀取中…' : quotaReset instanceof Date ? formatStartAt(quotaReset.toISOString()) : quotaReset === 'fresh' ? '額度已是新的' : '讀不到額度時間'}
+            isSelected={false}
+            className={quotaReset instanceof Date ? undefined : 'cursor-default opacity-50'}
+            // A minute past the reset, so it meets the new quota even with the host clock behind.
+            onSelect={() => {
+              if (quotaReset instanceof Date) commit(new Date(quotaReset.getTime() + 60_000));
+            }}
+          />
 
           <ComposerMenuSeparator />
           <div className="px-2.5 pb-1.5">

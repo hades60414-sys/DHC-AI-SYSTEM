@@ -2,6 +2,7 @@ import { Settings, ArrowUpCircle, AlertTriangle } from 'lucide-react';
 import type { TFunction } from 'i18next';
 
 import UsageMeters from '@/modules/sidebar/UsageMeters';
+import AlertBell from '@/modules/sidebar/AlertBell';
 import { useActiveSettingsProfileName } from '@/modules/sidebar/SettingsProfileGate';
 import { useIsTeamMode } from '@/shared/dhcConfig';
 import type { ReleaseInfo } from '@/shared/types';
@@ -33,7 +34,7 @@ export default function SidebarFooter({
   const profileLabel = useIsTeamMode() ? `（${activeProfileName}）` : '';
 
   return (
-    <div className="flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}>
+    <div data-minimal-zone="footer" className="flex-shrink-0" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}>
       {/* Restart-required banner: the running server version differs from the
           installed/frontend version (updated but not restarted). */}
       {restartRequired && (
@@ -100,7 +101,7 @@ export default function SidebarFooter({
 
       {/* DHC CLI: Claude usage meters (5h / weekly / weekly Fable) */}
       <div className="nav-divider" />
-      <div className="hidden md:block">
+      <div data-presenter-extra="usage" className="hidden md:block">
         <UsageMeters />
       </div>
 
@@ -112,10 +113,15 @@ export default function SidebarFooter({
         <button
           className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2.5 py-1.5 text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
           onClick={onShowSettings}
+          data-tutorial-tip="設定：調整這個網站的各項設定"
         >
           <Settings className="h-3.5 w-3.5 flex-shrink-0" />
           <span className="min-w-0 truncate text-sm">{t('actions.settings')}{profileLabel}</span>
         </button>
+        {/* DHC CLI 10/21：警示從標題列搬來（10/31 版本更新搬回標題列） */}
+        <div data-presenter-extra className="flex flex-shrink-0 items-center gap-0.5">
+          <AlertBell />
+        </div>
       </div>
 
       {/* Mobile settings */}
@@ -123,6 +129,7 @@ export default function SidebarFooter({
         <button
           className="flex h-10 w-full items-center gap-3 rounded-xl bg-muted/40 px-3.5 transition-all hover:bg-muted/60 active:scale-[0.98]"
           onClick={onShowSettings}
+          data-tutorial-tip="設定：調整這個網站的各項設定"
         >
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-background/80">
             <Settings className="h-4 w-4 text-muted-foreground" />

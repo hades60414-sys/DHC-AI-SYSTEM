@@ -74,7 +74,7 @@ test('discussing opens a chat with the draft in the opening message and keeps th
   const first = render(<Harness onDiscuss={(prompt) => prompts.push(prompt)} />);
   openWishPool();
   fireEvent.change(screen.getByLabelText('主題'), { target: { value: '待辦可以排序' } });
-  fireEvent.click(screen.getByRole('button', { name: '跟 DHC CLI 討論' }));
+  fireEvent.click(screen.getByRole('button', { name: '跟 DHC AI System 討論' }));
 
   assert.equal(prompts.length, 1);
   assert.match(prompts[0], /主題：待辦可以排序/);

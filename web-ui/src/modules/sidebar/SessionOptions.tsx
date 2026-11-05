@@ -180,27 +180,27 @@ export default function SessionOptions({
               <p className="truncate text-xs font-medium text-foreground" title={sessionName}>
                 {sessionName}
               </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">{providerLabel} session</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">{providerLabel} 對話</p>
             </div>
           )}
           items={[
             ...(onTogglePin ? [{
               key: 'pin',
               label: isPinned ? '取消收藏' : '加入收藏',
-              description: isPinned ? undefined : '收藏的 session 排在這個專案最上方（只在這台瀏覽器）',
+              description: isPinned ? undefined : '收藏的對話排在這個專案最上方（只在這台瀏覽器）',
               icon: isPinned ? StarOff : Star,
               onSelect: onTogglePin,
             }] : []),
             ...(projectId !== null ? [{
               key: 'rename',
-              label: 'Rename session',
+              label: '重新命名',
               icon: Edit2,
               onSelect: () => onStartEditingSession(projectId, sessionId, sessionName),
             }] : []),
             {
               key: 'copy',
               label: copyLabel,
-              description: copyState === 'error' ? 'Click to try again.' : undefined,
+              description: copyState === 'error' ? '點一下再試一次' : undefined,
               icon: CopyStateIcon,
               loading: isCopyPending,
               closeOnSelect: false,
@@ -208,15 +208,15 @@ export default function SessionOptions({
             },
             ...(canFork && onFork ? [{
               key: 'fork',
-              label: 'Fork session',
-              description: 'Continue from a copy, leaving this one untouched.',
+              label: '分支出新對話',
+              description: '從副本接著做，原本的對話不變',
               icon: GitBranch,
               onSelect: onFork,
             }] : []),
             ...(onShare ? [{
               key: 'co-workspace',
               label: 'Co-Work',
-              description: isShared ? '已共享，點這裡調整或停止' : '選擇跟誰共享這個 session',
+              description: isShared ? '已共享，點這裡調整或停止' : '選擇跟誰共享這個對話',
               icon: Users,
               onSelect: onShare,
             }] : []),
@@ -252,7 +252,7 @@ export default function SessionOptions({
             ] : []),
             ...(canDelete && !isProcessing ? [{
               key: 'delete',
-              label: 'Archive or delete session',
+              label: '封存或刪除對話',
               icon: Trash2,
               isDanger: true,
               showDividerBefore: true,

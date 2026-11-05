@@ -54,6 +54,18 @@ test('a send refused as RUN_IN_PROGRESS is explained in Chinese, without the ses
   assert.equal(appended[0].content, '上一則還在處理中，這則沒有送出。等回覆完成後再送一次。');
 });
 
+test('a stop that arrives as the run completes (NO_ACTIVE_RUN) is not shown as an error', () => {
+  const { dispatch, appended } = renderHandlers();
+  dispatch({
+    kind: 'protocol_error',
+    code: 'NO_ACTIVE_RUN',
+    error: 'Session "viewed-session" has no active run.',
+    sessionId: 'viewed-session',
+  } as unknown as ServerEvent);
+
+  assert.equal(appended.length, 0);
+});
+
 test('other protocol errors keep their own text', () => {
   const { dispatch, appended } = renderHandlers();
   dispatch({

@@ -6,6 +6,7 @@ import { playChatCompletionSound, playNotificationSound } from '@/shared/utils';
 import { serverNow } from '@/shared/serverClock';
 import { consumeInterruptSend } from '@/modules/chat/utils/interruptSends';
 import type { SessionStore } from '@/modules/chat/hooks/useSessionStore';
+import { voiceCallBus } from '@/modules/voice-call/voiceCallBus';
 
 const isActionablePermissionRequest = (request: { toolName?: unknown } | null | undefined): boolean => {
   return request?.toolName !== 'ExitPlanMode' && request?.toolName !== 'exit_plan_mode';
@@ -109,7 +110,14 @@ export function useChatRealtimeHandlers({
         }
       }
 
+      // DHC CLI 語音通話: the call follows the same frames the transcript does.
+      voiceCallBus.emit(msg, sid);
+
       switch (msg.kind) {
+        // DHC CLI 語音通話: the server dropped a resent turn it had already run; nothing to show.
+        case 'chat_send_duplicate':
+          return;
+
         case 'websocket_reconnected':
           onWebSocketReconnect?.();
           return;
@@ -161,6 +169,10 @@ export function useChatRealtimeHandlers({
             // Surface the failure in the conversation and stop the spinner —
             // the run never started (or was rejected), so no `complete` follows.
             onSessionIdle?.(sid);
+            // Stop pressed as the run completed: the run is over, which is what stop wanted — not an error.
+            if (msg.code === 'NO_ACTIVE_RUN') {
+              return;
+            }
             sessionStore.appendRealtime(sid, {
               id: `protocol_error_${Date.now()}`,
               sessionId: sid,
@@ -179,6 +191,11 @@ export function useChatRealtimeHandlers({
         // Sidebar/global events — owned by useProjectsState.
         case 'session_upserted':
         case 'loading_progress':
+          return;
+
+        // 指揮模式（modules/command-mode）自己訂閱；不是對話訊息，不能進對話紀錄。
+        case 'command_mode_state':
+        case 'command_frame':
           return;
 
         default:

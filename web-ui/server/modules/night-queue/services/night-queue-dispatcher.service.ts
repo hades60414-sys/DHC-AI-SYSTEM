@@ -3,9 +3,9 @@ import type { NightQueueItemRow } from '@/modules/database/index.js';
 import { chatRunRegistry, runDetachedChatTurn } from '@/modules/websocket/index.js';
 import type { ProviderRuntimeGateway } from '@/modules/websocket/index.js';
 
-/** The night window, in the server's local time: items start from 02:00 and none start at or after 07:00. */
-export const NIGHT_START_HOUR = 2;
-export const NIGHT_END_HOUR = 7;
+/** The night window, in the server's local time: items start from 01:00 and none start at or after 06:00. */
+export const NIGHT_START_HOUR = 1;
+export const NIGHT_END_HOUR = 6;
 
 const POLL_INTERVAL_MS = 30_000;
 
@@ -28,7 +28,7 @@ export const MAX_ATTEMPTS = 3;
 export const RETRY_BACKOFF_MS = 15 * 60_000;
 
 export const RESUME_NOTE =
-  '【夜間分流】上一次執行這則沒有完成（DHC CLI 重新啟動或執行出錯）。請先檢查目前進度，已完成的部分不要重做，接著完成下面這個原本的指示：';
+  '【夜間分流】上一次執行這則沒有完成（DHC AI System 重新啟動或執行出錯）。請先檢查目前進度，已完成的部分不要重做，接著完成下面這個原本的指示：';
 
 export const UNATTENDED_NOTE =
   '這是夜間分流排程的工作，沒有人在線上可以回答或核准。不要等待：採用你判斷最合理的做法繼續完成工作，並在最後的回覆列出你替使用者做的假設，以及被略過、需要人工確認的步驟。';
@@ -39,7 +39,7 @@ export const UNATTENDED_NOTE =
  * or outward actions to the user, and ends with a summary the user reads in the morning.
  */
 export const UNATTENDED_SYSTEM_NOTE = [
-  '這個工作是 DHC CLI 排程（夜間分流／鬧鐘）自動送出的，執行時沒有人在線上，也沒有人能回答問題或按「允許」。',
+  '這個工作是 DHC AI System 排程（夜間分流／鬧鐘）自動送出的，執行時沒有人在線上，也沒有人能回答問題或按「允許」。',
   '- 不要發問、不要等待確認：採用最合理的假設繼續做，並記下你的假設。',
   '- 盡量把能做的做完。某一步卡住就換個做法，或先完成其他部分，不要整個停下來。',
   '- 除非使用者在 prompt 裡明確要求，否則不可逆或對外的動作一律不做，改成記下來留給使用者：刪除或覆寫重要資料、付款或下單、修改權限或帳號設定、寄信／發訊息／對外發布、推送到遠端。',

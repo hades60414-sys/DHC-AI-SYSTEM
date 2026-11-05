@@ -59,6 +59,11 @@ const getProviderCommand = ({
     return 'opencode auth login';
   }
 
+  if (provider === 'agy') {
+    // First run of the interactive CLI walks through the Google sign-in.
+    return 'agy';
+  }
+
   return 'claude --dangerously-skip-permissions /login';
 };
 
@@ -67,6 +72,7 @@ const getProviderTitle = (provider: LLMProvider) => {
   if (provider === 'cursor') return 'Cursor CLI Login';
   if (provider === 'codex') return 'Codex CLI Login';
   if (provider === 'opencode') return 'OpenCode CLI Login';
+  if (provider === 'agy') return 'Google agy Login';
   return 'Claude CLI Login';
 };
 

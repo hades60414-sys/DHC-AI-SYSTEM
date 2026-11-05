@@ -17,7 +17,8 @@
     "tool": "工具",
     "claude": "Claude",
     "cursor": "Cursor",
-    "codex": "Codex"
+    "codex": "Codex",
+    "opencode": "OpenCode"
   },
   "tools": {
     "settings": "工具設定",
@@ -103,13 +104,16 @@
     "attachImages": "附加圖片",
     "send": "傳送",
     "stop": "停止",
-    "sendNow": "立即送出（會打斷目前這輪）",
+    "sendNow": "插話：加進正在跑的這輪",
+    "interruptNow": "打斷：停掉這輪、立刻送出",
     "placeholderAnswer": "也可以直接在這裡輸入答案…",
     "hintText": {
       "ctrlEnter": "Ctrl+Enter 傳送 • Shift+Enter 換行 • Tab 切換模式 • / 斜線指令",
       "enter": "Enter 傳送 • Shift+Enter 換行 • Tab 切換模式 • / 斜線指令",
-      "sendNow": "Enter 立即送出並打斷目前這輪 • 按「排隊」等它做完再送",
-      "answerQuestion": "Enter 會把輸入的文字當作上面問題的答案送出"
+      "sendNow": "Enter 插話，Claude 下一步就會看到 • 「打斷」停掉這輪 • 「排隊」等它做完再送",
+      "answerQuestion": "Enter 會把輸入的文字當作上面問題的答案送出",
+      "queue": "按 Enter 排入下一則訊息",
+      "updateQueued": "按 Enter 更新已排隊的訊息"
     },
     "queue": {
       "sendNext": "排隊：等這輪做完再送",
@@ -175,9 +179,18 @@
       "claude": "準備好使用 {{model}} 的 Claude。請在下方開始輸入您的訊息。",
       "cursor": "準備好使用 {{model}} 的 Cursor。請在下方開始輸入您的訊息。",
       "codex": "準備好使用 {{model}} 的 Codex。請在下方開始輸入您的訊息。",
-      "default": "請在上方選擇一個提供者以開始"
+      "default": "請在上方選擇一個提供者以開始",
+      "opencode": "已準備好用 {{model}} 跑 OpenCode，請在下方輸入訊息。"
     },
-    "pressToSearch": "按 <kbd>{{shortcut}}</kbd> 搜尋工作階段、檔案和提交"
+    "pressToSearch": "按 <kbd>{{shortcut}}</kbd> 搜尋工作階段、檔案和提交",
+    "chooseModel": "選擇模型",
+    "chooseModelDescription": "內建與自訂模型都在同一份清單",
+    "addModel": "新增模型",
+    "searchModels": "搜尋模型...",
+    "manageModels": "管理模型",
+    "noModelsFound": "找不到模型。",
+    "loadingModels": "載入模型中…",
+    "clickToChange": "點一下換模型"
   },
   "session": {
     "continue": {
@@ -205,7 +218,7 @@
       "description": "選擇一個專案以在該目錄中開啟互動式 Shell"
     },
     "status": {
-      "newSession": "新工作階段",
+      "newSession": "新增AI對話",
       "initializing": "初始化中...",
       "restarting": "重新啟動中..."
     },
@@ -253,7 +266,8 @@
     },
     "providers": {
       "assistant": "助理"
-    }
+    },
+    "stop": "停止"
   },
   "projectSelection": {
     "startChatWithProvider": "選擇一個專案以開始與 {{provider}} 聊天"
@@ -263,6 +277,8 @@
   },
   "message": {
     "editAndResend": "編輯並重新傳送",
+    "midTurnLabel": "插話",
+    "midTurn": "這輪還在跑時送出，Claude 在下一步之前讀到",
     "forkFromHere": "從此處分支"
   },
   "composer": {
@@ -270,7 +286,13 @@
       "title": "正在取代先前的訊息",
       "filesNotReverted": "已修改的檔案不會還原",
       "cancel": "取消"
-    }
+    },
+    "reasoning": "推理強度",
+    "model": "模型",
+    "effortDefault": "預設",
+    "loadingModels": "載入模型中…",
+    "modelMenu": "選擇模型與推理強度",
+    "permissionHeading": "{{provider}} 的動作要怎麼核准？"
   },
   "export": {
     "trigger": "匯出對話",
@@ -291,9 +313,9 @@
   },
   "nightQueue": {
     "label": "分流",
-    "toggleOn": "分流：打開後送出的 prompt 會先存起來，由伺服器排程一次跑一則。開頭寫 @夜間（或不寫）＝02:00 起依序跑；@12:05 指定那一則的時間；@重置＝額度重置時",
+    "toggleOn": "分流：打開後送出的 prompt 會先存起來，01:00 起由伺服器依序一次跑一則。要指定時間或等額度重置，改用時鐘（排程送出）",
     "toggleOff": "關閉分流（還有已存的 prompt 時會先問你：立即執行或全部取消）",
-    "banner": "分流中：送出的 prompt 會先存起來。開頭寫 @夜間（或不寫）＝02:00 起依存入順序一次跑一則，07:00 後不開新的、沒跑完的隔晚接著；@12:05 就那一則 12:05 跑；@重置＝額度重置時。再按一次分流可以立即執行或取消。",
+    "banner": "分流中：送出的 prompt 會先存起來，01:00 起依存入順序一次跑一則，06:00 後不開新的、沒跑完的隔晚接著。要指定時間或等額度重置，改用時鐘（排程送出）。再按一次分流可以立即執行或取消。",
     "bannerBypass": "執行時用 bypass（不必按允許；刪資料、付款、改權限、對外發送仍會跳過並記錄給你）。",
     "bypassQuestion": {
       "title": "分流",
@@ -302,11 +324,11 @@
       "no": "不用 bypass 開啟",
       "cancel": "取消"
     },
-    "placeholder": "夜間分流中：prompt 會先存起來，02:00 起依序執行；開頭寫 @12:05 可指定時間…",
-    "hint": "Enter 存進排程 • 開頭 @12:05 指定時間、@重置＝額度重置時",
+    "placeholder": "夜間分流中：prompt 會先存起來，01:00 起依序執行…",
+    "hint": "Enter 存進夜間排程 • 要指定時間改用時鐘",
     "store": "存進夜間排程",
     "status": {
-      "waiting": "等 02:00 開始 · 第 {{position}} 順位",
+      "waiting": "等 01:00 開始 · 第 {{position}} 順位",
       "waitingInWindow": "排隊中 · 第 {{position}} 順位",
       "waitingAlarm": "等 {{time}} 開始 · 第 {{position}} 順位",
       "runNow": "即將執行 · 第 {{position}} 順位",
@@ -322,8 +344,10 @@
       "body_other": "這個對話還有 {{count}} 則夜間排程。要現在就執行，還是全部取消？",
       "runNow": "立即執行",
       "cancelAll": "全部取消",
-      "back": "返回"
-    }
+      "back": "返回",
+      "body_one": "這個對話有 {{count}} 則提示在等今晚執行。要現在執行，還是取消？"
+    },
+    "attachments_one": "已附 {{count}} 個檔案"
   },
   "schedule": {
     "trigger": "排程這則訊息",
@@ -337,8 +361,94 @@
       "1440": "明天"
     },
     "pending": "將於 {{when}} 傳送",
+    "sending": "時間到了，排隊中：等這個對話前一則跑完就送出",
     "failed": "未傳送 — {{reason}}",
     "cancel": "取消排程訊息",
     "dismiss": "關閉失敗提示"
+  },
+  "interactive": {
+    "title": "互動提示",
+    "waiting": "正在等你在 CLI 回應",
+    "instruction": "請到執行 Claude 的終端機裡選一個選項。",
+    "selectedOption": "✓ Claude 選了第 {{number}} 項",
+    "instructionDetail": "在 CLI 裡，你會用方向鍵或輸入數字來選這個選項。"
+  },
+  "voice": {
+    "input": "語音輸入",
+    "stopRecording": "停止錄音",
+    "transcribing": "轉成文字中…",
+    "speak": "朗讀",
+    "stopSpeaking": "停止",
+    "loading": "載入中…"
+  },
+  "misc": {
+    "copyToClipboard": "複製到剪貼簿",
+    "copyCommand": "複製指令",
+    "runningTask": "執行中的任務",
+    "userAskedRevise": "使用者要求修改計畫",
+    "typeAnswer": "輸入你的答案...",
+    "skipOne": "略過",
+    "skipAll": "全部略過",
+    "exportChat": "匯出對話",
+    "closeImagePreview": "關閉圖片預覽",
+    "availableCommands": "可用指令",
+    "filterCommands": "篩選指令...",
+    "closeModal": "關閉指令結果視窗",
+    "noDescription": "沒有說明。",
+    "modelChangeFailed": "目前無法換模型。",
+    "choiceSavedHint": "你的選擇會存在這個對話，並成為新對話的預設。",
+    "docsSearchSubtitle": "不用離開對話，就能查內建指令、語法與用法。",
+    "enterModelInfo": "請同時填模型名稱與模型 ID。",
+    "modelSaveFailed": "無法儲存這個模型。",
+    "modelDeleteFailed": "無法刪除這個模型。",
+    "cancelEditing": "取消編輯",
+    "userDeniedTool": "使用者拒絕了這個工具",
+    "showTokenUsage": "顯示 token 用量",
+    "fallbackCommands": {
+      "models": "瀏覽目前服務可用的模型。",
+      "cost": "查看這個對話的 token 用量。",
+      "status": "查看執行環境、版本與服務狀態。",
+      "memory": "開啟專案的 CLAUDE.md 記憶檔。",
+      "config": "開啟設定。",
+      "help": "顯示指令說明與語法。",
+      "clear": "在這個專案開始全新對話（清掉上下文）。"
+    },
+    "modalMeta": {
+      "helpEyebrow": "指令中心",
+      "helpTitle": "說明與快速鍵",
+      "helpSubtitle": "不用離開對話，就能查內建指令、語法與用法。",
+      "modelsEyebrow": "模型選擇",
+      "modelsTitle": "選擇模型",
+      "modelsSubtitle": "挑這個服務要用的模型。",
+      "costEyebrow": "對話用量",
+      "costTitle": "Token 用量",
+      "costSubtitle": "這個對話的輸入、輸出與總 token 數。",
+      "statusEyebrow": "執行狀況",
+      "statusTitle": "系統狀態",
+      "statusSubtitle": "版本、服務、執行環境一次看完。",
+      "commandResult": "指令結果"
+    },
+    "choiceSavedSession": "你的選擇會存在這個對話，並成為新對話的預設。",
+    "choiceSavedDefault": "你的選擇會成為新對話的預設模型。",
+    "tokensUsed_one": "已用 {{count}} 個 token",
+    "tokensUsed_other": "已用 {{count}} 個 token",
+    "expandImage": "放大 {{name}}",
+    "tokensLabel_one": "token",
+    "tokensLabel_other": "token",
+    "escClosesModal": "按 Esc 可關閉視窗。",
+    "close": "關閉",
+    "reasoningThinking": "思考中…",
+    "reasoningThoughtFew": "思考了幾秒",
+    "reasoningThought": "思考了 {{duration}} 秒",
+    "selectAll": "可複選",
+    "dropFiles": "放開即可附加",
+    "removeFile": "移除 {{name}}",
+    "editFile": "編輯 {{name}}",
+    "modelSelector": "選擇模型",
+    "modelLibrary": "模型庫",
+    "yourModels": "你的模型",
+    "noCustomModels": "還沒有自訂模型",
+    "currentSelection": "目前選擇",
+    "runtimeOnline": "執行環境連線中"
   }
 }

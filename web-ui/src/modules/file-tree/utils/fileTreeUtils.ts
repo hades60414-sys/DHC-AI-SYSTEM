@@ -92,3 +92,27 @@ export function isImageFile(filename: string): boolean {
   return Boolean(extension && IMAGE_FILE_EXTENSIONS.has(extension));
 }
 
+
+export type FileTreeSortKey = 'name' | 'modified';
+
+export type FileTreeSort = {
+  key: FileTreeSortKey;
+  desc: boolean;
+};
+
+// Folders stay above files in every mode, like the server's default order.
+export function sortFileTree(items: FileTreeNode[], sort: FileTreeSort): FileTreeNode[] {
+  const direction = sort.desc ? -1 : 1;
+  return [...items]
+    .sort((left, right) => {
+      if (left.type !== right.type) {
+        return left.type === 'directory' ? -1 : 1;
+      }
+      if (sort.key === 'modified') {
+        const diff = (Date.parse(left.modified ?? '') || 0) - (Date.parse(right.modified ?? '') || 0);
+        if (diff !== 0) return diff * direction;
+      }
+      return left.name.localeCompare(right.name) * (sort.key === 'name' ? direction : 1);
+    })
+    .map((item) => (item.children ? { ...item, children: sortFileTree(item.children, sort) } : item));
+}

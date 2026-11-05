@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, type Dispatch, type SetStateAction } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, type Dispatch, type SetStateAction } from 'react';
 
 import { ChatInterface } from '@/modules/chat';
 import { FileTree } from '@/modules/file-tree';
@@ -15,6 +15,10 @@ import { EditorSidebar, useEditorSidebar } from '@/modules/code-editor';
 import WorkspaceHeader from '@/modules/project-workspace/WorkspaceHeader';
 import WorkspaceStateView from '@/modules/project-workspace/WorkspaceStateView';
 import WorkspaceErrorBoundary from '@/modules/project-workspace/WorkspaceErrorBoundary';
+import { useCanvasOpen } from '@/modules/canvas';
+
+// DHC CLI 10/29 畫布: loaded the first time a canvas opens.
+const CanvasPanel = lazy(() => import('@/modules/canvas/CanvasPanel'));
 
 type WorkspaceMainProps = {
   selectedProject: Project | null;
@@ -93,10 +97,10 @@ function WorkspaceMain({
   }, [shouldShowTasksTab, activeTab, setActiveTab]);
 
   useEffect(() => {
-    if (!shouldShowBrowserTab && activeTab === 'browser') {
+    if (activeTab === 'browser' || activeTab === 'git') {
       setActiveTab('chat');
     }
-  }, [shouldShowBrowserTab, activeTab, setActiveTab]);
+  }, [activeTab, setActiveTab]);
 
   // Stable so React.memo(ChatInterface) can bail out: an inline arrow here made
   // every WorkspaceMain render re-render the whole chat tree, including during
@@ -118,6 +122,7 @@ function WorkspaceMain({
   // Stable arguments keep usePaletteOpsRegister's effect from tearing down and
   // rewriting the whole palette registry on every render.
   usePaletteOpsRegister({ openFile, openFileInEditor });
+  const canvasOpen = useCanvasOpen();
 
   if (isLoading) {
     return <WorkspaceStateView mode="loading" isMobile={isMobile} onMenuClick={onMenuClick} />;
@@ -135,7 +140,6 @@ function WorkspaceMain({
         selectedProject={selectedProject}
         selectedSession={selectedSession}
         shouldShowTasksTab={shouldShowTasksTab}
-        shouldShowBrowserTab={shouldShowBrowserTab}
         isMobile={isMobile}
         onMenuClick={onMenuClick}
       />
@@ -211,6 +215,14 @@ function WorkspaceMain({
             </div>
           )}
         </div>
+
+        {activeTab === 'chat' && canvasOpen && (
+          <WorkspaceErrorBoundary showDetails>
+            <Suspense fallback={null}>
+              <CanvasPanel isMobile={isMobile} onOpenInEditor={openFileInEditor} />
+            </Suspense>
+          </WorkspaceErrorBoundary>
+        )}
 
         <EditorSidebar
           editingFile={editingFile}

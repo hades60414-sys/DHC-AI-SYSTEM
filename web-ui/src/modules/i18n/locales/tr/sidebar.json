@@ -20,7 +20,7 @@
     "runClaudeCli": "Başlamak için bir proje dizininde Claude CLI çalıştır"
   },
   "app": {
-    "title": "DHC CLI",
+    "title": "DHC AI System",
     "subtitle": "AI kodlama asistanı arayüzü"
   },
   "sessions": {

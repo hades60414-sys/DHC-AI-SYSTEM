@@ -11,7 +11,7 @@
     "starred": "星號標記",
     "all": "全部",
     "untitledSession": "未命名工作階段",
-    "newSession": "新工作階段",
+    "newSession": "新增AI對話",
     "codexSession": "Codex 工作階段",
     "fetchingProjects": "正在取得您的 Claude 專案和工作階段",
     "projects": "專案",
@@ -20,12 +20,12 @@
     "runClaudeCli": "在專案目錄中執行 Claude CLI 以開始使用"
   },
   "app": {
-    "title": "DHC CLI",
+    "title": "DHC AI System",
     "subtitle": "AI 程式開發助手"
   },
   "sessions": {
     "title": "工作階段",
-    "newSession": "新增工作階段",
+    "newSession": "新增AI對話",
     "deleteSession": "刪除工作階段",
     "renameSession": "重新命名工作階段",
     "noSessions": "暫無工作階段",
@@ -49,7 +49,8 @@
     "cancel": "取消",
     "clearSearch": "清除搜尋",
     "openCommandPalette": "開啟指令面板",
-    "attentionRequiredIndicator": "已完成或在等你回覆，還沒看過"
+    "attentionRequiredIndicator": "已完成或在等你回覆，還沒看過",
+    "activeSessionIndicator": "最近有動靜的對話（10 分鐘內）"
   },
   "navigation": {
     "chat": "聊天",
@@ -131,7 +132,8 @@
     "matches_one": "{{count}} 個符合",
     "matches_other": "{{count}} 個符合",
     "projectsScanned_one": "{{count}} 個專案已掃描",
-    "projectsScanned_other": "{{count}} 個專案已掃描"
+    "projectsScanned_other": "{{count}} 個專案已掃描",
+    "archiveOnlyTooltip": "只看已封存"
   },
   "deleteConfirmation": {
     "deleteProject": "移除專案",
@@ -148,5 +150,32 @@
     "deleteAllData": "永久刪除所有資料",
     "allConversationsDeleted": "專案將從側邊欄中移除。您的檔案、記憶和工作階段資料將會保留。",
     "cannotUndo": "您可以稍後重新新增此專案。"
+  },
+  "recent": {
+    "title": "最近對話",
+    "emptyTitle": "還沒有對話",
+    "emptyDescription": "最近更新的對話會顯示在這裡。",
+    "loadFailed": "無法載入最近對話",
+    "loadMore": "載入更早的對話",
+    "loadingMore": "載入中...",
+    "loading": "載入最近對話中"
+  },
+  "session": {
+    "options": "對話選項",
+    "optionsFor": "「{{name}}」的選項",
+    "rename": "改名",
+    "archiveOrDelete": "封存或刪除"
+  },
+  "running": {
+    "emptyTitle": "目前沒有執行中的對話",
+    "noMatchingSessions": "沒有符合搜尋的執行中對話。",
+    "emptyDescription": "AI 處理中的工作會顯示在這裡。",
+    "title": "執行中"
+  },
+  "archived": {
+    "restore": "還原對話",
+    "restoreProject": "還原專案",
+    "restoreAction": "還原",
+    "deletePermanently": "永久刪除"
   }
 }

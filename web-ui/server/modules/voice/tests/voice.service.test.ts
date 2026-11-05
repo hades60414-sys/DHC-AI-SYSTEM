@@ -20,7 +20,7 @@ test('reports whether the server-controlled backend is configured', () => {
     },
   });
 
-  assert.deepEqual(service.getHealth(), { configured: false });
+  assert.deepEqual(service.getHealth(), { configured: false, callStt: false });
 });
 
 test('transcribes with injected fetch and request-level credential/model overrides', async () => {
@@ -50,6 +50,21 @@ test('transcribes with injected fetch and request-level credential/model overrid
   assert.ok(requestedOptions, 'fetchBackend should receive request options');
   assert.equal((requestedOptions.headers as Record<string, string>).Authorization, 'Bearer request-key');
   assert.equal((requestedOptions.body as FormData).get('model'), 'custom-whisper');
+});
+
+test('converts simplified transcripts to traditional and trims whitespace', async () => {
+  const service = createVoiceService({
+    defaults,
+    timeoutMs: 1_000,
+    fetchBackend: async () => new Response(JSON.stringify({ text: ' 查询报表设置\n' }), { status: 200 }),
+  });
+
+  const result = await service.transcribe({
+    audio: { bytes: Buffer.from('audio'), mimeType: 'audio/webm', fileName: 'recording.webm' },
+    overrides: {},
+  });
+
+  assert.deepEqual(result, { ok: true, value: { text: '查詢報表設置' } });
 });
 
 test('forwards the explicit TTS format and maps backend authentication failures', async () => {

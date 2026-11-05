@@ -22,10 +22,12 @@ import {
   Button,
   LLMProviderLogo,
 } from "@/shared/ui";
+import { useAgyWorkspaceAccess } from "@/modules/chat/hooks/useAgyWorkspaceAccess";
 import ModelGroupList, { type ModelGroup } from "@/modules/chat/composer/ModelGroupList";
 import ModelLibraryPanel from "@/modules/chat/modals/ModelLibraryPanel";
 import NewSessionBoxPicker from "@/modules/chat/transcript/NewSessionBoxPicker";
 import { writeSelectedProvider } from '@/shared/selectedProvider';
+
 import { filterEnabledAgents, useEnabledAgents } from '@/shared/dhcConfig';
 
 const PROVIDER_META: { id: LLMProvider; name: string }[] = [
@@ -33,6 +35,7 @@ const PROVIDER_META: { id: LLMProvider; name: string }[] = [
   { id: "codex", name: "OpenAI" },
   { id: "cursor", name: "Cursor" },
   { id: "opencode", name: "OpenCode" },
+  { id: "agy", name: "Google agy" },
 ];
 
 const MOD_KEY =
@@ -67,6 +70,8 @@ type ProviderSelectionEmptyStateProps = {
   setInput: React.Dispatch<React.SetStateAction<string>>;
   /** DHC CLI 收納盒: lets a new conversation be filed into one of this project's boxes. */
   projectId?: string;
+  /** Project folder; Google agy is only offered when the server whitelists it. */
+  projectPath?: string;
 };
 
 function getModelConfig(
@@ -82,6 +87,7 @@ function getProviderDisplayName(p: LLMProvider) {
   if (p === "cursor") return "Cursor";
   if (p === "codex") return "Codex";
   if (p === "opencode") return "OpenCode";
+  if (p === "agy") return "Google agy";
   return "Claude";
 }
 
@@ -105,8 +111,10 @@ export default function ProviderSelectionEmptyState({
   onShowAllTasks,
   setInput,
   projectId,
+  projectPath,
 }: ProviderSelectionEmptyStateProps) {
   const { t } = useTranslation("chat");
+  const agyAccess = useAgyWorkspaceAccess(projectPath);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [modelLibraryOpen, setModelLibraryOpen] = useState(false);
 
@@ -134,8 +142,11 @@ export default function ProviderSelectionEmptyState({
       provider: meta.id,
       name: meta.name,
       models: providerModelCatalog[meta.id]?.OPTIONS ?? [],
+      disabledReason: meta.id === "agy" && !agyAccess.allowed
+        ? (agyAccess.loading ? "正在確認這個專案能不能用 Google agy…" : (agyAccess.reason ?? "這個專案不能用 Google agy。"))
+        : undefined,
     })),
-    [providerModelCatalog, enabledAgents],
+    [providerModelCatalog, agyAccess],
   );
 
   const nextTaskPrompt = t("tasks.nextTaskPrompt", {
@@ -220,7 +231,7 @@ export default function ProviderSelectionEmptyState({
             </DialogTrigger>
 
             <DialogContent className="max-w-md overflow-hidden p-0">
-              <DialogTitle>Model Selector</DialogTitle>
+              <DialogTitle>{t('chat:misc.modelSelector')}</DialogTitle>
               <div className="flex items-center justify-between gap-3 border-b border-border/60 bg-muted/20 px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-foreground">
@@ -315,6 +326,10 @@ export default function ProviderSelectionEmptyState({
                 opencode: t("providerSelection.readyPrompt.opencode", {
                   model: providerModels.opencode,
                   defaultValue: "Ready with OpenCode {{model}}",
+                }),
+                agy: t("providerSelection.readyPrompt.agy", {
+                  model: providerModels.agy,
+                  defaultValue: "Ready with Google agy {{model}}",
                 }),
               }[provider]
             }

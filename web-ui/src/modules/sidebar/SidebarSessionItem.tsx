@@ -7,6 +7,7 @@ import { cn } from '@/shared/utils';
 import type { LLMProvider, Project, ProjectSession, SessionWithProvider } from '@/shared/types';
 import { describeBackgroundWork, useBackgroundWork } from '@/shared/backgroundWork';
 import { endFlashSession, useIsFlashSession } from '@/shared/flashTasks';
+import { useIsBotSession } from '@/shared/botSessions';
 import { leaveCoSession, openCoShareDialog, setCoMuted, useCoSession } from '@/shared/coSessions';
 import { endSessionDrag, moveSessionToBox, startSessionDrag, useProjectBoxes } from '@/shared/sessionBoxes';
 import { PROVIDER_LABELS, createSessionViewModel, formatCompactAge } from '@/modules/sidebar/utils/sidebarProjectFormatting';
@@ -21,6 +22,8 @@ import SessionOptions from '@/modules/sidebar/SessionOptions';
 import QuickTitleButton from '@/modules/sidebar/QuickTitleButton';
 import SessionTypeBadge from '@/modules/sidebar/SessionTypeBadge';
 import { usePinnedSessions } from '@/modules/sidebar/utils/pinnedSessions';
+import { MentionDot, useMentionCount } from '@/modules/chat-room';
+import { REF_DRAG_TYPE } from '@/shared/chatRoom';
 
 type SidebarSessionItemProps = {
   project: Project;
@@ -50,6 +53,20 @@ type SidebarSessionItemProps = {
 };
 
 /** Rendered by SidebarProjectSessions for one session row, including its rename, copy and delete controls. */
+/** 團隊小助理's face (same as in the chat room) on a conversation an AI opened on its own. */
+function BotFace({ className }: { className: string }) {
+  return (
+    <span
+      role="img"
+      aria-label="團隊小助理開的對話"
+      title="團隊小助理開的對話"
+      className={cn('flex items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-green-500 font-semibold leading-none text-white', className)}
+    >
+      助
+    </span>
+  );
+}
+
 function SidebarSessionItem({
   project,
   session,
@@ -112,6 +129,8 @@ function SidebarSessionItem({
   const coSessionForMute = useCoSession(session.id);
   const isMuted = Boolean(coSessionForMute?.muted?.includes(project.projectId));
   const showAttentionIndicator = needsAttention && !isSelected && !isMuted;
+  // DHC CLI 10/16: someone @ you on this session (its sticky notes or its chat room) and you have not looked yet.
+  const mentionCount = useMentionCount('session', session.id);
   const providerLabel = PROVIDER_LABELS[session.__provider];
   // DHC CLI: the turn is over but subagents / background shells are still running — keep a (violet) light on.
   const backgroundWork = useBackgroundWork(session.id);
@@ -125,6 +144,7 @@ function SidebarSessionItem({
   // DHC CLI 快閃任務: an × right on the row deletes the session for good, no dialog. Not while anything still runs.
   // On desktop it takes the age's slot inside the link, so it is a span like the star (no button inside <a>).
   const isFlash = useIsFlashSession(session.id, project);
+  const isBot = useIsBotSession(session.id);
   const showFlashEnd = isFlash && !isProcessing && !backgroundWork && !isEditing;
   const endThisFlashSession = (event: SyntheticEvent) => {
     event.preventDefault();
@@ -227,7 +247,9 @@ function SidebarSessionItem({
     >
       {coSession
         ? <CoAvatarStack session={coSession} />
-        : <LLMProviderLogo provider={session.__provider} className="h-3 w-3" />}
+        : isBot
+          ? <BotFace className="h-4 w-4 text-[9px]" />
+          : <LLMProviderLogo provider={session.__provider} className="h-3 w-3" />}
       <SessionTypeBadge sessionId={session.id} isFlash={isFlash} />
     </div>
   );
@@ -276,18 +298,22 @@ function SidebarSessionItem({
       {hasInvite && !isSelected ? (
         <div className="absolute left-0 top-1/2 z-20 -translate-x-1 -translate-y-1/2 transform">
           <Tooltip content="Co-Work 邀請未讀" position="right">
-            <div role="status" aria-label="Co-Work 邀請未讀" data-testid="co-invite-unread" className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+            <div role="img" aria-label="Co-Work 邀請未讀" data-testid="co-invite-unread" className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
           </Tooltip>
+        </div>
+      ) : mentionCount > 0 && !isSelected ? (
+        <div className="absolute left-0 top-1/2 z-20 -translate-x-1 -translate-y-1/2 transform">
+          <MentionDot count={mentionCount} />
         </div>
       ) : showAttentionIndicator ? (
         <div className="absolute left-0 top-1/2 z-20 -translate-x-1 -translate-y-1/2 transform">
           <Tooltip
-            content={t('tooltips.attentionRequiredIndicator', { defaultValue: 'Session needs attention' })}
+            content={t('tooltips.attentionRequiredIndicator', { defaultValue: '已完成或在等你回覆，還沒看過' })}
             position="right"
           >
             <div
-              role="status"
-              aria-label={t('tooltips.attentionRequiredIndicator', { defaultValue: 'Session needs attention' })}
+              role="img"
+              aria-label={t('tooltips.attentionRequiredIndicator', { defaultValue: '已完成或在等你回覆，還沒看過' })}
               className="h-2 w-2 animate-pulse rounded-full bg-amber-500"
             />
           </Tooltip>
@@ -301,6 +327,16 @@ function SidebarSessionItem({
       {isCompact && (
       <div>
         <div
+          role="button"
+          tabIndex={0}
+          aria-current={isSelected ? 'true' : undefined}
+          onKeyDown={(event) => {
+            if (event.target !== event.currentTarget) return;
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              selectMobileSession();
+            }
+          }}
           className={cn(
             'p-2 mx-3 my-0.5 rounded-md bg-card border active:scale-[0.98] transition-all duration-150 relative',
             // DHC CLI: the open conversation stands out at a glance — tinted, outlined, a bar down its left edge.
@@ -360,7 +396,7 @@ function SidebarSessionItem({
             {showFlashEnd && renderFlashEnd('h-8 w-8')}
             <button
               type="button"
-              aria-label={`Session options for ${sessionView.sessionName}`}
+              aria-label={`「${sessionView.sessionName}」的選項`}
               aria-haspopup="dialog"
               aria-expanded={isMobileOptionsOpen}
               className="ml-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted active:scale-95"
@@ -380,19 +416,19 @@ function SidebarSessionItem({
             animationClassName="animate-bottom-sheet-content-show motion-reduce:animate-none"
             className="bottom-0 left-0 top-auto max-w-none translate-x-0 translate-y-0 rounded-b-none rounded-t-2xl border-x-0 border-b-0 px-4 pb-safe-area-inset-bottom pt-3"
           >
-            <DialogTitle>Session options</DialogTitle>
+            <DialogTitle>對話選項</DialogTitle>
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-muted-foreground/30" aria-hidden="true" />
 
             <div className="mb-4 flex items-center gap-3 px-1">
               <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-muted">
-                <LLMProviderLogo provider={session.__provider} className="h-5 w-5" />
+                {isBot ? <BotFace className="h-6 w-6 text-xs" /> : <LLMProviderLogo provider={session.__provider} className="h-5 w-5" />}
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground" title={sessionView.sessionName}>
                   {sessionView.sessionName}
                 </p>
                 <p id="mobile-session-options-description" className="text-xs text-muted-foreground">
-                  {providerLabel} session
+                  {providerLabel} 對話
                 </p>
               </div>
             </div>
@@ -400,7 +436,7 @@ function SidebarSessionItem({
             {isEditing ? (
               <div className="mb-3 space-y-2">
                 <label htmlFor={`mobile-session-rename-${session.id}`} className="block px-1 text-xs font-medium text-muted-foreground">
-                  Session name
+                  對話名稱
                 </label>
                 <input
                   id={`mobile-session-rename-${session.id}`}
@@ -427,7 +463,7 @@ function SidebarSessionItem({
                     className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-transform active:scale-95"
                   >
                     <Check className="h-5 w-5 flex-shrink-0" />
-                    Save
+                    儲存
                   </button>
                   <button
                     type="button"
@@ -435,7 +471,7 @@ function SidebarSessionItem({
                     className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-muted/35 px-4 py-3 text-sm font-medium text-foreground transition-colors active:bg-muted"
                   >
                     <X className="h-5 w-5 flex-shrink-0" />
-                    Cancel
+                    取消
                   </button>
                 </div>
               </div>
@@ -447,7 +483,7 @@ function SidebarSessionItem({
                   className="flex min-h-12 w-full items-center gap-3 rounded-xl border border-border bg-muted/35 px-4 py-3 text-left text-foreground transition-colors active:bg-muted"
                 >
                   <Edit2 className="h-5 w-5 flex-shrink-0" />
-                  <span className="text-sm font-medium">Rename session</span>
+                  <span className="text-sm font-medium">改名</span>
                 </button>
 
                 <button
@@ -557,7 +593,7 @@ function SidebarSessionItem({
                     className="flex min-h-12 w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-red-600 transition-colors active:bg-red-500/10 dark:text-red-400"
                   >
                     <Trash2 className="h-5 w-5 flex-shrink-0" />
-                    <span className="text-sm font-medium">Archive or delete session</span>
+                    <span className="text-sm font-medium">封存或刪除</span>
                   </button>
                 )}
               </div>
@@ -569,7 +605,7 @@ function SidebarSessionItem({
                 onClick={() => setMobileOptionsOpen(false)}
                 className="mb-3 mt-2 min-h-11 w-full rounded-xl text-sm font-medium text-muted-foreground transition-colors active:bg-muted"
               >
-                Cancel
+                取消
               </button>
             )}
           </DialogContent>
@@ -609,11 +645,14 @@ function SidebarSessionItem({
             event.preventDefault();
             onSessionSelect(session, ownerProjectId);
           }}
-          onDragStart={canMoveToBox ? (event) => {
-            event.dataTransfer.effectAllowed = 'move';
+          onDragStart={(event) => {
+            // DHC CLI 10/16: dragged into a sticky note or the chat room, the session becomes @@title (or a shared card).
+            event.dataTransfer.setData(REF_DRAG_TYPE, JSON.stringify({ kind: 'session', id: session.id, label: coSession?.title || sessionView.sessionName }));
+            event.dataTransfer.effectAllowed = canMoveToBox ? 'copyMove' : 'copy';
+            if (!canMoveToBox) return;
             event.dataTransfer.setData('application/x-dhc-session', session.id);
             startSessionDrag({ sessionId: session.id, projectId: project.projectId });
-          } : undefined}
+          }}
           onDragEnd={canMoveToBox ? endSessionDrag : undefined}
         >
           <div className="flex w-full min-w-0 items-center gap-2">
@@ -626,7 +665,7 @@ function SidebarSessionItem({
                   // Zero-wide at rest (the negative margin cancels the row gap), grows in on hover.
                   <span
                     data-testid="row-hover-lead"
-                    className="-mr-2 flex max-w-0 flex-shrink-0 items-center gap-1 overflow-hidden opacity-0 transition-all duration-200 ease-out group-hover:mr-0 group-hover:max-w-[3rem] group-hover:opacity-100 group-hover:duration-[400ms] group-hover:ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none group-hover:delay-[60ms]"
+                    className="-mr-2 flex max-w-0 flex-shrink-0 items-center gap-1 overflow-hidden opacity-0 transition-all duration-200 ease-out group-hover:mr-0 group-hover:max-w-[3rem] group-hover:opacity-100 focus-within:mr-0 focus-within:max-w-[3rem] focus-within:opacity-100 group-hover:duration-[400ms] group-hover:ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none group-hover:delay-[60ms]"
                   >
                     {!isPinned && renderStar(false)}
                     {!isMuted && renderMuteBell(false)}

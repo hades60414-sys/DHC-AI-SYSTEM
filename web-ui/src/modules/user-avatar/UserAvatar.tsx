@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogTitle } from '@/shared/ui';
 import { ANIMAL_AVATARS, findAnimalAvatar } from '@/shared/animalAvatars';
+import { BOT_COLOR_CLASS, parseBotAvatar } from '@/shared/botAvatar';
 import { setUserAvatar, useUserAvatar } from '@/shared/userAvatars';
 import { readActiveSettingsProfile } from '@/shared/userSettings';
 import { cn } from '@/shared/utils';
@@ -19,6 +20,20 @@ export function AnimalAvatarImage({ avatarId, className }: { avatarId: string; c
       aria-label={avatar.name}
       dangerouslySetInnerHTML={{ __html: avatar.body }}
     />
+  );
+}
+
+/** 11/04 AI 辦公室: a helper's face from its `avatar` text (src/shared/botAvatar.ts); empty is the green 「助」. */
+export function BotFace({ avatar, className }: { avatar?: string | null; className?: string }) {
+  const face = parseBotAvatar(avatar);
+  if (face.kind === 'animal') {
+    if (findAnimalAvatar(face.id)) return <AnimalAvatarImage avatarId={face.id} className={className} />;
+    return <BotFace className={className} />;
+  }
+  return (
+    <span className={cn('flex items-center justify-center rounded-full bg-gradient-to-br font-semibold leading-none text-white', BOT_COLOR_CLASS[face.color], className)}>
+      {face.char}
+    </span>
   );
 }
 
@@ -51,7 +66,8 @@ export function AvatarPickerDialog({ open, onOpenChange, profileName }: AvatarPi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-xl overflow-y-auto p-5">
+      {/* Above the settings window (z-[9999]), which opens it from 專案設定. */}
+      <DialogContent wrapperClassName="z-[10000]" className="max-h-[85vh] max-w-xl overflow-y-auto p-5">
         <DialogTitle>選頭像</DialogTitle>
         <div className="mb-4 flex items-center gap-3">
           <UserAvatarFace className="h-11 w-11 shrink-0" />

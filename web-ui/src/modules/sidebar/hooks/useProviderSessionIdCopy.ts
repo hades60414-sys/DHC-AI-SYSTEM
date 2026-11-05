@@ -81,14 +81,14 @@ export function useProviderSessionIdCopy(sessionId: string, providerLabel: strin
   }, [copy, copyState, load, providerSessionId]);
 
   const copyLabel = copyState === 'loading'
-    ? `Loading ${providerLabel} session ID…`
+    ? `正在讀取 ${providerLabel} 對話 ID…`
     : copyState === 'copied'
-      ? `${providerLabel} session ID copied`
+      ? `已複製 ${providerLabel} 對話 ID`
       : copyState === 'error'
         ? providerSessionId
-          ? `Couldn't copy ${providerLabel} session ID`
-          : `${providerLabel} session ID unavailable`
-        : `Copy ${providerLabel} session ID`;
+          ? `無法複製 ${providerLabel} 對話 ID`
+          : `${providerLabel} 對話 ID 無法取得`
+        : `複製 ${providerLabel} 對話 ID`;
 
   return {
     copyState,

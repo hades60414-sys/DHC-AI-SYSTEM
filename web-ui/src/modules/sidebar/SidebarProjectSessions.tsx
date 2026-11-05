@@ -31,6 +31,7 @@ import SidebarSessionBox, { BoxNameInput } from '@/modules/sidebar/SidebarSessio
 import { useCompactSidebar } from '@/modules/sidebar/hooks/useCompactSidebar';
 import { isQueryProject } from '@/modules/sidebar/hooks/useSidebarController';
 import { orderPinnedFirst, usePinnedSessions } from '@/modules/sidebar/utils/pinnedSessions';
+import { getSessionDate } from '@/modules/sidebar/utils/sidebarProjectFormatting';
 
 type SidebarProjectSessionsProps = {
   project: Project;
@@ -43,6 +44,8 @@ type SidebarProjectSessionsProps = {
   activeSessions: ReadonlySet<string>;
   attentionSessionIds: ReadonlySet<string>;
   runningOnly?: boolean;
+  /** Last activity (ms) of every loaded session in any project, so a shared row sorts by the owner's latest message. */
+  sessionActivity?: ReadonlyMap<string, number>;
   currentTime: Date;
   /** The session being renamed, when it belongs to this project. */
   sessionRenameId: string | null;
@@ -93,6 +96,7 @@ export default function SidebarProjectSessions({
   activeSessions,
   attentionSessionIds,
   runningOnly = false,
+  sessionActivity,
   currentTime,
   sessionRenameId,
   sessionRenameDraft,
@@ -112,7 +116,13 @@ export default function SidebarProjectSessions({
   // DHC CLI C1: pinned sessions float to the top of the project's list.
   // Hooks must run before the early return, otherwise expanding a project crashes (React #310).
   const { pinnedIds } = usePinnedSessions();
-  const orderedSessions = useMemo(() => orderPinnedFirst(sessions, pinnedIds), [sessions, pinnedIds]);
+  // DHC 無痕查詢 (10/31): query zones keep no history; only the conversation on screen is listed.
+  const isQuery = isQueryProject(project);
+  const listedSessions = useMemo(
+    () => (isQuery ? sessions.filter((session) => session.id === selectedSession?.id) : sessions),
+    [isQuery, sessions, selectedSession?.id],
+  );
+  const orderedSessions = useMemo(() => orderPinnedFirst(listedSessions, pinnedIds), [listedSessions, pinnedIds]);
 
   // DHC CLI 收納盒: boxes first, each holding the sessions moved into it; everything else stays outside.
   const boxesEnabled = !isFlashProject(project) && !isQueryProject(project);
@@ -128,19 +138,30 @@ export default function SidebarProjectSessions({
   const loadedIds = useMemo(() => new Set(sessions.map((session) => session.id)), [sessions]);
 
   // DHC CLI Co-workspace: sessions other people shared with this project are listed here too. The share record
-  // carries enough to draw the row, so the owner's session pages need not be loaded.
+  // carries enough to draw the row, so the owner's session pages need not be loaded. A shared row takes the
+  // owner's latest activity when that session is loaded anywhere, so it sinks over time like any other row.
   const sharedWithProject = useSessionsSharedWith(project.projectId);
   const sharedIn = useMemo(() => sharedWithProject
     .filter(([sessionId]) => !loadedIds.has(sessionId))
-    .map(([sessionId, record]) => ({
-      ownerProjectId: record.ownerProjectId,
-      session: { id: sessionId, summary: record.title, lastActivity: record.sharedAt, __provider: record.provider } as SessionWithProvider,
-    })), [sharedWithProject, loadedIds]);
+    .map(([sessionId, record]) => {
+      const sharedAt = new Date(record.sharedAt || 0).getTime();
+      const lastActivity = new Date(Math.max(sharedAt, sessionActivity?.get(sessionId) ?? 0)).toISOString();
+      return {
+        ownerProjectId: record.ownerProjectId,
+        session: { id: sessionId, summary: record.title, lastActivity, __provider: record.provider } as SessionWithProvider,
+      };
+    }), [sharedWithProject, loadedIds, sessionActivity]);
   const visibleSharedIn = runningOnly ? sharedIn.filter(({ session }) => activeSessions.has(session.id)) : sharedIn;
+  const sharedOwnerById = new Map(visibleSharedIn.map(({ session, ownerProjectId }) => [session.id, ownerProjectId]));
+  const outsideWithShared = visibleSharedIn.length === 0 ? outside : orderPinnedFirst(
+    [...outside, ...visibleSharedIn.map(({ session }) => session)]
+      .sort((a, b) => getSessionDate(b).getTime() - getSessionDate(a).getTime()),
+    pinnedIds,
+  );
 
   // An open box can hold sessions older than the pages loaded so far: keep loading pages until they are in.
   // A page that brings nothing new ends it, so a failing load cannot loop.
-  const needsOlderPages = isExpanded && initialSessionsLoaded && hasMoreSessions
+  const needsOlderPages = !isQuery && isExpanded && initialSessionsLoaded && hasMoreSessions
     && boxState.boxes.some((box) => openBoxIds.has(box.id) && countUnloadedBoxMembers(boxState, box.id, loadedIds) > 0);
   const autoLoadedAtRef = useRef<number | null>(null);
   useEffect(() => {
@@ -155,7 +176,7 @@ export default function SidebarProjectSessions({
     return null;
   }
 
-  const hasSessions = sessions.length > 0 || visibleSharedIn.length > 0;
+  const hasSessions = listedSessions.length > 0 || visibleSharedIn.length > 0;
   const isDraggingBoxedSessionHere = draggedSession !== null
     && draggedSession.projectId === project.projectId
     && Boolean(boxState.assign[draggedSession.sessionId]);
@@ -230,6 +251,7 @@ export default function SidebarProjectSessions({
   const newBoxButton = boxesEnabled && (
     <button
       type="button"
+      data-minimal-hide
       title="新增收納盒"
       aria-label="新增收納盒"
       onClick={() => setIsCreatingBox(true)}
@@ -316,13 +338,11 @@ export default function SidebarProjectSessions({
         );
       })}
 
-      {visibleSharedIn.map(({ session, ownerProjectId }) => renderSession(session, ownerProjectId))}
-
       {!initialSessionsLoaded ? (
         <SessionListSkeleton />
       ) : !hasSessions ? (
         <div className="px-3 py-2 text-left">
-          <p className="text-xs text-muted-foreground">{t('sessions.noSessions')}</p>
+          <p className="text-xs text-muted-foreground">{isQuery ? '無痕查詢：不留紀錄，離開對話就刪除。' : t('sessions.noSessions')}</p>
         </div>
       ) : (
         <>
@@ -337,10 +357,10 @@ export default function SidebarProjectSessions({
                 拖到這裡移出收納盒
               </div>
             )}
-            {outside.map((session) => renderSession(session))}
+            {outsideWithShared.map((session) => renderSession(session, sharedOwnerById.get(session.id)))}
           </div>
 
-          {hasMoreSessions && (
+          {hasMoreSessions && !isQuery && (
             <Button
               variant="ghost"
               size="sm"
