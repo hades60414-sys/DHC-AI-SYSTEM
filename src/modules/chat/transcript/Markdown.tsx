@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import { MermaidDiagram } from '@/modules/code-editor';
 import { normalizeInlineCodeFences } from '@/modules/chat/utils/chatFormatting';
+import LocalMarkdownImage, { isLocalImageSrc, rewriteLocalImages } from '@/modules/chat/transcript/LocalMarkdownImage';
 import { copyTextToClipboard } from '@/shared/utils';
 import { SyntaxHighlighter } from '@/shared/syntaxHighlighter';
 import { usePaletteOps } from '@/modules/command-palette';
@@ -118,7 +119,7 @@ const CodeBlock = ({ node: _node, className, children, forceBlock, ...props }: C
           }
           className={`rounded-md p-1 transition-opacity focus-visible:opacity-100 ${copied
             ? 'text-green-600 opacity-100 dark:text-green-500'
-            : 'text-muted-foreground opacity-0 hover:text-foreground group-hover:opacity-100'
+            : 'text-muted-foreground opacity-0 hover:text-foreground group-hover:opacity-100 [@media(hover:none)]:opacity-100'
             }`}
           title={copied ? t('codeBlock.copied') : t('codeBlock.copyCode')}
           aria-label={copied ? t('codeBlock.copied') : t('codeBlock.copyCode')}
@@ -245,7 +246,7 @@ const markdownComponents = {
  */
 function MarkdownBodyRenderer({ children, breaks = false }: Omit<MarkdownProps, 'className'>) {
   const content = useMemo(
-    () => normalizeInlineCodeFences(String(children ?? '')),
+    () => rewriteLocalImages(normalizeInlineCodeFences(String(children ?? ''))),
     [children],
   );
   // Math support costs a remark tree pass plus a full KaTeX walk on every
@@ -271,6 +272,9 @@ function MarkdownBodyRenderer({ children, breaks = false }: Omit<MarkdownProps, 
   const components = useMemo(
     () => ({
       ...markdownComponents,
+      // 本機絕對路徑圖片走專案檔案端點；其餘（http(s)、data:）照原樣，只限制寬度不超出訊息框
+      img: ({ src, alt }: { src?: string; alt?: string }) =>
+        isLocalImageSrc(src) ? <LocalMarkdownImage src={src} alt={alt} /> : <img src={src} alt={alt} className="max-w-full" />,
       a: ({ href, children: linkChildren }: { href?: string; children?: React.ReactNode }) => {
         // Prefer the href when it is a real path; otherwise fall back to the
         // link text, since models often emit `[src/foo.ts]()` with an empty href.
@@ -308,7 +312,7 @@ function MarkdownBodyRenderer({ children, breaks = false }: Omit<MarkdownProps, 
   );
 
   return (
-    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={components as any}>
+    <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={components as any} urlTransform={(url) => (isLocalImageSrc(url) ? url : defaultUrlTransform(url))}>
       {content}
     </ReactMarkdown>
   );

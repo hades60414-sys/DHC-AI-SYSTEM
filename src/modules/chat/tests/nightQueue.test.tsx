@@ -31,8 +31,6 @@ const createSession = vi.hoisted(() => vi.fn());
 vi.mock('@/shared/api', () => {
   const okJson = (data: unknown) => Promise.resolve({ ok: true, json: async () => data });
   return {
-    // The quota-reset lookup (GET /api/dhc/usage) goes through the global fetch that stubUsage replaces.
-    authenticatedFetch: (url: string, init?: RequestInit) => fetch(url, init),
     api: {
       user: {
         drafts: () => okJson({ success: true, drafts: [] }),
@@ -154,12 +152,6 @@ const typeAndSubmit = async (view: ReturnType<typeof renderComposer>, text: stri
   });
 };
 
-const stubUsage = (resetsAt: Date | null) => {
-  vi.stubGlobal('fetch', vi.fn(async () => (resetsAt
-    ? { ok: true, json: async () => ({ session: { resets_at: resetsAt.toISOString() } }) }
-    : { ok: false, json: async () => ({}) })));
-};
-
 const panelControls = (overrides: Partial<NightQueueControls> = {}): NightQueueControls => ({
   enabled: false,
   mode: null,
@@ -208,60 +200,23 @@ test('in night mode Enter stores the prompt, with its settings, instead of sendi
   assert.equal(view.result.current.input, '');
 });
 
-test('"@12:05" at the start gives the prompt its own time and is not part of what is stored', async () => {
+test('"@夜間" at the start is read off; 分流 only queues for the night, so "@12:05" is just text', async () => {
   const stored: Stored[] = [];
-  const view = renderComposer([], { store: storeInto(stored) });
-
-  await typeAndSubmit(view, '@12:05 跑一次月報回測');
-
-  assert.equal(stored.length, 1);
-  assert.equal(stored[0].content, '跑一次月報回測');
-  assert.equal(stored[0].startAt, nextOccurrence('12:05')?.toISOString());
-});
-
-test('"@重置" starts the prompt a minute after the 5-hour quota resets', async () => {
-  const resetsAt = new Date(Date.now() + 2 * 3_600_000);
-  stubUsage(resetsAt);
-  const stored: Stored[] = [];
-  const view = renderComposer([], { store: storeInto(stored) });
-
-  await typeAndSubmit(view, '＠重置 繼續昨天的重構');
-
-  assert.equal(stored[0].content, '繼續昨天的重構');
-  assert.equal(stored[0].startAt, new Date(resetsAt.getTime() + 60_000).toISOString());
-});
-
-test('a time that cannot be read, or a reset time that is unknown, stops the store and says so', async () => {
   const errors: string[] = [];
-  const stored: Stored[] = [];
   const view = renderComposer([], { store: storeInto(stored), errors });
 
-  await typeAndSubmit(view, '@25:00 半夜跑');
-  assert.equal(stored.length, 0);
-  assert.match(errors[0], /看不懂/);
-  assert.equal(view.result.current.input, '@25:00 半夜跑', 'kept for the user to fix');
+  await typeAndSubmit(view, '＠夜間 跑一次月報回測');
+  await typeAndSubmit(view, '@12:05 跑回測');
+  await typeAndSubmit(view, '@README.md 整理一下');
+  assert.deepEqual(stored.map((entry) => [entry.content, entry.startAt]), [
+    ['跑一次月報回測', null],
+    ['@12:05 跑回測', null],
+    ['@README.md 整理一下', null],
+  ]);
 
-  stubUsage(null);
-  await typeAndSubmit(view, '@重置 跑');
-  assert.equal(stored.length, 0);
-  assert.match(errors[1], /讀不到額度重置時間/);
-
-  await typeAndSubmit(view, '@12:05');
-  assert.equal(stored.length, 0);
-  assert.match(errors[2], /只有時間沒有內容/);
-});
-
-test('a file mention at the start is not a time, and without night mode "@12:05" is just text', async () => {
-  const stored: Stored[] = [];
-  const nightView = renderComposer([], { store: storeInto(stored) });
-  await typeAndSubmit(nightView, '@README.md 整理一下');
-  assert.deepEqual(stored.map((entry) => [entry.content, entry.startAt]), [['@README.md 整理一下', null]]);
-
-  const sent: Sent[] = [];
-  const dayView = renderComposer(sent, { nightMode: false, store: storeInto(stored) });
-  await typeAndSubmit(dayView, '@12:05 現在就跑');
-  assert.deepEqual(sent.filter((message) => message.type === 'chat.send').map((message) => message.content), ['@12:05 現在就跑']);
-  assert.equal(stored.length, 1);
+  await typeAndSubmit(view, '@夜間');
+  assert.equal(stored.length, 3);
+  assert.match(errors[0], /@夜間 後面/);
 });
 
 test('in night mode Enter stores the prompt even while a turn is running, instead of interrupting it', async () => {
@@ -310,10 +265,10 @@ test('a new chat in night mode creates its session and stores the first prompt t
     onSessionEstablished: (sessionId) => established.push(sessionId),
   });
 
-  await typeAndSubmit(view, '@12:05 新專案：先把資料夾結構建好');
+  await typeAndSubmit(view, '@夜間 新專案：先把資料夾結構建好');
 
   assert.equal(createSession.mock.calls.length, 1);
-  assert.equal(createSession.mock.calls[0][0].initialMessage, '新專案：先把資料夾結構建好', 'named without the time');
+  assert.equal(createSession.mock.calls[0][0].initialMessage, '新專案：先把資料夾結構建好', 'named without the marker');
   assert.deepEqual(established, ['new-session']);
   assert.deepEqual(stored.map((entry) => [entry.sessionId, entry.content]), [
     ['new-session', '新專案：先把資料夾結構建好'],
@@ -346,6 +301,23 @@ test('in a chat already in bypass mode the moon turns night mode on at once, wit
   assert.equal(view.result.current.controls.isAskingBypass, false);
   assert.deepEqual(nightApi.setEnabled.mock.calls, [['session-1', true, { startAt: null, useBypass: true }]]);
   assert.equal(view.result.current.controls.enabled, true);
+});
+
+test('the moon counts as on from the press, before the server answers, and drops back if it refuses', async () => {
+  let answer: (value: unknown) => void = () => undefined;
+  nightApi.setEnabled.mockImplementation(() => new Promise((resolve) => { answer = resolve; }));
+  const view = renderHook(() => useNightQueue('session-1', 'project:project-1', 'bypassPermissions'));
+  await act(async () => {});
+
+  await act(async () => {
+    view.result.current.controls.onToggle();
+  });
+  assert.equal(view.result.current.controls.enabled, true, 'a prompt sent now is stored for the night');
+
+  await act(async () => {
+    answer(jsonResponse({ success: false }, false, 500));
+  });
+  assert.equal(view.result.current.controls.enabled, false);
 });
 
 test('in another mode the moon asks about bypass first, and the answer decides it', async () => {
@@ -564,22 +536,12 @@ test('the confirm box offers exactly: run now, cancel all, back', () => {
   assert.deepEqual(calls.at(-1), 'cancel:item-0');
 });
 
-test('reading the time at the start of a prompt', () => {
-  const now = new Date(2026, 8, 24, 11, 50);
-  const time = (text: string) => {
-    const result = parseStartAnnotation(text, now);
-    return result.kind === 'time' ? [result.startAt.getTime(), result.rest] : result.kind;
-  };
-  assert.deepEqual(time('@12:05 跑回測'), [new Date(2026, 8, 24, 12, 5).getTime(), '跑回測']);
-  assert.deepEqual(time('＠12：05跑回測'), [new Date(2026, 8, 24, 12, 5).getTime(), '跑回測'], 'full-width, no space');
-  assert.deepEqual(time('@9:30 x'), [new Date(2026, 8, 25, 9, 30).getTime(), 'x'], 'already past today: tomorrow');
-  assert.deepEqual(parseStartAnnotation('@重置 跑', now), { kind: 'reset', rest: '跑' });
-  assert.equal(parseStartAnnotation('@25:00 x', now).kind, 'invalid');
-  assert.equal(parseStartAnnotation('@12:5 x', now).kind, 'invalid');
-  assert.equal(parseStartAnnotation('@12:60 x', now).kind, 'invalid');
-  assert.equal(parseStartAnnotation('@README.md 看一下', now).kind, 'none');
-  assert.equal(parseStartAnnotation('跑回測 @12:05', now).kind, 'none', 'only at the start');
-  assert.equal(parseStartAnnotation('一般的 prompt', now).kind, 'none');
+test('reading the night marker at the start of a prompt', () => {
+  assert.deepEqual(parseStartAnnotation('@夜間 跑回測'), { kind: 'night', rest: '跑回測' });
+  assert.deepEqual(parseStartAnnotation('＠夜間跑回測'), { kind: 'night', rest: '跑回測' }, 'full-width, no space');
+  assert.equal(parseStartAnnotation('@12:05 跑回測').kind, 'none', 'a time is the clock\'s now');
+  assert.equal(parseStartAnnotation('@重置 跑').kind, 'none');
+  assert.equal(parseStartAnnotation('跑回測 @夜間').kind, 'none', 'only at the start');
 });
 
 test('the next occurrence of a time is today when still ahead, else tomorrow; labels add the date when not today', () => {

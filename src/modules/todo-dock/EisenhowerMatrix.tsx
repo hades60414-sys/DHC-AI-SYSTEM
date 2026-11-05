@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { DragEvent } from 'react';
 import { Check, LayoutGrid, Link2, Plus, Sun, Trash2, Unlink, X } from 'lucide-react';
 
 import TaskMarker from '@/modules/todo-dock/TaskMarker';
 import TimeTag from '@/modules/todo-dock/TimeTag';
 import TodayTodoList from '@/modules/todo-dock/TodayTodoList';
+import TodoTrash from '@/modules/todo-dock/TodoTrash';
 import { DESKTOP_GRID, parentTrail, QUADRANTS, quadrantMeta, TODO_DRAG_TYPE } from '@/modules/todo-dock/quadrants';
 import {
   addTodo,
@@ -29,6 +31,55 @@ import {
 } from '@/shared/personTodos';
 import type { Quadrant, TodoItem } from '@/shared/personTodos';
 import { cn } from '@/shared/utils';
+
+/** 手機判斷：窄螢幕，或橫握的手機（觸控且短邊 < 768、或高度 <= 500），不能只看寬度。 */
+function usePhoneLike(isMobileProp: boolean): boolean {
+  const read = () => {
+    if (isMobileProp) return true;
+    const coarse = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+    return window.innerHeight <= 500 || (coarse && Math.min(window.innerWidth, window.innerHeight) < 768);
+  };
+  const [phone, setPhone] = useState(read);
+  useEffect(() => {
+    const onResize = () => setPhone(read());
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [isMobileProp]);
+  return phone;
+}
+
+/**
+ * 手機直握時全部待辦轉 90 度當橫式顯示：外框寬 = 螢幕高、高 = 螢幕寬，左上角對到螢幕右上角再轉 90 度。
+ * 真的橫握就照常。進來時順便試著鎖橫向（只有全螢幕／PWA 才鎖得住，失敗忽略），關掉時解鎖。
+ */
+export function useForcedLandscape(enabled: boolean): CSSProperties | null {
+  const read = () => ({ w: window.innerWidth, h: window.innerHeight });
+  const [size, setSize] = useState(read);
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const onResize = () => setSize(read());
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    try {
+      const lock = (screen.orientation as unknown as { lock?: (o: string) => Promise<void> } | undefined)?.lock;
+      void lock?.call(screen.orientation, 'landscape')?.catch(() => {});
+    } catch {
+      // 不支援或不在全螢幕：用旋轉頂著
+    }
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+      try {
+        screen.orientation?.unlock?.();
+      } catch {
+        // 沒鎖過也沒關係
+      }
+    };
+  }, [enabled]);
+  if (!enabled || size.h <= size.w) return null;
+  return { position: 'fixed', top: 0, left: size.w, width: size.h, height: size.w, transform: 'rotate(90deg)', transformOrigin: 'top left' };
+}
 
 type EisenhowerMatrixProps = {
   personId: string;
@@ -55,12 +106,14 @@ const carriesTodo = (event: DragEvent) => event.dataTransfer.types.includes(TODO
  * that card's subtask (two levels at most). A subtask dragged to a quadrant splits out there and keeps a link to
  * its parent, which 綁回 undoes. ☀ (or dragging onto the 今日待辦 column) puts any task on today's list.
  */
-export default function EisenhowerMatrix({ personId, personName, isMobile, onClose }: EisenhowerMatrixProps) {
+export default function EisenhowerMatrix({ personId, personName, isMobile: isMobileProp, onClose }: EisenhowerMatrixProps) {
+  const isMobile = usePhoneLike(isMobileProp);
   const { items } = usePersonTodos(personId);
   const [draggingId, setDragging] = useState<string | null>(null);
   const [over, setOver] = useState<DropTarget | null>(null);
   const [showDone, setShowDone] = useState(false);
   const drag: DragState = { draggingId, over, setDragging, setOver };
+  const rotateStyle = useForcedLandscape(isMobile);
 
   useEffect(() => {
     // Escape in a text box only cancels that box.
@@ -94,7 +147,8 @@ export default function EisenhowerMatrix({ personId, personName, isMobile, onClo
     },
   });
 
-  const cardProps = { items, personId, drag };
+  // phone 是明確旗標（手機直握旋轉框、橫握都一樣），卡片裡不用 Tailwind 的 max-md:／md: ——那些只認 viewport 寬度，認不得旋轉。
+  const cardProps = { items, personId, drag, phone: isMobile };
 
   const quadrantPanel = (meta: (typeof QUADRANTS)[number]) => {
     const cards = cardsIn(meta.id);
@@ -104,7 +158,7 @@ export default function EisenhowerMatrix({ personId, personName, isMobile, onClo
         aria-label={meta.title}
         {...dropZone(meta.id, (id) => moveTodo(personId, id, meta.id))}
         className={cn(
-          'flex min-h-[10rem] flex-col rounded-lg border p-2 transition-colors',
+          'flex min-h-[10rem] min-w-0 flex-col rounded-lg border p-2 transition-colors',
           meta.tint,
           over === meta.id && 'ring-2 ring-primary',
         )}
@@ -115,14 +169,14 @@ export default function EisenhowerMatrix({ personId, personName, isMobile, onClo
           <span className="font-normal text-muted-foreground">· {meta.hint}</span>
           <span className="ml-auto font-normal text-muted-foreground">{cards.length}</span>
         </h3>
-        <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto">
+        <div className={cn('min-w-0 flex-1 space-y-1.5 overflow-x-hidden', !isMobile && 'min-h-0 overflow-y-auto')}>
           {cards.map((item) => (
             <TodoCard key={item.id} item={item} {...cardProps} />
           ))}
         </div>
         <AddInput
           label={`新增到${meta.title}`}
-          placeholder="新增任務，Enter 存"
+          placeholder="新增"
           onAdd={(text) => addTodo(personId, text, { quadrant: meta.id })}
         />
       </section>
@@ -130,7 +184,7 @@ export default function EisenhowerMatrix({ personId, personName, isMobile, onClo
   };
 
   return (
-    <div className="fixed inset-0 z-[60]">
+    <div className="fixed inset-0 z-[60]" style={rotateStyle ?? undefined}>
       <button type="button" aria-label="關閉全部待辦" onClick={onClose} className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
       <div
         role="dialog"
@@ -140,13 +194,14 @@ export default function EisenhowerMatrix({ personId, personName, isMobile, onClo
           isMobile ? 'inset-0' : 'inset-6 rounded-xl',
         )}
       >
+        {!isMobile && <TodoTrash personId={personId} />}
         <div className="flex h-12 flex-shrink-0 items-center gap-2 border-b border-border bg-muted/40 px-4">
           <LayoutGrid className="h-4 w-4 text-primary" />
           <span className="text-sm font-semibold">全部待辦</span>
           <span className="text-xs text-muted-foreground">{personName}</span>
           {!isMobile && (
-            <span className="ml-3 truncate text-[11px] text-muted-foreground">
-              拖卡片換象限；拖到別張卡的標題＝變成它的子任務；子任務拖回左邊未分類＝變回獨立任務；☀ 或拖到右邊＝匯入今日待辦；文字最後寫 @10/20＝期限
+            <span data-tutorial className="ml-3 truncate text-[11px] text-muted-foreground">
+              拖卡片換象限；拖到別張卡的標題＝變成它的子任務；子任務拖回左邊未分類＝變回獨立任務；☀ 或拖到右邊＝匯入今日待辦；拖到底部垃圾桶＝刪除；文字最後寫 @10/20＝期限
             </span>
           )}
           <button
@@ -159,32 +214,32 @@ export default function EisenhowerMatrix({ personId, personName, isMobile, onClo
           </button>
         </div>
 
-        <div className={cn('flex min-h-0 flex-1', isMobile ? 'flex-col overflow-y-auto' : 'flex-row')}>
+        <div className="flex min-h-0 flex-1 flex-row">
           {/* Always rendered: a drop area that appeared only once a drag began shifted the cards and Chrome dropped the drag. */}
           <aside
             aria-label="未分類"
             {...dropZone('inbox', (id) => moveTodo(personId, id, undefined))}
             className={cn(
               'flex flex-shrink-0 flex-col',
-              isMobile ? 'm-3 mb-0 rounded-lg border border-dashed border-border' : 'w-64 border-r border-border',
-              over === 'inbox' ? 'bg-primary/5 ring-2 ring-inset ring-primary' : !isMobile && 'bg-muted/20',
+              isMobile ? 'w-56 border-r border-border' : 'w-64 border-r border-border',
+              over === 'inbox' ? 'bg-primary/5 ring-2 ring-inset ring-primary' : 'bg-muted/20',
             )}
           >
             <h3 className="flex h-10 flex-shrink-0 items-center gap-1.5 border-b border-border px-3 text-xs font-semibold">
               <TaskMarker quadrant={undefined} main />
               未分類 {inbox.length}
-              <span className="font-normal text-muted-foreground">（拖進象限，也可拖回來）</span>
+              {!isMobile && <span className="font-normal text-muted-foreground">（拖進象限，也可拖回來）</span>}
             </h3>
-            <div className={cn('space-y-1.5 p-2', !isMobile && 'min-h-0 flex-1 overflow-y-auto')}>
+            <div className="min-h-0 flex-1 space-y-1.5 overflow-x-hidden overflow-y-auto p-2">
               {inbox.map((item) => (
                 <TodoCard key={item.id} item={item} {...cardProps} />
               ))}
-              <AddInput label="新增到未分類" placeholder="新增任務，Enter 存" onAdd={(text) => addTodo(personId, text)} />
+              <AddInput label="新增到未分類" placeholder="新增" onAdd={(text) => addTodo(personId, text)} />
             </div>
           </aside>
 
-          <div className={cn('flex min-w-0 flex-1 flex-col gap-3 p-3', !isMobile && 'overflow-y-auto')}>
-            <div className={cn('grid min-h-0 flex-1 gap-3', isMobile ? 'grid-cols-1' : 'grid-cols-2 grid-rows-2')}>
+          <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-x-hidden overflow-y-auto p-3">
+            <div className={cn('grid gap-3', isMobile ? 'flex-none grid-cols-2' : 'min-h-0 flex-1 grid-cols-2 grid-rows-2')}>
               {isMobile ? QUADRANTS.map(quadrantPanel) : DESKTOP_GRID.map((id) => quadrantPanel(quadrantMeta(id)!))}
             </div>
 
@@ -209,7 +264,7 @@ export default function EisenhowerMatrix({ personId, personName, isMobile, onClo
                   </button>
                 </div>
                 {showDone && (
-                  <div className="mt-1.5 grid gap-1.5 md:grid-cols-3">
+                  <div className={cn('mt-1.5 grid gap-1.5', isMobile ? 'grid-cols-2' : 'grid-cols-3')}>
                     {doneCards.map((item) => (
                       <TodoCard key={item.id} item={item} {...cardProps} />
                     ))}
@@ -265,13 +320,14 @@ function AddInput({ label, placeholder, onAdd, autoFocus, onDone }: {
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === 'Escape') onDone?.();
+          if (event.key === 'Escape' && !event.nativeEvent.isComposing) onDone?.();
         }}
         onBlur={() => {
           if (!draft.trim()) onDone?.();
         }}
         placeholder={placeholder}
         aria-label={label}
+        data-tutorial-tip={onDone ? 'Enter 存、Esc 收起' : '輸入任務按 Enter；結尾加 @10/20 設期限'}
         className="h-7 min-w-0 flex-1 rounded-md border border-border/60 bg-background px-2 text-xs outline-none focus:border-primary/50"
       />
       <button
@@ -291,6 +347,8 @@ type TodoCardProps = {
   items: TodoItem[];
   personId: string;
   drag: DragState;
+  /** 手機版面（明確旗標，見 EisenhowerMatrix 的 cardProps）。 */
+  phone: boolean;
   /** Set on a subtask nested in its parent: where the parent's tree line runs and whether this is its last branch. */
   branch?: { anchor: string; last: boolean };
 };
@@ -308,7 +366,7 @@ function branchClass(anchor: string, last: boolean, note = false) {
   );
 }
 
-function TodoCard({ item, items, personId, drag, branch }: TodoCardProps) {
+function TodoCard({ item, items, personId, drag, phone, branch }: TodoCardProps) {
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState('');
   const [adding, setAdding] = useState(false);
@@ -392,7 +450,8 @@ function TodoCard({ item, items, personId, drag, branch }: TodoCardProps) {
           nestTodo(personId, draggedId(event), item.id);
         }}
         className={cn(
-          'group flex items-start gap-1.5 rounded px-0.5 py-0.5 max-md:flex-wrap',
+          'group flex items-start gap-1.5 rounded px-0.5 py-0.5',
+          phone && 'flex-wrap',
           drag.over === nestTarget && 'bg-primary/10 ring-1 ring-primary',
         )}
       >
@@ -417,16 +476,17 @@ function TodoCard({ item, items, personId, drag, branch }: TodoCardProps) {
             onChange={(event) => setEditText(event.target.value)}
             onBlur={finishEdit}
             onKeyDown={(event) => {
-              if (event.key === 'Enter') finishEdit();
-              if (event.key === 'Escape') setEditing(false);
+              if (event.key === 'Enter' && !event.nativeEvent.isComposing) finishEdit();
+              if (event.key === 'Escape' && !event.nativeEvent.isComposing) setEditing(false);
             }}
             aria-label="修改任務"
-            className="min-w-0 flex-1 rounded border border-primary/40 bg-background px-1 text-xs outline-none max-md:basis-[calc(100%-1.75rem)]"
+            className={cn('min-w-0 flex-1 rounded border border-primary/40 bg-background px-1 text-xs outline-none', phone && 'basis-[calc(100%-1.75rem)]')}
           />
         ) : (
           <span
             className={cn(
-              'min-w-0 flex-1 cursor-grab break-words leading-5 max-md:basis-[calc(100%-2.75rem)]',
+              'min-w-0 flex-1 cursor-grab break-words leading-5',
+              phone && 'basis-[calc(100%-2.75rem)]',
               depth === 0 ? 'text-[13px] font-medium' : 'text-xs',
               item.done ? 'text-muted-foreground line-through' : 'text-foreground',
             )}
@@ -440,7 +500,7 @@ function TodoCard({ item, items, personId, drag, branch }: TodoCardProps) {
             <TimeTag item={item} showAge={depth === 0 || splitOut} className="ml-1.5 font-normal" />
           </span>
         )}
-        <div className="flex shrink-0 items-center opacity-0 group-hover:opacity-100 max-md:ml-auto max-md:gap-1 max-md:opacity-70">
+        <div className={cn('flex shrink-0 items-center', phone ? 'ml-auto gap-1 opacity-70' : 'opacity-0 group-hover:opacity-100')}>
           {!item.done && (
             <button
               type="button"
@@ -464,7 +524,7 @@ function TodoCard({ item, items, personId, drag, branch }: TodoCardProps) {
               <Plus className="h-3.5 w-3.5" />
             </button>
           )}
-          <MoveSelect item={item} personId={personId} />
+          <MoveSelect item={item} personId={personId} phone={phone} />
           <button
             type="button"
             onClick={remove}
@@ -474,7 +534,7 @@ function TodoCard({ item, items, personId, drag, branch }: TodoCardProps) {
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
-        {item.today && !item.done && <Sun className="mt-1 h-3 w-3 shrink-0 fill-amber-400 text-amber-500 group-hover:hidden max-md:hidden" />}
+        {item.today && !item.done && !phone && <Sun className="mt-1 h-3 w-3 shrink-0 fill-amber-400 text-amber-500 group-hover:hidden" />}
       </div>
 
       {children.map((child, index) =>
@@ -495,6 +555,7 @@ function TodoCard({ item, items, personId, drag, branch }: TodoCardProps) {
             items={items}
             personId={personId}
             drag={drag}
+            phone={phone}
             branch={{ anchor: childAnchor, last: !adding && index === children.length - 1 }}
           />
         ),
@@ -504,7 +565,7 @@ function TodoCard({ item, items, personId, drag, branch }: TodoCardProps) {
           <AddInput
             autoFocus
             label={`新增子任務到${item.text}`}
-            placeholder="子任務，Enter 存，Esc 收"
+            placeholder="子任務"
             onAdd={(text) => addTodo(personId, text, { parentId: item.id })}
             onDone={() => setAdding(false)}
           />
@@ -517,7 +578,7 @@ function TodoCard({ item, items, personId, drag, branch }: TodoCardProps) {
 /** Touch screens have no drag and drop, so every card also moves through this menu. */
 const isBound = (item: TodoItem) => Boolean(item.parentId) && !item.quadrant;
 
-function MoveSelect({ item, personId }: { item: TodoItem; personId: string }) {
+function MoveSelect({ item, personId, phone }: { item: TodoItem; personId: string; phone: boolean }) {
   return (
     <select
       aria-label={`移到：${item.text}`}
@@ -527,7 +588,7 @@ function MoveSelect({ item, personId }: { item: TodoItem; personId: string }) {
         if (next === 'bound') bindTodo(personId, item.id);
         else moveTodo(personId, item.id, next === 'inbox' ? undefined : (next as Quadrant));
       }}
-      className="h-5 rounded border border-border/60 bg-background px-0.5 text-[10px] text-muted-foreground outline-none md:hidden"
+      className={cn('h-5 rounded border border-border/60 bg-background px-0.5 text-[10px] text-muted-foreground outline-none', !phone && 'hidden')}
     >
       <option value="" disabled>移到…</option>
       {item.parentId && !isBound(item) && <option value="bound">綁回上層</option>}

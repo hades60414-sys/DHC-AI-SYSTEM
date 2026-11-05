@@ -1,5 +1,5 @@
-import { type ReactNode } from 'react';
-import { Activity, Archive, BookOpen, Folder, MessageSquare, Plus, Repeat, RotateCcw, Search, Trash2 } from 'lucide-react';
+import { type ReactNode, useState } from 'react';
+import { Activity, Archive, BookOpen, Folder, MessageSquare, Plus, Repeat, RotateCcw, Search, Send, Trash2 } from 'lucide-react';
 import type { TFunction } from 'i18next';
 
 import { LLMProviderLogo, ScrollArea } from '@/shared/ui';
@@ -11,8 +11,10 @@ import SidebarFooter from '@/modules/sidebar/SidebarFooter';
 import SidebarHeader from '@/modules/sidebar/SidebarHeader';
 import SidebarProjectList from '@/modules/sidebar/SidebarProjectList';
 import SidebarRecentConversations from '@/modules/sidebar/SidebarRecentConversations';
-import { ROUTINE_PROJECT_FOLDER } from '@/modules/sidebar/hooks/useSidebarController';
+import ScheduledTasksPanel from '@/modules/sidebar/ScheduledTasksPanel';
+import { isQueryProject, isWorkspaceProject, QUERY_PROJECT_FOLDER, ROUTINE_PROJECT_FOLDER } from '@/modules/sidebar/hooks/useSidebarController';
 import { getDhcConfig } from '@/shared/dhcConfig';
+import { queueAutoStart } from '@/shared/autoStartChat';
 
 function HighlightedSnippet({ snippet, highlights }: { snippet: string; highlights: { start: number; end: number }[] }) {
   const parts: ReactNode[] = [];
@@ -120,7 +122,6 @@ type SidebarContentProps = {
   onConversationResultClick: (projectId: string | null, sessionId: string, provider: string, messageTimestamp?: string | null, messageSnippet?: string | null) => void;
   onRefresh: () => void;
   isRefreshing: boolean;
-  onCreateProject: () => void;
   onCollapseSidebar: () => void;
   updateAvailable: boolean;
   restartRequired: boolean;
@@ -167,7 +168,6 @@ export default function SidebarContent({
   onConversationResultClick,
   onRefresh,
   isRefreshing,
-  onCreateProject,
   onCollapseSidebar,
   updateAvailable,
   restartRequired,
@@ -213,6 +213,20 @@ export default function SidebarContent({
     onRefresh();
   };
 
+  // DHC CLI 10/31 快速查詢：查詢分頁只有一個提問框，送出就在「內部資料查詢」開新的無痕對話並自動送出這句。
+  const [quickQuestion, setQuickQuestion] = useState('');
+  const queryRoot = projects.find((project) => isQueryProject(project)
+    && String(project.fullPath || project.path).replace(/[\\/]+$/, '').endsWith(QUERY_PROJECT_FOLDER));
+  const handleQuickAsk = () => {
+    const question = quickQuestion.trim();
+    if (!queryRoot || !question) {
+      return;
+    }
+    queueAutoStart(queryRoot.projectId, question);
+    setQuickQuestion('');
+    projectListProps.onNewSession(queryRoot);
+  };
+
   return (
     <div
       className="flex h-full flex-col bg-background/80 backdrop-blur-sm md:w-72 md:select-none"
@@ -233,7 +247,6 @@ export default function SidebarContent({
         onSearchModeChange={onSearchModeChange}
         onRefresh={onRefresh}
         isRefreshing={isRefreshing}
-        onCreateProject={onCreateProject}
         onCollapseSidebar={onCollapseSidebar}
         currentVersion={currentVersion}
         t={t}
@@ -456,7 +469,7 @@ export default function SidebarContent({
                 例行工作
               </div>
               <p className="text-muted-foreground">
-                每月、每季重複做的報告。在要做的那項按「新增工作階段」，說「更新10月」，就照上次的做法和資料產出新的一期。
+                每月、每季重複做的報告。在要做的那項按「新增AI對話」，說「更新10月」，就照上次的做法和資料產出新的一期。
               </p>
               <p className="mt-1 text-muted-foreground">
                 第一次做的項目，先把上一期的檔案和做法丟給它，它會整理成這項的規格，之後就能一句話更新。
@@ -480,24 +493,48 @@ export default function SidebarContent({
             <div className="mx-2 rounded-lg border border-primary/25 bg-primary/5 px-3 py-2.5 text-xs leading-relaxed text-foreground">
               <div className="mb-1 flex items-center gap-1.5 font-medium">
                 <BookOpen className="h-3.5 w-3.5 text-primary" />
-                查詢專區
+                快速查詢（DEMO）
               </div>
-              <ul className="list-disc space-y-0.5 pl-4 text-muted-foreground">
-                <li>DHC CLI 教學：側欄各分頁怎麼用、例行工作怎麼建、快捷鍵</li>
-              </ul>
-              <p className="mt-1 text-muted-foreground">
-                這裡要接你自己的文件／資料庫問答。需要自己建一個 RAG，做法見 docs/build-your-own-rag.md。
+              <p data-tutorial className="text-muted-foreground">
+                直接問。內部法規、簽呈與限額、資料目錄、這個網頁怎麼用，回答都附出處。不含損益與客戶資料；不留紀錄，離開就刪除。
               </p>
-              <p className="mt-1 text-muted-foreground">
-                在要問的專區按「新增工作階段」開新查詢。
+              <p data-tutorial className="mt-1 text-muted-foreground">
+                也串了網路搜尋和 NotebookLM：想快速找外部公開資料（法令、新聞、公開 PDF、YouTube）也可以在這裡問；公司資料不會送出去。
               </p>
             </div>
-            {projectListProps.filteredProjects.length === 0 ? (
-              <p className="px-4 py-4 text-center text-xs text-muted-foreground">查詢工作區尚未建立：重啟伺服器會自動建立教學專區。</p>
+            {queryRoot ? (
+              <div className="mx-2 rounded-lg border border-border/70 bg-card/60 p-2 focus-within:border-primary/50">
+                <textarea
+                  value={quickQuestion}
+                  onChange={(event) => setQuickQuestion(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+                      event.preventDefault();
+                      handleQuickAsk();
+                    }
+                  }}
+                  rows={3}
+                  placeholder="例：自營部位限額現行規定多少？金管會最近有沒有改？"
+                  className="w-full resize-none bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/70"
+                />
+                <div className="flex items-center justify-between">
+                  <span data-tutorial className="text-[11px] text-muted-foreground">Enter 送出，Shift+Enter 換行</span>
+                  <button
+                    onClick={handleQuickAsk}
+                    disabled={!quickQuestion.trim()}
+                    className="ml-auto flex items-center gap-1 rounded-md bg-primary px-2 py-1 text-xs text-primary-foreground transition-opacity disabled:opacity-40"
+                  >
+                    <Send className="h-3 w-3" />
+                    問
+                  </button>
+                </div>
+              </div>
             ) : (
-              <SidebarProjectList {...projectListProps} />
+              <p className="px-4 py-4 text-center text-xs text-muted-foreground">查詢工作區尚未建立。</p>
             )}
           </div>
+        ) : searchMode === 'scheduled' ? (
+          <ScheduledTasksPanel projects={projects} searchFilter={searchFilter} />
         ) : searchMode === 'running' ? (
           projectListProps.filteredProjects.length === 0 ? (
             <div className="px-4 py-12 text-center md:py-8">

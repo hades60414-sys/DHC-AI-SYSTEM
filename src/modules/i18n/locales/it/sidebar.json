@@ -20,7 +20,7 @@
     "runClaudeCli": "Esegui Claude CLI in una directory di progetto per iniziare"
   },
   "app": {
-    "title": "DHC CLI",
+    "title": "DHC AI System",
     "subtitle": "Interfaccia assistente di programmazione AI"
   },
   "sessions": {

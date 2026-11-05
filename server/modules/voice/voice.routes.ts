@@ -73,6 +73,8 @@ export function createVoiceRouter(dependencies: VoiceRouterDependencies): expres
             fileName: request.file.originalname || 'recording.webm',
           },
           overrides: parseVoiceOverrides(request),
+          ...(request.query.profile === 'call' || request.body?.profile === 'call' ? { profile: 'call' as const } : {}),
+          ...(Number(request.body?.durationMs) > 0 ? { durationMs: Number(request.body.durationMs) } : {}),
         });
 
         if (sendFailure(response, result)) {

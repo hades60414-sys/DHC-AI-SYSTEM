@@ -154,7 +154,9 @@ export function useNightQueue(sessionId: string | null, newChatScope: string | n
     if (!isActive && !isWaiting) {
       return undefined;
     }
-    const timer = setInterval(() => void refresh(), isActive ? REFRESH_WHILE_ACTIVE_MS : REFRESH_WHILE_WAITING_MS);
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') void refresh();
+    }, isActive ? REFRESH_WHILE_ACTIVE_MS : REFRESH_WHILE_WAITING_MS);
     return () => clearInterval(timer);
   }, [isActive, isWaiting, refresh]);
 
@@ -217,7 +219,12 @@ export function useNightQueue(sessionId: string | null, newChatScope: string | n
       }
       return;
     }
-    void update(() => api.nightQueue.setEnabled(sessionId, true, settings));
+    // The switch counts as on from the press, not from the server's answer: a prompt sent in between must be
+    // stored for the night, not run at once. The answer (or its failure) takes over from `carried`.
+    setCarried({ sessionId, settings });
+    void update(() => api.nightQueue.setEnabled(sessionId, true, settings)).then(() => {
+      setCarried((current) => (current?.sessionId === sessionId ? null : current));
+    });
   }, [newChatScope, sessionId, update]);
 
   const onToggle = useCallback(() => {

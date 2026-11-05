@@ -46,7 +46,7 @@ export default function AboutTab() {
               className="text-base font-semibold text-foreground"
               style={{ fontFamily: CLOUDCLI_WORDMARK_FONT_FAMILY }}
             >
-              DHC CLI
+              DHC AI System
             </span>
             <a
               href={releasesUrl}

@@ -81,6 +81,8 @@ function ConversationJumpRail({ prompts, scrollContainerRef, onLoadEarlier, isLo
   return (
     <nav
       aria-label="對話跳轉"
+      data-tutorial-tip="對話跳轉：每個點是一則提問，滑過預覽，點一下跳過去"
+      data-minimal-hide
       className="pointer-events-none absolute bottom-6 right-3 top-14 z-20 flex w-5 flex-col items-center"
     >
       <div className="pointer-events-auto relative flex h-full max-h-full w-full flex-col items-center justify-between overflow-visible py-1">
@@ -92,6 +94,7 @@ function ConversationJumpRail({ prompts, scrollContainerRef, onLoadEarlier, isLo
             disabled={isLoadingEarlier}
             title={isLoadingEarlier ? '載入中…' : '還有更早的提問，點這裡載入全部'}
             aria-label="載入更早的提問"
+            data-tutorial-tip="載入更早的提問，讓更多點出現在跳轉列"
             className="relative z-10 mb-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-border bg-background text-[10px] leading-none text-muted-foreground hover:text-foreground disabled:opacity-50"
           >
             {isLoadingEarlier ? '…' : '↑'}
@@ -119,14 +122,14 @@ function ConversationJumpRail({ prompts, scrollContainerRef, onLoadEarlier, isLo
                 className="relative flex h-3 w-5 items-center justify-center"
               >
                 <span
-                  className={`block rounded-full transition-all ${
+                  data-jump-dot={isCoWork ? 'cowork' : 'prompt'}
+                  data-state={isActive ? 'active' : isHover ? 'hover' : 'idle'}
+                  className={`block transition-all ${
                     isCoWork
-                      ? (isActive || isHover ? 'h-2.5 w-2.5 rotate-45 rounded-[2px] bg-amber-500' : 'h-2 w-2 rotate-45 rounded-[2px] bg-amber-500/80')
-                      : isActive
-                        ? 'h-2.5 w-2.5 bg-foreground'
-                        : isHover
-                          ? 'h-2.5 w-2.5 bg-foreground/70'
-                          : 'h-1.5 w-1.5 bg-muted-foreground/50'
+                      ? (isActive || isHover ? 'h-2.5 w-2.5 rotate-45 rounded-[2px]' : 'h-2 w-2 rotate-45 rounded-[2px]')
+                      : isActive || isHover
+                        ? 'h-2.5 w-2.5 rounded-full'
+                        : 'h-2 w-2 rounded-full'
                   }`}
                 />
               </button>

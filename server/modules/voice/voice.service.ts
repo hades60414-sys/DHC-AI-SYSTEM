@@ -5,6 +5,7 @@ import type {
   VoiceServiceResult,
   VoiceSpeechPayload,
 } from '@/shared/types.js';
+import { toTraditional } from '@/modules/providers/list/claude/auto-session-title.js';
 
 type VoiceServiceDependencies = {
   defaults: {
@@ -13,6 +14,8 @@ type VoiceServiceDependencies = {
     sttModel: string;
     ttsModel: string;
     ttsVoice: string;
+    /** DHC CLI 語音通話: a smaller-model transcriber for live calls (VOICE_CALL_STT_BASE_URL); empty when none. */
+    callSttBaseUrl?: string;
   };
   timeoutMs: number;
   fetchBackend(url: string, options: RequestInit): Promise<Response>;
@@ -101,10 +104,15 @@ function validateConfiguredBackend(config: ResolvedVoiceConfig): VoiceServiceRes
   return null;
 }
 
-function createTranscriptionFormData(audio: VoiceAudioUpload, sttModel: string): FormData {
+// DHC CLI 語音通話: the call transcriber runs a short audio window (-ac 512, about 10 s) for speed; a clip
+// longer than this (or of unknown length) asks for whisper's full 30 s window so the tail is not dropped.
+const CALL_SHORT_CLIP_MS = 9_000;
+
+function createTranscriptionFormData(audio: VoiceAudioUpload, sttModel: string, fullWindow = false): FormData {
   const formData = new FormData();
   formData.append('file', new Blob([audio.bytes], { type: audio.mimeType }), audio.fileName);
   formData.append('model', sttModel);
+  if (fullWindow) formData.append('audio_ctx', '1500');
   return formData;
 }
 
@@ -115,10 +123,17 @@ function createTranscriptionFormData(audio: VoiceAudioUpload, sttModel: string):
  */
 export function createVoiceService(dependencies: VoiceServiceDependencies): VoiceService {
   return {
-    getHealth: () => ({ configured: Boolean(dependencies.defaults.baseUrl) }),
+    getHealth: () => ({
+      configured: Boolean(dependencies.defaults.baseUrl),
+      callStt: Boolean(dependencies.defaults.callSttBaseUrl),
+    }),
 
     async transcribe(input) {
       const config = resolveVoiceConfig(dependencies.defaults, input.overrides);
+      const toCallStt = input.profile === 'call' && Boolean(dependencies.defaults.callSttBaseUrl);
+      if (toCallStt) {
+        config.baseUrl = dependencies.defaults.callSttBaseUrl as string;
+      }
       const configurationFailure = validateConfiguredBackend(config);
       if (configurationFailure) {
         return configurationFailure;
@@ -130,7 +145,11 @@ export function createVoiceService(dependencies: VoiceServiceDependencies): Voic
           {
             method: 'POST',
             headers: authorizationHeader(config.apiKey),
-            body: createTranscriptionFormData(input.audio, config.sttModel),
+            body: createTranscriptionFormData(
+              input.audio,
+              config.sttModel,
+              toCallStt && !(input.durationMs && input.durationMs <= CALL_SHORT_CLIP_MS),
+            ),
           },
         );
         const responseText = await response.text();
@@ -142,10 +161,11 @@ export function createVoiceService(dependencies: VoiceServiceDependencies): Voic
           const parsed = JSON.parse(responseText) as { text?: unknown };
           return {
             ok: true,
-            value: { text: typeof parsed.text === 'string' ? parsed.text : '' },
+            // DHC CLI: local whisper may answer in simplified characters; normalise to traditional.
+            value: { text: typeof parsed.text === 'string' ? toTraditional(parsed.text.trim()) : '' },
           };
         } catch {
-          return { ok: true, value: { text: responseText } };
+          return { ok: true, value: { text: toTraditional(responseText.trim()) } };
         }
       } catch (error) {
         return unreachableBackendFailure(error, dependencies.timeoutMs);

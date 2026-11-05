@@ -70,6 +70,44 @@ function isVisibleCodexUserMessage(payload: AnyRecord | null | undefined): boole
 }
 
 /**
+ * Codex SDK (`exec`) rollouts carry no `user_message` events; the prompt only
+ * exists as a `response_item` user message, next to the AGENTS.md and
+ * `<environment_context>` items Codex injects itself.
+ */
+const CODEX_INJECTED_USER_ENVELOPE = /^<([a-z_]+)>[\s\S]*<\/\1>$/;
+const CODEX_IMAGE_MARKER = /^(?:<image\b[^>]*>|<\/image>)$/;
+
+function isVisibleCodexUserText(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.startsWith('# AGENTS.md instructions') || CODEX_IMAGE_MARKER.test(trimmed)) {
+    return false;
+  }
+  const envelope = CODEX_INJECTED_USER_ENVELOPE.exec(trimmed);
+  return !envelope || envelope[1] === 'files_input';
+}
+
+function readCodexUserItemText(content: unknown): string {
+  if (!Array.isArray(content)) {
+    return typeof content === 'string' && isVisibleCodexUserText(content) ? content : '';
+  }
+  return content
+    .filter((item) => item?.type === 'input_text' && typeof item.text === 'string' && isVisibleCodexUserText(item.text))
+    .map((item) => item.text as string)
+    .join('\n');
+}
+
+function extractCodexUserItemImages(content: unknown) {
+  if (!Array.isArray(content)) {
+    return undefined;
+  }
+  const attachments = content
+    .filter((item) => item?.type === 'input_image' && typeof item.image_url === 'string' && item.image_url)
+    .map((item) => (item.image_url.startsWith('data:') ? { data: item.image_url } : toImageAttachments([item.image_url])[0]))
+    .filter(Boolean);
+  return attachments.length > 0 ? attachments : undefined;
+}
+
+/**
  * Follows which turn a Codex rollout is inside as its rows stream past.
  *
  * Codex writes no per-row id — every line is `{timestamp, type, payload}` and
@@ -1198,6 +1236,9 @@ async function getCodexSessionMessages(sessionId: string): Promise<CodexHistoryR
   const turns = createCodexTurnTracker();
   /** Turns whose prompt already carries the anchor, so only the first does. */
   const anchoredTurnIds = new Set<string>();
+  /** Prompts read from `response_item`s; dropped when `user_message` events exist. */
+  const userItemRows: { row: AnyRecord; turnId: string | undefined }[] = [];
+  let sawUserMessageEvent = false;
 
   const fileStream = fsSync.createReadStream(sessionFilePath);
   const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
@@ -1314,6 +1355,7 @@ async function getCodexSessionMessages(sessionId: string): Promise<CodexHistoryR
       }
 
       if (isVisibleCodexUserMessage(payload)) {
+        sawUserMessageEvent = true;
         // Only the first prompt of a turn is anchored. A turn can hold more
         // than one — a follow-up queued while the turn was running is written
         // into it — and the cut is per turn, so anchoring the second would
@@ -1339,6 +1381,22 @@ async function getCodexSessionMessages(sessionId: string): Promise<CodexHistoryR
     }
 
     // ── response_item ──────────────────────────────────────────────────────
+    if (payload.type === 'message' && payload.role === 'user') {
+      const text = readCodexUserItemText(payload.content);
+      const images = extractCodexUserItemImages(payload.content);
+      if (text.trim() || images) {
+        const userItem: AnyRecord = {
+          type: 'user',
+          timestamp,
+          message: { role: 'user', content: text },
+          images,
+        };
+        messages.push(userItem);
+        userItemRows.push({ row: userItem, turnId: turns.getCurrentTurnId() });
+      }
+      continue;
+    }
+
     if (payload.type === 'message' && payload.role === 'assistant') {
       const cited = readCodexMemoryCitations(extractCodexTextContent(payload.content));
       const textContent = cited.text;
@@ -1729,6 +1787,15 @@ async function getCodexSessionMessages(sessionId: string): Promise<CodexHistoryR
   }
 
   await attachCodexSubagentTranscripts(sessionFilePath, subagentsByCallId);
+
+  for (const { row, turnId } of userItemRows) {
+    if (sawUserMessageEvent) {
+      messages.splice(messages.indexOf(row), 1);
+    } else if (turnId && !anchoredTurnIds.has(turnId)) {
+      anchoredTurnIds.add(turnId);
+      row.turnId = turnId;
+    }
+  }
 
   // A rollback is recorded after the turns it retires, so a prompt can be
   // anchored and then retired later in the same file. Its rows still render —

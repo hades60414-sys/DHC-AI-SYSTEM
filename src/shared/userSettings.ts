@@ -25,11 +25,16 @@ export type UserPreferences = {
   cursorPermissions: unknown;
   codexPermissions: unknown;
   opencodePermissions: unknown;
+  agyPermissions: unknown;
   codeEditorSettings: unknown;
   uiPreferences: unknown;
   selectedProvider: string;
   /** DHC CLI 頭像: the animal id shown beside this profile's messages; '' or unset = the default 「U」. */
   userAvatar: string;
+  /** DHC 極簡模式: hide the DHC extras until the user reaches for them (ThemeContext). */
+  minimalMode: boolean;
+  /** DHC 教學模式: show the newcomer explanations (data-tutorial; ThemeContext). */
+  tutorialMode: boolean;
 };
 
 export type UserPreferenceKey = keyof UserPreferences;
@@ -64,6 +69,7 @@ const LEGACY_STORAGE_KEYS: Record<UserPreferenceKey, string> = {
   cursorPermissions: 'cursor-tools-settings',
   codexPermissions: 'codex-settings',
   opencodePermissions: 'opencode-settings',
+  agyPermissions: 'agy-settings',
   // Unused: the four code-editor settings never shared one key, so they are
   // read by readLegacyCodeEditorSettings instead.
   codeEditorSettings: '',
@@ -71,6 +77,8 @@ const LEGACY_STORAGE_KEYS: Record<UserPreferenceKey, string> = {
   selectedProvider: 'selected-provider',
   // New with DHC CLI, so there is no legacy key to read.
   userAvatar: '',
+  minimalMode: '',
+  tutorialMode: '',
 };
 
 const PREFERENCE_KEYS = Object.keys(LEGACY_STORAGE_KEYS) as UserPreferenceKey[];

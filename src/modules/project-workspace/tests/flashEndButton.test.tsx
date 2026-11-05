@@ -38,7 +38,6 @@ const renderHeader = (selectedProject: Project, selectedSession: ProjectSession 
     selectedProject={selectedProject}
     selectedSession={selectedSession}
     shouldShowTasksTab={false}
-    shouldShowBrowserTab={false}
     isMobile={false}
     onMenuClick={() => {}}
   />,

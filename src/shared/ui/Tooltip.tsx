@@ -181,6 +181,8 @@ export function Tooltip({
       {isVisible && typeof document !== 'undefined' && createPortal(
         <div
           ref={tooltipRef}
+          // 教學模式 hides this tooltip only when its trigger has a coach-mark callout saying the same thing.
+          data-app-tooltip={containerRef.current?.closest('[data-tutorial-tip]') || containerRef.current?.querySelector('[data-tutorial-tip]') ? 'covered' : ''}
           style={tooltipStyle || { position: 'fixed', top: '-9999px', left: '-9999px', opacity: 0 }}
           className={cn(
             'px-2 py-1 text-xs font-medium text-white bg-gray-900 dark:bg-gray-100 dark:text-gray-900 rounded shadow-lg whitespace-nowrap pointer-events-none',

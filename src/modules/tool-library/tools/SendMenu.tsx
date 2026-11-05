@@ -1,7 +1,25 @@
 import { useRef, useState } from 'react';
 import { Send } from 'lucide-react';
 
+import { postToolSummary } from '@/shared/chatRoom';
+
 export type SendItem = { label: string; disabled?: boolean; onPick: () => void };
+
+/**
+ * 10/25 R4 (稽核 P1-1): the two items every tool adds: 貼到聊天室… (waits in the chat's composer to be sent) and
+ * 問團隊小助理 (sent to your private chat with it). Plain text: tool name, title and the first 1500 characters.
+ */
+export function chatItems(toolName: string, read: () => { title: string; body: string }, disabled = false, beforePick?: () => void): SendItem[] {
+  const pick = (target: 'chat' | 'assistant') => {
+    beforePick?.();
+    const { title, body } = read();
+    postToolSummary(target, toolName, title, body);
+  };
+  return [
+    { label: '貼到聊天室…', disabled, onPick: () => pick('chat') },
+    { label: '問團隊小助理', disabled, onPick: () => pick('assistant') },
+  ];
+}
 
 /** DHC CLI 10/14 工具庫串接: the 「送到…」 button in a tool's header; the list is fixed-positioned so the header's scroll area does not clip it. */
 export default function SendMenu({ items }: { items: SendItem[] }) {

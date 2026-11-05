@@ -1,4 +1,4 @@
-import { useProjectCommandState } from '@/modules/project-workspace';
+import { useProjectCommandState } from '@/modules/project-workspace/context/ProjectsStateContext';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // DHC CLI D1: the one-click "review what you just changed" prompt (logic, numbers, safety — not style).
@@ -9,8 +9,12 @@ import { ArrowDownIcon } from 'lucide-react';
 import { useTasksSettings } from '@/modules/task-master';
 import { useWebSocket } from '@/shared/context/WebSocketContext';
 import PermissionContext from '@/modules/chat/context/PermissionContext';
+import { ChatProjectContext } from '@/modules/chat/context/ChatProjectContext';
+import { appendNotes, CANVAS_SYSTEM_NOTE, isCanvasMode, useCanvasFeed } from '@/modules/canvas';
 import { api } from '@/shared/api';
-import { takeAutoStart } from '@/shared/autoStartChat';
+import { queueAutoStart, takeAutoStart } from '@/shared/autoStartChat';
+import { writeDraftText } from '@/shared/chatDrafts';
+import { bindFreshStart, freshStartFor, freshStartPrompt, markFreshStart, shouldStartFresh } from '@/modules/chat/utils/freshStart';
 import { fileNewSessionIntoBox } from '@/shared/sessionBoxes';
 import { hasTodoChatDrag, readTodoChatDrag, todoFocusText, todoPlanPrompt } from '@/shared/todoChatDrag';
 import type { TodoChatPayload } from '@/shared/todoChatDrag';
@@ -42,8 +46,14 @@ import {
   useSessionProtectionActions,
 } from '@/shared/context/SessionProtectionContext';
 import ChatMessagesPane from '@/modules/chat/transcript/ChatMessagesPane';
+import { useAgyWorkspaceAccess } from '@/modules/chat/hooks/useAgyWorkspaceAccess';
 import ChatComposer from '@/modules/chat/composer/ChatComposer';
+import ModelAdviceChip from '@/modules/chat/composer/ModelAdviceChip';
+import QueryHandoffBar from '@/modules/chat/composer/QueryHandoffBar';
+import { isQueryProject } from '@/modules/sidebar/hooks/useSidebarController';
+import { SONNET_MODEL } from '@/modules/chat/utils/modelAdvice';
 import CommandResultModal from '@/modules/chat/modals/CommandResultModal';
+import { coForkProjectId } from '@/shared/coSessions';
 
 type ChatInterfaceProps = {
   isActive: boolean;
@@ -137,10 +147,18 @@ function ChatInterface({
     resolvePermissionModeForProvider,
     supportsMessageEditing,
     supportsSessionForking,
+    supportsAttachments,
   } = useChatProviderState({
     selectedSession,
     selectedProject,
   });
+  const selectSessionModelOnly = useCallback(async (sessionId: string, model: string) => {
+    try {
+      await selectProviderModel(provider, model, sessionId, { keepDefault: true });
+    } catch (error) {
+      console.error('Error changing the active session model:', error);
+    }
+  }, [provider, selectProviderModel]);
 
   const {
     chatMessages,
@@ -202,7 +220,7 @@ function ChatInterface({
     onNavigateToSession?.(sessionId);
   }, [setCurrentSessionId, onSessionEstablished, onNavigateToSession]);
 
-  const { handleNewSession } = useProjectCommandState(); // DHC CLI: for /clear
+  const { handleNewSession, projects: allProjects } = useProjectCommandState(); // DHC CLI: for /clear and 無痕查詢
 
   // DHC CLI: night mode — this chat's prompts are held on the server and run one at a time from 02:00.
   const { controls: nightQueue, enqueue: enqueueNightPrompt } = useNightQueue(
@@ -214,6 +232,7 @@ function ChatInterface({
   // DHC CLI 快閃任務: the ⚡ marks this session (or, before the first send, the next new one in this project).
   const flashSessionId = currentSessionId || selectedSession?.id || null;
   const flashProjectId = selectedProject?.projectId ?? null;
+  const agyAccess = useAgyWorkspaceAccess(selectedProject?.fullPath);
   const sessionIsFlash = useIsFlashSession(flashSessionId, selectedProject);
   const newSessionIsFlash = useNewSessionFlash(flashProjectId);
   const flashTask = {
@@ -262,13 +281,17 @@ function ChatInterface({
     attachedFiles,
     setAttachedFiles,
     fileErrors,
+    fileProgress,
     getRootProps,
     getInputProps,
     isDragActive,
     openAttachmentPicker,
+    attachFiles,
     handleSubmit,
     queueMessage,
+    interruptMessage,
     submitText,
+    sendVoiceTurn,
     queuedDraft,
     editQueuedDraft,
     deleteQueuedDraft,
@@ -291,7 +314,10 @@ function ChatInterface({
     editingAnchorId,
     beginEditMessage,
     cancelEditMessage,
+    modelAdviceChip,
+    setModelAdviceChip,
   } = useChatComposerState({
+    attachmentsEnabled: supportsAttachments,
     onClearConversation: () => { if (selectedProject) handleNewSession(selectedProject); },
     onReviewChanges: () => reviewChangesRef.current(),
     selectedProject,
@@ -321,6 +347,7 @@ function ChatInterface({
     setIsUserScrolledUp,
     setPendingPermissionRequests,
     resolvePermissionModeForProvider,
+    selectSessionModel: selectSessionModelOnly,
   });
 
   // On WebSocket reconnect, request a bounded persisted-tail sync (deferred
@@ -355,6 +382,8 @@ function ChatInterface({
 
   // DHC CLI D1: /review runs through the hook's submitText, which only exists after the hook returns.
   reviewChangesRef.current = () => { void submitText(REVIEW_OWN_CHANGES_PROMPT); };
+  // DHC CLI 10/29 畫布: the canvas panel beside the chat reads this conversation's pages and sends 框選修改 through here.
+  useCanvasFeed({ sessionId: selectedSession?.id || currentSessionId || null, projectId: selectedProject?.projectId ?? null, messages: chatMessages, submitText });
 
   // DHC CLI A1/E1: the tool currently running (last tool call still without a result) and when it
   // started, so the activity indicator can say "Bash 已 45秒" and flag one that looks stuck.
@@ -374,6 +403,11 @@ function ChatInterface({
   // DHC CLI 10/08: a todo dropped from the dock. An empty conversation switches to plan mode and sends a planning
   // turn about the task; an existing one gets a "focus on this" line appended to the composer, not sent.
   const [todoDragOver, setTodoDragOver] = useState(false);
+  // DHC CLI 10/21: files dropped anywhere in the chat pane attach, not only on the composer (the composer form keeps
+  // its own drop handling; drops inside it are skipped here so a file is not attached twice).
+  const [fileDragOver, setFileDragOver] = useState(false);
+  const isPaneFileDrag = (event: React.DragEvent) => Array.from(event.dataTransfer?.types ?? []).includes('Files')
+    && !(event.target as HTMLElement | null)?.closest?.('form[data-slot="prompt-input"]');
   const pendingPlanPromptRef = useRef<string | null>(null);
   const isEmptyConversation = !selectedSession?.id && !currentSessionId && chatMessages.length === 0;
   const handleTodoDrop = useCallback((payload: TodoChatPayload) => {
@@ -420,6 +454,36 @@ ${focus}` : focus);
     };
   }, [todoDragOver]);
 
+  // DHC CLI 10/31 閒置換新對話: see modules/chat/utils/freshStart.ts. True when the message went to a new conversation.
+  const tryFreshStart = useCallback(() => {
+    const fromSessionId = currentSessionId || selectedSession?.id || '';
+    if (!selectedProject || !fromSessionId || !shouldStartFresh({
+      provider,
+      used: Number(tokenBudget?.used) || 0,
+      lastActivity: chatMessages[chatMessages.length - 1]?.timestamp,
+      now: Date.now(),
+      text: input,
+      hasAttachments: attachedFiles.length > 0,
+      // 編輯舊訊息再送出要走 edit-send，不能被換成新對話
+      busy: Boolean(editingAnchorId) || isProcessing || pendingPermissionRequests.length > 0 || nightQueue.enabled,
+    })) return false;
+    const previousAnswer = [...chatMessages].reverse()
+      .find((message) => message.type === 'assistant' && typeof message.content === 'string' && !message.isToolUse)?.content ?? '';
+    markFreshStart(selectedProject.projectId, fromSessionId, input.trim());
+    queueAutoStart(selectedProject.projectId, freshStartPrompt(fromSessionId, String(previousAnswer), input));
+    setInput('');
+    handleNewSession(selectedProject);
+    return true;
+  }, [currentSessionId, selectedSession?.id, selectedProject, provider, tokenBudget?.used, chatMessages, input, attachedFiles.length, isProcessing, pendingPermissionRequests.length, nightQueue.enabled, editingAnchorId, setInput, handleNewSession]);
+  const handleTextareaKeyDown = useCallback((event: Parameters<typeof handleKeyDown>[0]) => {
+    const submits = event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing
+      && ((event.ctrlKey || event.metaKey) || !sendByCtrlEnter) && !showFileDropdown;
+    if (submits && tryFreshStart()) {
+      event.preventDefault();
+      return;
+    }
+    handleKeyDown(event);
+  }, [handleKeyDown, sendByCtrlEnter, showFileDropdown, tryFreshStart]);
   const handleComposerSubmit = useCallback((event: Parameters<typeof handleSubmit>[0]) => {
     const cmd = input.trim().toLowerCase();
     if ((cmd === '/clear' || cmd === '/new') && selectedProject) {
@@ -428,8 +492,14 @@ ${focus}` : focus);
       handleNewSession(selectedProject);
       return;
     }
+    if (tryFreshStart()) {
+      event.preventDefault();
+      return;
+    }
     return handleSubmit(event);
-  }, [input, selectedProject, setInput, handleNewSession, handleSubmit]);
+  }, [input, selectedProject, setInput, handleNewSession, handleSubmit, tryFreshStart]);
+  useEffect(() => { bindFreshStart(selectedProject?.projectId, currentSessionId); }, [currentSessionId, selectedProject?.projectId]);
+  const freshStart = freshStartFor(currentSessionId || selectedSession?.id);
 
   const handleWebSocketReconnect = useCallback(async () => {
     if (!selectedProject || !selectedSession) return;
@@ -483,6 +553,10 @@ ${focus}` : focus);
       if (event.key !== 'Escape' || event.repeat || event.defaultPrevented) {
         return;
       }
+      // Esc in the box while editing a sent message cancels the edit (the box handles it), not the run.
+      if (editingAnchorId && event.target === textareaRef.current) {
+        return;
+      }
 
       event.preventDefault();
       handleAbortSession();
@@ -492,7 +566,7 @@ ${focus}` : focus);
     return () => {
       document.removeEventListener('keydown', handleGlobalEscape, { capture: true });
     };
-  }, [canAbortSession, handleAbortSession]);
+  }, [canAbortSession, handleAbortSession, editingAnchorId, textareaRef]);
 
   // DHC CLI 10/13: a bare Enter while nothing editable or clickable has focus jumps into the composer,
   // so the keyboard alone gets back to typing. Dialogs, buttons, links and other fields keep their own Enter.
@@ -528,7 +602,8 @@ ${focus}` : focus);
     if (!anchorId || !sourceSessionId) return;
 
     try {
-      const response = await api.forkSession(sourceSessionId, { upToAnchorId: anchorId });
+      const projectId = coForkProjectId(sourceSessionId);
+      const response = await api.forkSession(sourceSessionId, { upToAnchorId: anchorId, ...(projectId ? { projectId } : {}) });
       const payload = await response.json();
       const forkedSessionId = payload?.data?.sessionId;
       if (!response.ok || typeof forkedSessionId !== 'string') {
@@ -543,13 +618,20 @@ ${focus}` : focus);
   const { scheduledMessages, schedule: scheduleMessage, cancel: cancelScheduledMessage } =
     useScheduledMessages(currentSessionId || selectedSession?.id || null);
 
+  // The scheduled-messages API takes text and send options only, and needs a session to hang the message on.
+  const scheduleBlockedReason = !(currentSessionId || selectedSession?.id)
+    ? '還沒送出第一則訊息的新對話不能排程，請先送出，或改用月亮（分流）'
+    : attachedFiles.length > 0
+      ? '排程只支援文字，請先移除附件，或直接送出'
+      : null;
+
   /**
    * Hands the composer's current text to the server to send later, and clears
    * the box as a send would — the message has left the composer either way.
    */
   const handleScheduleMessage = useCallback(async (scheduledFor: Date) => {
     const content = input.trim();
-    if (!content) return;
+    if (!content || scheduleBlockedReason) return;
 
     const scheduled = await scheduleMessage({
       content,
@@ -558,13 +640,14 @@ ${focus}` : focus);
         model: currentProviderModel,
         effort: currentProviderEffort,
         permissionMode,
-        ...(distillMode ? { appendSystemPrompt: DISTILL_SYSTEM_NOTE } : {}),
+        ...appendNotes(distillMode && DISTILL_SYSTEM_NOTE, isCanvasMode() && CANVAS_SYSTEM_NOTE),
       },
     });
     if (scheduled) {
       setInput('');
     }
-  }, [currentProviderEffort, currentProviderModel, distillMode, input, permissionMode, scheduleMessage, setInput]);
+  }, [currentProviderEffort, currentProviderModel, distillMode, input, permissionMode, scheduleBlockedReason, scheduleMessage, setInput]);
+
 
   const permissionContextValue = useMemo(() => ({
     pendingPermissionRequests,
@@ -580,6 +663,19 @@ ${focus}` : focus);
       console.error('Error changing the active session model:', error);
     }
   }, [currentSessionId, provider, selectProviderModel, selectedSession?.id]);
+
+  // DHC CLI 開對話建議模型: the chip's switch changes this conversation only; new chats keep the picked default.
+  const visibleModelAdvice = modelAdviceChip && modelAdviceChip.sessionId === (currentSessionId || selectedSession?.id)
+    ? modelAdviceChip
+    : null;
+  const switchAdvisedModel = useCallback(() => {
+    if (!visibleModelAdvice) return;
+    setModelAdviceChip(null);
+    void selectSessionModelOnly(
+      visibleModelAdvice.sessionId,
+      visibleModelAdvice.kind === 'suggest' ? SONNET_MODEL : visibleModelAdvice.from,
+    );
+  }, [selectSessionModelOnly, setModelAdviceChip, visibleModelAdvice]);
 
   const handleSelectComposerEffort = useCallback(async (effort: string) => {
     try {
@@ -601,7 +697,17 @@ ${focus}` : focus);
         ? t('messageTypes.codex')
         : provider === 'opencode'
             ? t('messageTypes.opencode', { defaultValue: 'OpenCode' })
+          : provider === 'agy'
+            ? t('messageTypes.agy', { defaultValue: 'Google agy' })
           : t('messageTypes.claude');
+
+  const agyNotice = provider === 'agy'
+    ? {
+        modelLabel: currentProviderModelOptions.find((option) => option.value === currentProviderModel)?.label
+          ?? currentProviderModel,
+        blockedReason: agyAccess.allowed ? null : (agyAccess.loading ? '正在確認這個專案能不能用 Google agy…' : agyAccess.reason),
+      }
+    : null;
 
   if (!selectedProject) {
     return (
@@ -620,19 +726,38 @@ ${focus}` : focus);
 
 
   return (
+    <ChatProjectContext.Provider value={selectedProject.projectId}>
     <PermissionContext.Provider value={permissionContextValue}>
       <div
         className="relative flex h-full min-h-0 flex-col"
         onDragOver={(event) => {
+          if (isPaneFileDrag(event)) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'copy';
+            if (!fileDragOver) setFileDragOver(true);
+            return;
+          }
+          if (fileDragOver) setFileDragOver(false);
           if (!hasTodoChatDrag(event.dataTransfer)) return;
           event.preventDefault();
           event.dataTransfer.dropEffect = 'copy';
           if (!todoDragOver) setTodoDragOver(true);
         }}
         onDragLeave={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setTodoDragOver(false);
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setTodoDragOver(false);
+            setFileDragOver(false);
+          }
         }}
         onDrop={(event) => {
+          if (isPaneFileDrag(event)) {
+            event.preventDefault();
+            setFileDragOver(false);
+            const files = Array.from(event.dataTransfer.files ?? []);
+            if (files.length > 0) attachFiles(files);
+            return;
+          }
+          setFileDragOver(false);
           if (!hasTodoChatDrag(event.dataTransfer)) return;
           event.preventDefault();
           setTodoDragOver(false);
@@ -640,6 +765,11 @@ ${focus}` : focus);
           if (payload) handleTodoDrop(payload);
         }}
       >
+        {fileDragOver && (
+          <div className="pointer-events-none absolute inset-2 z-50 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary/50 bg-primary/10">
+            <p className="rounded-xl border border-border/40 bg-card px-4 py-3 text-sm font-medium shadow-lg">放開：把檔案附加到輸入框</p>
+          </div>
+        )}
         {todoDragOver && (
           <div className="pointer-events-none absolute inset-2 z-50 flex items-center justify-center rounded-2xl border-2 border-dashed border-primary/50 bg-primary/10">
             <p className="rounded-xl border border-border/40 bg-card px-4 py-3 text-sm font-medium shadow-lg">
@@ -730,6 +860,26 @@ ${focus}` : focus);
             </div>
           )}
 
+          {freshStart && (
+            // 11/01: kept low-key at the user's request — only a faint way back, no explanation.
+            <div data-testid="fresh-start" className="mx-auto mb-1 flex w-full max-w-4xl justify-end px-3 text-[11px] text-muted-foreground/50">
+              <button
+                type="button"
+                onClick={() => { writeDraftText(freshStart.fromSessionId, freshStart.text); onNavigateToSession?.(freshStart.fromSessionId); }}
+                className="hover:text-muted-foreground hover:underline"
+              >
+                接回原對話
+              </button>
+            </div>
+          )}
+          {selectedProject && isQueryProject(selectedProject) && (
+            <QueryHandoffBar
+              project={selectedProject}
+              projects={allProjects ?? []}
+              messages={chatMessages}
+              onStartInProject={handleNewSession}
+            />
+          )}
           <ChatComposer
           pendingPermissionRequests={pendingPermissionRequests}
           handlePermissionDecision={handlePermissionDecision}
@@ -742,6 +892,7 @@ ${focus}` : focus);
           availablePermissionModes={availablePermissionModes}
           onSelectPermissionMode={selectPermissionMode}
           providerLabel={selectedProviderLabel}
+          agyNotice={agyNotice}
           effort={currentProviderEffort}
           availableEffortOptions={currentProviderEffortOptions}
           onSelectEffort={handleSelectComposerEffort}
@@ -756,6 +907,8 @@ ${focus}` : focus);
           onCancelEditMessage={cancelEditMessage}
           scheduledMessages={scheduledMessages}
           onScheduleMessage={handleScheduleMessage}
+          scheduleBlockedReason={scheduleBlockedReason}
+          attachDisabledReason={supportsAttachments ? null : '目前的 Google agy 收不到檔案和圖片，無法附加'}
           onCancelScheduledMessage={cancelScheduledMessage}
           nightQueue={nightQueue}
           flashTask={flashTask}
@@ -766,6 +919,7 @@ ${focus}` : focus);
           onClearInput={handleClearInput}
           onSubmit={handleComposerSubmit}
           onQueueMessage={queueMessage}
+          onInterruptMessage={interruptMessage}
           isDragActive={isDragActive}
           queuedDraft={queuedDraft}
           onEditQueuedDraft={editQueuedDraft}
@@ -782,6 +936,7 @@ ${focus}` : focus);
             )
           }
           fileErrors={fileErrors}
+          fileProgress={fileProgress}
           showFileDropdown={showFileDropdown}
           filteredFiles={filteredFiles}
           selectedFileIndex={selectedFileIndex}
@@ -800,9 +955,10 @@ ${focus}` : focus);
           textareaRef={textareaRef}
           input={input}
           onVoiceTranscript={handleVoiceTranscript}
+          voiceCall={{ sessionId: currentSessionId || selectedSession?.id || null, sendTurn: sendVoiceTurn }}
           onInputChange={handleInputChange}
           onTextareaClick={handleTextareaClick}
-          onTextareaKeyDown={handleKeyDown}
+          onTextareaKeyDown={handleTextareaKeyDown}
           onTextareaPaste={handlePaste}
           onTextareaScrollSync={syncInputOverlayScroll}
           onTextareaInput={handleTextareaInput}
@@ -812,6 +968,9 @@ ${focus}` : focus);
           isTextareaExpanded={isTextareaExpanded}
           sendByCtrlEnter={sendByCtrlEnter}
         />
+        {visibleModelAdvice && (
+          <ModelAdviceChip chip={visibleModelAdvice} onSwitch={switchAdvisedModel} onDismiss={() => setModelAdviceChip(null)} />
+        )}
         </div>
       </div>
 
@@ -826,6 +985,7 @@ ${focus}` : focus);
         onSelectProviderModel={selectProviderModel}
       />
     </PermissionContext.Provider>
+    </ChatProjectContext.Provider>
   );
 }
 

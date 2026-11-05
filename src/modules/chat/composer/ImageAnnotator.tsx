@@ -250,7 +250,7 @@ export default function ImageAnnotator({ file, onCancel, onDone }: {
   );
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex flex-col bg-black/85" role="dialog" aria-label="編輯圖片" data-testid="image-annotator">
+    <div className="fixed inset-0 z-[80] flex flex-col bg-black/85" role="dialog" aria-label="編輯圖片" data-testid="image-annotator">
       <div className="flex flex-wrap items-center gap-1.5 border-b border-border bg-card px-3 py-2">
         {toolButton('pen', '畫筆', Pencil)}
         {toolButton('rect', '方框', Square)}
@@ -387,7 +387,8 @@ export default function ImageAnnotator({ file, onCancel, onDone }: {
                   }
                 }}
                 onBlur={commitText}
-                placeholder="輸入文字（Enter 換行，點別處完成）"
+                placeholder="輸入文字"
+                data-tutorial-tip="Enter 換行；Ctrl+Enter 或點別處完成"
                 data-testid="annotate-text-input"
                 rows={Math.max(1, textDraft.split('\n').length)}
                 className="absolute min-w-[12rem] resize-none overflow-hidden rounded border border-dashed border-primary bg-background/40 p-0 font-bold leading-[1.25] shadow placeholder:text-xs placeholder:font-normal"

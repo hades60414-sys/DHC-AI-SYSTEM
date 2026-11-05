@@ -35,6 +35,12 @@ export interface IProviderRuntime {
     context: ProviderRuntimeContext,
   ): Promise<unknown>;
   abort(sessionId: string): boolean | Promise<boolean>;
+  /**
+   * DHC CLI: hands a user message to the turn that is still running, the way the desktop app does —
+   * the CLI reads it before its next step instead of the turn being stopped. False when there is no
+   * running turn to take it; the caller then sends it as an ordinary new turn.
+   */
+  inject?(sessionId: string, command: string, options: AnyRecord): boolean | Promise<boolean>;
   permissions?: ProviderRuntimePermissionGateway;
 }
 

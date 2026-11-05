@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import type { AgentCategory, AgentContextByProvider, AgentProvider, AgentSettingsProject, ClaudePermissionsState, CodexPermissionMode, CursorPermissionsState, ProviderAuthStatus } from '@/shared/types';
+import { filterEnabledAgents, useEnabledAgents } from '@/shared/dhcConfig';
 import AgentCategoryContentSection from '@/modules/settings/tabs/agents-settings/sections/AgentCategoryContentSection';
 import AgentCategoryTabsSection from '@/modules/settings/tabs/agents-settings/sections/AgentCategoryTabsSection';
 import AgentSelectorSection from '@/modules/settings/tabs/agents-settings/sections/AgentSelectorSection';
-import { filterEnabledAgents, useEnabledAgents } from '@/shared/dhcConfig';
 
 type ProviderAuthStatusByProvider = Record<AgentProvider, ProviderAuthStatus>;
 
@@ -35,14 +35,18 @@ export default function AgentsSettingsTab({
   const [selectedAgent, setSelectedAgent] = useState<AgentProvider>('claude');
   const [selectedCategory, setSelectedCategory] = useState<AgentCategory>('account');
   const visibleCategories = useMemo<AgentCategory[]>(() => (
-    selectedAgent === 'opencode'
-      ? ['account', 'permissions', 'mcp']
-      : ['account', 'permissions', 'mcp', 'skills']
+    selectedAgent === 'agy'
+      // Google agy has no permission, MCP or skill settings in this UI: the
+      // account tab carries its connection status and the data-handling note.
+      ? ['account']
+      : selectedAgent === 'opencode'
+        ? ['account', 'permissions', 'mcp']
+        : ['account', 'permissions', 'mcp', 'skills']
   ), [selectedAgent]);
 
   const enabledAgents = useEnabledAgents();
   const visibleAgents = useMemo<AgentProvider[]>(
-    () => filterEnabledAgents<AgentProvider>(['claude', 'cursor', 'codex', 'opencode'], (agent) => agent, enabledAgents),
+    () => filterEnabledAgents<AgentProvider>(['claude', 'cursor', 'codex', 'opencode', 'agy'], (agent) => agent, enabledAgents),
     [enabledAgents],
   );
 
@@ -63,12 +67,17 @@ export default function AgentsSettingsTab({
       authStatus: providerAuthStatus.opencode,
       onLogin: () => onProviderLogin('opencode'),
     },
+    agy: {
+      authStatus: providerAuthStatus.agy,
+      onLogin: () => onProviderLogin('agy'),
+    },
   }), [
     onProviderLogin,
     providerAuthStatus.claude,
     providerAuthStatus.codex,
     providerAuthStatus.cursor,
     providerAuthStatus.opencode,
+    providerAuthStatus.agy,
   ]);
 
   useEffect(() => {

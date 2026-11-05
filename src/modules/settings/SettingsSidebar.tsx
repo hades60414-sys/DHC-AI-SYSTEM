@@ -45,6 +45,8 @@ export default function SettingsSidebar({ activeTab, onChange }: SettingsSidebar
             return (
               <button
                 key={item.id}
+                type="button"
+                aria-current={isActive ? 'page' : undefined}
                 onClick={() => onChange(item.id)}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors duration-150',

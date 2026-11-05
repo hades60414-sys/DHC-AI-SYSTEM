@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { BrainIcon, ChevronDownIcon } from 'lucide-react';
 
 import { cn } from '@/shared/utils';
@@ -132,24 +133,27 @@ export type ReasoningTriggerProps = {
   getThinkingMessage?: (isStreaming: boolean, duration?: number) => React.ReactNode;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-const defaultGetThinkingMessage = (isStreaming: boolean, duration?: number): React.ReactNode => {
-  if (isStreaming || duration === 0) {
-    return <Shimmer>Thinking...</Shimmer>;
-  }
-  if (duration === undefined) {
-    return <p>Thought for a few seconds</p>;
-  }
-  return <p>Thought for {duration} seconds</p>;
-};
+const makeDefaultGetThinkingMessage = (t: (key: string, options?: Record<string, unknown>) => string) =>
+  (isStreaming: boolean, duration?: number): React.ReactNode => {
+    if (isStreaming || duration === 0) {
+      return <Shimmer>{t('chat:misc.reasoningThinking')}</Shimmer>;
+    }
+    if (duration === undefined) {
+      return <p>{t('chat:misc.reasoningThoughtFew')}</p>;
+    }
+    return <p>{t('chat:misc.reasoningThought', { duration })}</p>;
+  };
 
 /** Toggle of Reasoning, used by MessageComponent. */
 export const ReasoningTrigger = React.memo<ReasoningTriggerProps>(
   ({
     className,
     children,
-    getThinkingMessage = defaultGetThinkingMessage,
+    getThinkingMessage,
     ...props
   }) => {
+    const { t } = useTranslation();
+    const getMessage = getThinkingMessage ?? makeDefaultGetThinkingMessage(t);
     const { isStreaming, isOpen, duration } = useReasoning();
 
     return (
@@ -163,7 +167,7 @@ export const ReasoningTrigger = React.memo<ReasoningTriggerProps>(
         {children ?? (
           <>
             <BrainIcon className="h-4 w-4" />
-            {getThinkingMessage(isStreaming, duration)}
+            {getMessage(isStreaming, duration)}
             <ChevronDownIcon
               className={cn(
                 'h-4 w-4 transition-transform',

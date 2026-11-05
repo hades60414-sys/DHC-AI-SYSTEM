@@ -388,15 +388,37 @@ function dropSupersededPromptBranches(rows: AnyRecord[]): AnyRecord[] {
     }
   }
 
+  // DHC：留下「後面還有對話接著」的那一支，不是最後寫入的那一則。兩則提問在同一個
+  // parent 下幾乎同時寫入（例如送出時又排進一則）時，最後寫入的那則可能是死路，
+  // 真正的對話接在前一則後面；照舊規則會把之後幾天的對話整段藏掉（10-16 實例：
+  // 68 則提問藏 26 則）。真正的編輯會在新那支繼續寫，最新時間自然落在新那支。
+  const latestInSubtree = new Map<string, string>();
+  for (let index = rows.length - 1; index >= 0; index -= 1) {
+    const row = rows[index];
+    if (typeof row.uuid !== 'string') {
+      continue;
+    }
+    const own = typeof row.timestamp === 'string' ? row.timestamp : '';
+    const latest = (latestInSubtree.get(row.uuid) ?? '') > own ? latestInSubtree.get(row.uuid)! : own;
+    latestInSubtree.set(row.uuid, latest);
+    if (typeof row.parentUuid === 'string' && (latestInSubtree.get(row.parentUuid) ?? '') < latest) {
+      latestInSubtree.set(row.parentUuid, latest);
+    }
+  }
+
   const supersededRoots = new Set<string>();
   for (const siblings of promptSiblings.values()) {
     if (siblings.length < 2) {
       continue;
     }
-    // The transcript is append-only, so the last prompt written under a parent
-    // is the one that replaced the others.
-    for (const row of siblings.slice(0, -1)) {
-      if (typeof row.uuid === 'string') {
+    let live = siblings[siblings.length - 1];
+    for (const row of siblings) {
+      if ((latestInSubtree.get(row.uuid) ?? '') > (latestInSubtree.get(live.uuid) ?? '')) {
+        live = row;
+      }
+    }
+    for (const row of siblings) {
+      if (row !== live && typeof row.uuid === 'string') {
         supersededRoots.add(row.uuid);
       }
     }
@@ -680,7 +702,8 @@ export class ClaudeSessionsProvider implements IProviderSessions {
     const anchorId = typeof raw?.uuid === 'string' && raw.uuid ? raw.uuid : null;
     if (anchorId) {
       for (const message of messages) {
-        if (message.role === 'user') {
+        // DHC CLI: a mid-turn message has no turn of its own to rewind or fork from.
+        if (message.role === 'user' && !message.midTurn) {
           message.transcriptAnchorId = anchorId;
         }
       }
@@ -710,6 +733,32 @@ export class ClaudeSessionsProvider implements IProviderSessions {
     const messages: NormalizedMessage[] = [];
     const ts = raw.timestamp || new Date().toISOString();
     const baseId = raw.uuid || generateMessageId('claude');
+
+    // DHC CLI: a message the user sent while a turn was running (DHC CLI injection or the desktop app)
+    // is stored as a `queued_command` attachment rather than a user row. Show it as the user's message.
+    if (raw.type === 'attachment' && raw.attachment?.type === 'queued_command' && raw.attachment.commandMode === 'prompt') {
+      const prompt = raw.attachment.prompt;
+      const text = typeof prompt === 'string'
+        ? prompt
+        : Array.isArray(prompt)
+          ? prompt.filter((part: AnyRecord) => part?.type === 'text').map((part: AnyRecord) => part.text || '').join('\n')
+          : '';
+      const parsedFiles = parseFilesInputTag(text);
+      if (!parsedFiles.text && parsedFiles.attachments.length === 0) {
+        return [];
+      }
+      return [createNormalizedMessage({
+        id: `${baseId}_queued`,
+        sessionId,
+        timestamp: raw.attachment.timestamp || ts,
+        provider: PROVIDER,
+        kind: 'text',
+        role: 'user',
+        content: parsedFiles.text,
+        files: parsedFiles.attachments.length > 0 ? parsedFiles.attachments : undefined,
+        midTurn: true,
+      })];
+    }
 
     if (raw.message?.role === 'user' && raw.message?.content && raw.isMeta !== true) {
       // The live stream may also carry the compact summary as a text-block array.

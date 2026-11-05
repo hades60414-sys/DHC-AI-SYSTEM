@@ -104,6 +104,22 @@ const PROVIDER_CAPABILITIES: Record<LLMProvider, ProviderCapabilities> = {
     supportsMessageEditing: false,
     supportsSessionForking: false,
   },
+  agy: {
+    provider: 'agy',
+    // acceptEdits is the default (edits plus a short exact-command allow list);
+    // bypassPermissions maps to --dangerously-skip-permissions and is opt-in only.
+    // `plan` is not offered: it hangs in headless mode.
+    permissionModes: ['acceptEdits', 'bypassPermissions'],
+    defaultPermissionMode: 'acceptEdits',
+    supportsImages: false,
+    supportsFiles: false,
+    supportsAbort: true,
+    supportsPermissionRequests: false,
+    supportsTokenUsage: true,
+    supportsEffort: false,
+    supportsMessageEditing: false,
+    supportsSessionForking: false,
+  },
 };
 
 /**

@@ -446,6 +446,49 @@ test('two task notifications under one parent are not mistaken for an edit', { c
   }
 });
 
+// DHC：兩則提問幾乎同時寫在同一個 parent 下，後寫的那則沒有人接（死路），
+// 對話接在先寫的那則後面。舊規則留最後寫入的那則，把後面幾天的對話全藏掉（10-16 同事E）。
+test('a dead-end prompt written last does not hide the conversation that continued', { concurrency: false }, async () => {
+  const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'claude-dead-end-prompt-'));
+  const sessionId = 'claude-dead-end-session';
+
+  try {
+    const transcriptPath = path.join(tempRoot, `${sessionId}.jsonl`);
+    const rows = [
+      { type: 'user', uuid: 'u1', parentUuid: null, sessionId, timestamp: '2026-10-14T09:00:00.000Z',
+        message: { role: 'user', content: 'first prompt' } },
+      { type: 'assistant', uuid: 'a1', parentUuid: 'u1', sessionId, timestamp: '2026-10-14T09:00:01.000Z',
+        message: { role: 'assistant', model: 'claude-opus-5', content: [{ type: 'text', text: 'first answer' }] } },
+      { type: 'user', uuid: 'u2', parentUuid: 'a1', sessionId, timestamp: '2026-10-14T09:23:53.882Z',
+        message: { role: 'user', content: 'it works' } },
+      { type: 'user', uuid: 'u2x', parentUuid: 'a1', sessionId, timestamp: '2026-10-14T09:23:54.014Z',
+        message: { role: 'user', content: 'stray duplicate send' } },
+      { type: 'assistant', uuid: 'a2', parentUuid: 'u2', sessionId, timestamp: '2026-10-14T09:24:10.000Z',
+        message: { role: 'assistant', model: 'claude-opus-5', content: [{ type: 'text', text: 'great' }] } },
+      { type: 'user', uuid: 'u3', parentUuid: 'a2', sessionId, timestamp: '2026-10-16T08:00:00.000Z',
+        message: { role: 'user', content: 'two days later' } },
+      { type: 'assistant', uuid: 'a3', parentUuid: 'u3', sessionId, timestamp: '2026-10-16T08:00:05.000Z',
+        message: { role: 'assistant', model: 'claude-opus-5', content: [{ type: 'text', text: 'still here' }] } },
+    ];
+    await writeFile(transcriptPath, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`, 'utf8');
+
+    await withIsolatedDatabase(async () => {
+      const now = new Date().toISOString();
+      sessionsDb.createSession(sessionId, 'claude', tempRoot, 'Dead-end session', now, now, transcriptPath);
+
+      const history = await new ClaudeSessionsProvider().fetchHistory(sessionId, { providerSessionId: sessionId });
+      const texts = history.messages.map((message) => String(message.content ?? ''));
+
+      for (const expected of ['it works', 'great', 'two days later', 'still here']) {
+        assert.ok(texts.includes(expected), `${expected} must stay visible, got ${JSON.stringify(texts)}`);
+      }
+      assert.ok(!texts.includes('stray duplicate send'), 'the dead-end prompt is the one to drop');
+    });
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+
 test('parallel tool calls are not mistaken for an edit', { concurrency: false }, async () => {
   const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'claude-parallel-tools-'));
   const sessionId = 'claude-parallel-session';

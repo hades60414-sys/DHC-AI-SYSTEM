@@ -11,7 +11,7 @@ import type { ToolProps } from '@/modules/tool-library/catalog';
 import { DECK_CSS, buildDeckHtml, deckBrief, fitSlideElement, isTitleSlide, newDeck, parseDeckData, splitSlides } from '@/modules/tool-library/tools/deckModel';
 import type { Deck, DeckData, DeckTarget } from '@/modules/tool-library/tools/deckModel';
 import { applyDeckHandoff, deckToDocHandoff } from '@/modules/tool-library/tools/handoffModel';
-import SendMenu from '@/modules/tool-library/tools/SendMenu';
+import SendMenu, { chatItems } from '@/modules/tool-library/tools/SendMenu';
 import { safeFileName } from '@/modules/tool-library/tools/workshopModel';
 import { createToolSaver, loadToolData } from '@/shared/customTools';
 import { sendToTool, takeHandoff } from '@/shared/toolHandoff';
@@ -233,7 +233,7 @@ export default function DeckStudio({ profileId, profileName, isMobile, onClose, 
       <button type="button" onClick={rename} className={buttonClass}><Pencil className="h-3.5 w-3.5" />改名</button>
       <button type="button" onClick={undo} disabled={undoCount === 0} className={buttonClass}><Undo2 className="h-3.5 w-3.5" />復原</button>
       <button type="button" onClick={() => setPresenting(true)} className={buttonClass}><Play className="h-3.5 w-3.5" />播放</button>
-      <SendMenu items={[{ label: '轉成文件', disabled: !active.markdown.trim(), onPick: () => { void saver.flush(); sendToTool(deckToDocHandoff(active.name, active.markdown)); } }]} />
+      <SendMenu items={[{ label: '轉成文件', disabled: !active.markdown.trim(), onPick: () => { void saver.flush(); sendToTool(deckToDocHandoff(active.name, active.markdown)); } }, ...chatItems('簡報影片工作室', () => ({ title: active.name, body: active.markdown }), !active.markdown.trim(), () => void saver.flush())]} />
       <button type="button" onClick={downloadHtml} className={buttonClass}><Download className="h-3.5 w-3.5" />下載網頁簡報</button>
       <button type="button" onClick={remove} className={buttonClass}><Trash2 className="h-3.5 w-3.5" />刪除</button>
       {handoffNote && <button type="button" onClick={() => setHandoffNote('')} title="按一下關掉" className="max-w-[24rem] shrink-0 truncate text-xs text-muted-foreground hover:text-foreground">{handoffNote}</button>}
@@ -257,7 +257,7 @@ export default function DeckStudio({ profileId, profileName, isMobile, onClose, 
         chat: active.chat,
         onChatChange: (chat) => patchActive({ chat }),
         intro: '告訴我簡報主題與對象，我幫你排大綱、寫每一頁、補旁白。旁白用「> 旁白：」開頭，不會顯示在投影片上，做成影片時會被唸出來。',
-        placeholder: '想做什麼簡報？（Enter 送出）',
+        placeholder: '想做什麼簡報？',
       } : undefined}
       startWork={{
         hint: '把稿子交給 AI，做成 PPTX 或有配音的 MP4。',

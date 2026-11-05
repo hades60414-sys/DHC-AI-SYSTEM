@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { closeConnection, initializeDatabase, sessionsDb } from '@/modules/database/index.js';
+import { closeConnection, initializeDatabase, projectsDb, sessionsDb } from '@/modules/database/index.js';
 import { providerRegistry } from '@/modules/providers/provider.registry.js';
 import { sessionsService } from '@/modules/providers/services/sessions.service.js';
 import type { IProviderFork } from '@/shared/interfaces.js';
@@ -27,7 +27,7 @@ async function withForkableClaude(
   const sourcePath = path.join(directory, 'native-source.jsonl');
   const forkedPath = path.join(directory, 'native-fork.jsonl');
   await writeFile(sourcePath, '{}\n', 'utf8');
-  await writeFile(forkedPath, '{}\n', 'utf8');
+  await writeFile(forkedPath, `${JSON.stringify({ sessionId: 'native-fork', cwd: directory })}\n`, 'utf8');
 
   closeConnection();
   process.env.DATABASE_PATH = path.join(directory, 'auth.db');
@@ -169,5 +169,29 @@ test('forking a session that does not exist is a 404', async () => {
       () => sessionsService.forkSessionById('no-such-session'),
       (error: Error & { code?: string }) => error.code === 'SESSION_NOT_FOUND',
     );
+  });
+});
+
+test('a Co-Work member forks into their own project, transcript included', async () => {
+  await withForkableClaude(async ({ directory }) => {
+    seedSource(directory);
+    const memberPath = path.join(directory, 'member');
+    projectsDb.createProjectPath(memberPath, 'member');
+    const memberId = projectsDb.getProjectPath(memberPath)!.project_id;
+    const memberDir = path.join(os.tmpdir(), memberPath.replace(/[^a-zA-Z0-9]/g, '-'));
+
+    try {
+      const result = await sessionsService.forkSessionById(SOURCE_ID, { projectId: memberId });
+
+      const forked = sessionsDb.getSessionById(result.sessionId);
+      assert.equal(result.projectPath, memberPath);
+      assert.equal(forked?.project_path, memberPath);
+      assert.equal(forked?.jsonl_path, path.join(memberDir, 'native-fork.jsonl'));
+      const moved = JSON.parse((await readFile(path.join(memberDir, 'native-fork.jsonl'), 'utf8')).trim());
+      assert.equal(moved.cwd, memberPath);
+      await assert.rejects(stat(path.join(directory, 'native-fork.jsonl')));
+    } finally {
+      await rm(memberDir, { recursive: true, force: true });
+    }
   });
 });

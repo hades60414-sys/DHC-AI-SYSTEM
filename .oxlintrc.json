@@ -122,7 +122,8 @@
           "src/shared/waitingOnYou.ts",
           "src/shared/dhcConfig.ts",
           "src/shared/TeamOnly.tsx",
-          "src/shared/DhcConfigGate.tsx"
+          "src/shared/DhcConfigGate.tsx",
+          "src/shared/chatRoom.ts"
         ],
         "mode": "file"
       },

@@ -1,16 +1,19 @@
 import { useRef } from 'react';
 import type { ChangeEvent } from 'react';
-import { ChevronDown, Eye, FileText, FolderPlus, List, Loader2, RefreshCw, Search, TableProperties, Upload, X } from 'lucide-react';
+import { ArrowDownAZ, ChevronDown, Clock, Eye, FileText, FolderPlus, List, Loader2, RefreshCw, Search, TableProperties, Upload, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, Input } from '@/shared/ui';
 import { cn } from '@/shared/utils';
 import { MAX_FILE_UPLOAD_SIZE_LABEL } from '@/shared/constants';
 import type { FileTreeViewMode } from '@/shared/types';
+import type { FileTreeSort, FileTreeSortKey } from '@/modules/file-tree/utils/fileTreeUtils';
 
 type FileTreeHeaderProps = {
   viewMode: FileTreeViewMode;
   onViewModeChange: (mode: FileTreeViewMode) => void;
+  sort: FileTreeSort;
+  onSortChange: (key: FileTreeSortKey) => void;
   searchQuery: string;
   onSearchQueryChange: (query: string) => void;
   // Toolbar actions
@@ -30,6 +33,8 @@ type FileTreeHeaderProps = {
 export default function FileTreeHeader({
   viewMode,
   onViewModeChange,
+  sort,
+  onSortChange,
   searchQuery,
   onSearchQueryChange,
   onNewFile,
@@ -155,6 +160,16 @@ export default function FileTreeHeader({
               <ChevronDown className="h-3.5 w-3.5" />
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0"
+            onClick={() => onSortChange(sort.key === 'modified' ? 'name' : 'modified')}
+            title={sort.key === 'modified' ? t('fileTree.sortByTime', 'Sorted by time (click for name)') : t('fileTree.sortByName', 'Sorted by name (click for time)')}
+            aria-label={sort.key === 'modified' ? t('fileTree.sortByTime', 'Sorted by time (click for name)') : t('fileTree.sortByName', 'Sorted by name (click for time)')}
+          >
+            {sort.key === 'modified' ? <Clock className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />}
+          </Button>
           {/* Divider */}
           <div className="mx-0.5 h-4 w-px bg-border" />
           {/* View mode buttons */}

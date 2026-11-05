@@ -129,7 +129,8 @@ export default function PermissionRequestsBanner({
                       setDenyReasons((previous) => ({ ...previous, [request.requestId]: null }));
                     }
                   }}
-                  placeholder="不要，因為…（Enter 送出，Claude 會照這個改做法）"
+                  placeholder="不要，因為…"
+                  data-tutorial-tip="寫下拒絕的原因，按 Enter 送出；Claude 會照這個改做法"
                   className="h-8 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <ConfirmationAction variant="outline" onClick={() => denyWithReason(request.requestId)}>

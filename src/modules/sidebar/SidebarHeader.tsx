@@ -1,11 +1,12 @@
-import { Activity, BookOpen, Folder, FolderPlus, MessageSquare, Plus, RefreshCw, Repeat, Search, X, PanelLeftClose } from 'lucide-react';
+import { Activity, BookOpen, CalendarClock, Folder, MessageSquare, RefreshCw, Search, X, PanelLeftClose } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import { Link } from 'react-router-dom';
 
 import { Button, Input, Tooltip } from '@/shared/ui';
 import { CLOUDCLI_WORDMARK_FONT_FAMILY } from '@/shared/constants';
 import { IS_PLATFORM,cn } from '@/shared/utils';
-import AlertBell from '@/modules/sidebar/AlertBell';
+import { useIsPresenter } from '@/shared/context/ThemeContext';
+import AlertBell from './AlertBell';
 import type { SidebarSearchMode } from '@/shared/types';
 
 const MOD_KEY =
@@ -26,7 +27,6 @@ type SidebarHeaderProps = {
   onSearchModeChange: (mode: SidebarSearchMode) => void;
   onRefresh: () => void;
   isRefreshing: boolean;
-  onCreateProject: () => void;
   onCollapseSidebar: () => void;
   currentVersion: string;
   t: TFunction;
@@ -34,17 +34,23 @@ type SidebarHeaderProps = {
 
 /** Module-level, not a nested render function, so the wordmark is not remounted on every SidebarHeader render. */
 function LogoBlock({ t, version }: { t: TFunction; version: string }) {
+  const isPresenter = useIsPresenter();
+  if (isPresenter) {
+    return <h1 className="truncate text-base font-bold leading-tight text-foreground">DHC CLI</h1>;
+  }
+
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      {/* DHC CLI mascot: a line-drawn owl. */}
+      {/* DHC CLI: a line-drawn dog face (the same one as the 狗 avatar). */}
       <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-primary/90 shadow-sm">
-        <svg className="h-5 w-5 text-primary-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 10 L6.5 4.5 L10 7.5 H14 L17.5 4.5 L19 10 V14.5 A7 7 0 0 1 5 14.5 Z" />
-          <circle cx="9.3" cy="12" r="2.3" />
-          <circle cx="14.7" cy="12" r="2.3" />
-          <circle cx="9.3" cy="12" r="0.7" fill="currentColor" stroke="none" />
-          <circle cx="14.7" cy="12" r="0.7" fill="currentColor" stroke="none" />
-          <path d="M11 15.6 L12 17 L13 15.6" />
+        <svg className="h-5 w-5 text-primary-foreground" viewBox="12 13 40 40" fill="none" stroke="currentColor" strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 30 Q20 19 32 19 Q44 19 44 30 Q44.5 46.5 32 47 Q19.5 46.5 20 30 Z" />
+          <path d="M21.5 21.5 Q13 20 13.5 30 Q14 36 19.8 33.5" />
+          <path d="M42.5 21.5 Q51 20 50.5 30 Q50 36 44.2 33.5" />
+          <circle cx="26.5" cy="29" r="1.7" fill="currentColor" stroke="none" />
+          <circle cx="37.5" cy="29" r="1.7" fill="currentColor" stroke="none" />
+          <ellipse cx="32" cy="35.4" rx="2.7" ry="1.9" fill="currentColor" stroke="none" />
+          <path d="M32 37.3 v2.4 M28 39.8 q2 2 4 0 q2 2 4 0" />
         </svg>
       </div>
       <div className="min-w-0">
@@ -55,7 +61,7 @@ function LogoBlock({ t, version }: { t: TFunction; version: string }) {
           {t('app.title')}
         </h1>
         {/* DHC CLI：版本從側欄底部搬到標題下方，底部省一列 */}
-        <span className="block truncate text-[10px] leading-tight text-muted-foreground/50">v{version} · DHC CLI</span>
+        <span data-minimal-hide className="block truncate text-[10px] leading-tight text-muted-foreground/50">v{version} · DHC 團隊</span>
       </div>
     </div>
   );
@@ -77,7 +83,6 @@ export default function SidebarHeader({
   onSearchModeChange,
   onRefresh,
   isRefreshing,
-  onCreateProject,
   onCollapseSidebar,
   currentVersion,
   t,
@@ -89,6 +94,8 @@ export default function SidebarHeader({
       ? t('search.archivedPlaceholder', 'Search archived sessions...')
       : searchMode === 'running'
         ? t('search.runningPlaceholder', 'Search running sessions...')
+        : searchMode === 'scheduled'
+          ? '搜尋排程內容或對話名稱…'
         : t('projects.searchPlaceholder');
   const runningBadgeText = runningSessionsCount > 99 ? '99+' : String(runningSessionsCount);
 
@@ -106,7 +113,7 @@ export default function SidebarHeader({
               to="/"
               reloadDocument
               className="flex min-w-0 items-center gap-2.5 transition-opacity hover:opacity-80"
-              title="回到 DHC CLI 首頁"
+              title="回到 DHC AI System 首頁"
             >
               <LogoBlock t={t} version={currentVersion} />
             </Link>
@@ -114,36 +121,14 @@ export default function SidebarHeader({
             <LogoBlock t={t} version={currentVersion} />
           )}
 
+          {/* DHC CLI 10/21：重整拿掉（點標題就是重整）。＋移到分頁列最右 */}
           <div className="flex flex-shrink-0 items-center gap-0.5">
             <Button
               variant="ghost"
               size="sm"
               className="h-7 w-7 rounded-lg p-0 text-muted-foreground hover:bg-accent/80 hover:text-foreground"
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              title={t('tooltips.refresh')}
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 ${
-                  isRefreshing ? 'animate-spin' : ''
-                }`}
-              />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 rounded-lg p-0 text-muted-foreground hover:bg-accent/80 hover:text-foreground"
-              onClick={onCreateProject}
-              title={t('tooltips.createProject')}
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </Button>
-            <AlertBell />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 rounded-lg p-0 text-muted-foreground hover:bg-accent/80 hover:text-foreground"
               onClick={onCollapseSidebar}
+              data-tutorial-tip="收合側欄，把空間讓給對話"
               title={t('tooltips.hideSidebar')}
             >
               <PanelLeftClose className="h-3.5 w-3.5" />
@@ -159,6 +144,7 @@ export default function SidebarHeader({
             <div className="flex rounded-lg bg-muted/50 p-0.5">
               <button
                 onClick={() => onSearchModeChange('projects')}
+                data-tutorial-tip="專案：依專案分類看所有對話"
                 aria-pressed={searchMode === 'projects'}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-normal transition-all",
@@ -170,24 +156,26 @@ export default function SidebarHeader({
                 <Folder className="h-3 w-3" />
                 {t('search.modeProjects')}
               </button>
+              {/* DHC CLI 10/31：對話回到中間並加上文字（例行拿掉後的位置）；封存從對話分頁上方的連結進入。 */}
               <button
-                onClick={() => onSearchModeChange('routine')}
-                aria-pressed={searchMode === 'routine'}
-                title="例行工作：每月／每季重複的報告，點進去說「更新10月」就照上次的做法產新的"
+                onClick={() => onSearchModeChange('conversations')}
+                data-tutorial-tip="對話：不分專案，直接列出最近的對話"
+                aria-pressed={searchMode === 'conversations' || searchMode === 'archived'}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-normal transition-all",
-                  searchMode === 'routine'
+                  searchMode === 'conversations' || searchMode === 'archived'
                     ? "bg-background shadow-sm text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Repeat className="h-3 w-3" />
-                例行
+                <MessageSquare className="h-3 w-3" />
+                {t('search.modeConversations')}
               </button>
               <button
                 onClick={() => onSearchModeChange('query')}
+                data-tutorial-tip="查詢：問內部法規、資料目錄和這個網站怎麼用"
                 aria-pressed={searchMode === 'query'}
-                title="查詢專區：DHC CLI 教學，以及你自己接的文件／資料庫問答"
+                title="查詢專區（DEMO）：法遵、DHC AI System 教學"
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-normal transition-all",
                   searchMode === 'query'
@@ -201,6 +189,7 @@ export default function SidebarHeader({
               <Tooltip content={t('search.runningTooltip', 'Running sessions')} position="top">
                 <button
                   onClick={() => onSearchModeChange('running')}
+                  data-tutorial-tip="執行中：只看正在跑的對話，綠色數字是數量"
                   aria-pressed={searchMode === 'running'}
                   aria-label={t('search.runningTooltip', 'Running sessions')}
                   title={t('search.runningTooltip', 'Running sessions')}
@@ -221,32 +210,33 @@ export default function SidebarHeader({
                   </span>
                 </button>
               </Tooltip>
-              {/* DHC CLI：對話縮成圖示放最右（原封存的位置）；封存改從對話分頁上方的連結進入。 */}
-              <Tooltip content={t('search.modeConversations')} position="top">
-                <button
-                  onClick={() => onSearchModeChange('conversations')}
-                  aria-pressed={searchMode === 'conversations' || searchMode === 'archived'}
-                  aria-label={t('search.modeConversations')}
-                  title={t('search.modeConversations')}
-                  className={cn(
-                    "flex items-center justify-center rounded-md px-2.5 py-1.5 text-xs font-normal transition-all",
-                    searchMode === 'conversations' || searchMode === 'archived'
-                      ? "bg-background shadow-sm text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <MessageSquare className="h-3 w-3" />
-                </button>
-              </Tooltip>
+              {/* DHC CLI 11/01：新增專案的 ＋ 位置改成「排程」：列出時鐘與分流排好的訊息 */}
+              <button
+                type="button"
+                onClick={() => onSearchModeChange('scheduled')}
+                data-tutorial-tip="排程：看所有排好時間或排到夜間的訊息，可以點開或取消"
+                aria-pressed={searchMode === 'scheduled'}
+                aria-label="排程"
+                title="排程"
+                className={cn(
+                  "flex items-center justify-center rounded-md px-2.5 py-1.5 transition-all",
+                  searchMode === 'scheduled'
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <CalendarClock className="h-3.5 w-3.5" />
+              </button>
             </div>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground/50" />
               <Input
                 type="text"
                 placeholder={searchPlaceholder}
+                data-tutorial-tip={`輸入關鍵字篩選；${MOD_KEY} K 開啟指令面板（搜對話、檔案、指令）`}
                 value={searchFilter}
                 onChange={(event) => onSearchFilterChange(event.target.value)}
-                className="nav-search-input h-9 rounded-xl border-0 pl-9 pr-14 text-sm transition-all duration-200 placeholder:text-muted-foreground/40 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="nav-search-input h-9 rounded-xl border-0 pl-9 pr-14 text-sm transition-all duration-200 placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               {searchFilter ? (
                 <button
@@ -259,6 +249,7 @@ export default function SidebarHeader({
               ) : (
                 <kbd
                   aria-hidden
+                  data-tutorial
                   title={t('tooltips.openCommandPalette')}
                   className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 rounded border border-border/60 bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground md:inline-flex"
                 >
@@ -286,7 +277,7 @@ export default function SidebarHeader({
               to="/"
               reloadDocument
               className="flex min-w-0 items-center gap-2.5 transition-opacity active:opacity-70"
-              title="回到 DHC CLI 首頁"
+              title="回到 DHC AI System 首頁"
             >
               <LogoBlock t={t} version={currentVersion} />
             </Link>
@@ -302,13 +293,7 @@ export default function SidebarHeader({
             >
               <RefreshCw className={`h-4 w-4 text-muted-foreground ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
-            <button
-              className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/90 text-primary-foreground transition-all active:scale-95"
-              onClick={onCreateProject}
-            >
-              <FolderPlus className="h-4 w-4" />
-            </button>
-            {/* DHC CLI 10/14：警示放最右，重新整理／新增專案往左移 */}
+            {/* DHC CLI 10/14：警示放最右，重新整理往左移；11/01 新增專案移到 專案設定 */}
             <AlertBell size="md" />
           </div>
         </div>
@@ -319,6 +304,7 @@ export default function SidebarHeader({
             <div className="flex rounded-lg bg-muted/50 p-0.5">
               <button
                 onClick={() => onSearchModeChange('projects')}
+                data-tutorial-tip="專案：依專案分類看所有對話"
                 aria-pressed={searchMode === 'projects'}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-normal transition-all",
@@ -330,24 +316,26 @@ export default function SidebarHeader({
                 <Folder className="h-3 w-3" />
                 {t('search.modeProjects')}
               </button>
+              {/* DHC CLI 10/31：對話回到中間並加上文字（例行拿掉後的位置）；封存從對話分頁上方的連結進入。 */}
               <button
-                onClick={() => onSearchModeChange('routine')}
-                aria-pressed={searchMode === 'routine'}
-                title="例行工作：每月／每季重複的報告，點進去說「更新10月」就照上次的做法產新的"
+                onClick={() => onSearchModeChange('conversations')}
+                data-tutorial-tip="對話：不分專案，直接列出最近的對話"
+                aria-pressed={searchMode === 'conversations' || searchMode === 'archived'}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-normal transition-all",
-                  searchMode === 'routine'
+                  searchMode === 'conversations' || searchMode === 'archived'
                     ? "bg-background shadow-sm text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Repeat className="h-3 w-3" />
-                例行
+                <MessageSquare className="h-3 w-3" />
+                {t('search.modeConversations')}
               </button>
               <button
                 onClick={() => onSearchModeChange('query')}
+                data-tutorial-tip="查詢：問內部法規、資料目錄和這個網站怎麼用"
                 aria-pressed={searchMode === 'query'}
-                title="查詢專區：DHC CLI 教學，以及你自己接的文件／資料庫問答"
+                title="查詢專區（DEMO）：法遵、DHC AI System 教學"
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-normal transition-all",
                   searchMode === 'query'
@@ -361,6 +349,7 @@ export default function SidebarHeader({
               <Tooltip content={t('search.runningTooltip', 'Running sessions')} position="top">
                 <button
                   onClick={() => onSearchModeChange('running')}
+                  data-tutorial-tip="執行中：只看正在跑的對話，綠色數字是數量"
                   aria-pressed={searchMode === 'running'}
                   aria-label={t('search.runningTooltip', 'Running sessions')}
                   title={t('search.runningTooltip', 'Running sessions')}
@@ -382,32 +371,33 @@ export default function SidebarHeader({
                   <span className="sr-only">{t('search.modeRunning', 'Running')}</span>
                 </button>
               </Tooltip>
-              {/* DHC CLI：對話縮成圖示放最右（原封存的位置）；封存改從對話分頁上方的連結進入。 */}
-              <Tooltip content={t('search.modeConversations')} position="top">
-                <button
-                  onClick={() => onSearchModeChange('conversations')}
-                  aria-pressed={searchMode === 'conversations' || searchMode === 'archived'}
-                  aria-label={t('search.modeConversations')}
-                  title={t('search.modeConversations')}
-                  className={cn(
-                    "flex items-center justify-center rounded-md px-2.5 py-1.5 text-xs font-normal transition-all",
-                    searchMode === 'conversations' || searchMode === 'archived'
-                      ? "bg-background shadow-sm text-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <MessageSquare className="h-3 w-3" />
-                </button>
-              </Tooltip>
+              {/* DHC CLI 11/01：新增專案的 ＋ 位置改成「排程」：列出時鐘與分流排好的訊息 */}
+              <button
+                type="button"
+                onClick={() => onSearchModeChange('scheduled')}
+                data-tutorial-tip="排程：看所有排好時間或排到夜間的訊息，可以點開或取消"
+                aria-pressed={searchMode === 'scheduled'}
+                aria-label="排程"
+                title="排程"
+                className={cn(
+                  "flex items-center justify-center rounded-md px-2.5 py-1.5 transition-all",
+                  searchMode === 'scheduled'
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <CalendarClock className="h-3.5 w-3.5" />
+              </button>
             </div>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/50" />
               <Input
                 type="text"
                 placeholder={searchPlaceholder}
+                data-tutorial-tip="輸入關鍵字篩選清單"
                 value={searchFilter}
                 onChange={(event) => onSearchFilterChange(event.target.value)}
-                className="nav-search-input h-10 rounded-xl border-0 pl-10 pr-9 text-sm transition-all duration-200 placeholder:text-muted-foreground/40 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="nav-search-input h-10 rounded-xl border-0 pl-10 pr-9 text-sm transition-all duration-200 placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
               />
               {searchFilter && (
                 <button

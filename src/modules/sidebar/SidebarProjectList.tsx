@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import type { SidebarProjectListProps } from '@/shared/types';
 import { getPageTitle } from '@/shared/utils';
+import { useIsPresenter } from '@/shared/context/ThemeContext';
 import SidebarProjectItem from '@/modules/sidebar/SidebarProjectItem';
 import SidebarProjectsState from '@/modules/sidebar/SidebarProjectsState';
+import { getAllSessions, getSessionDate } from '@/modules/sidebar/utils/sidebarProjectFormatting';
 
 
 /** Rendered by SidebarContent to list the filtered projects, delegating each row to SidebarProjectItem. */
@@ -47,7 +49,9 @@ export default function SidebarProjectList({
   onSaveEditingSession,
   t,
 }: SidebarProjectListProps) {
-  const pageTitle = getPageTitle(selectedProject, selectedSession);
+  const isPresenter = useIsPresenter();
+  // 投影 外觀：分頁標題固定，不露出對話名稱
+  const pageTitle = isPresenter ? 'DHC CLI' : getPageTitle(selectedProject, selectedSession);
   const state = (
     <SidebarProjectsState
       isLoading={isLoading}
@@ -64,6 +68,16 @@ export default function SidebarProjectList({
   useEffect(() => {
     document.title = attentionCount > 0 ? `(${attentionCount}) ${pageTitle}` : pageTitle;
   }, [pageTitle, attentionCount]);
+
+  // DHC CLI Co-Work: a shared row sits in another project's list but should sink or rise with the owner's activity.
+  // Keyed on the activity itself so a rename (a new projects array) does not hand every row a new map.
+  const activityKey = projects
+    .flatMap((project) => getAllSessions(project).map((session) => `${session.id}:${getSessionDate(session).getTime()}`))
+    .join(',');
+  const sessionActivity = useMemo(() => new Map<string, number>(activityKey ? activityKey.split(',').map((entry) => {
+    const at = entry.lastIndexOf(':');
+    return [entry.slice(0, at), Number(entry.slice(at + 1))];
+  }) : []), [activityKey]);
 
   const showProjects = !isLoading && projects.length > 0 && filteredProjects.length > 0;
 
@@ -98,6 +112,7 @@ export default function SidebarProjectList({
                 isEditing={renamingProject !== null}
                 renameDraft={renamingProject?.draft ?? ''}
                 sessions={getProjectSessions(project)}
+                sessionActivity={sessionActivity}
                 initialSessionsLoaded={initialSessionsLoaded.has(project.projectId)}
                 isLoadingMoreSessions={loadingMoreProjects.has(project.projectId)}
                 currentTime={currentTime}

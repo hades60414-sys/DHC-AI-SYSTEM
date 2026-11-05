@@ -143,12 +143,14 @@ export default function CoShareDialog({ projects, onRenamed }: {
               onChange={(event) => setMessage(event.target.value)}
               rows={3}
               maxLength={500}
-              placeholder="例如：幫我看一下第 3 點的算法"
+              placeholder="留言（選填）"
+              data-tutorial-tip="給對方的話，例如：幫我看一下第 3 點的算法"
               data-testid="co-share-message"
               className="w-full resize-none rounded-md border border-border bg-background px-2.5 py-2 text-sm focus:border-primary focus:outline-none"
             />
           </label>
         )}
+        {picked.size > 0 && <p data-testid="co-share-delay-note" className="mt-3 text-xs text-muted-foreground">儲存後，對方最多約 1 分鐘內會看到。</p>}
         <div className="mt-4 flex justify-end gap-2 border-t pt-3">
           <button type="button" onClick={close} className="rounded-md px-3 py-1.5 text-sm hover:bg-accent">取消</button>
           <button

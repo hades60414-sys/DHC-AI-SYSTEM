@@ -400,6 +400,11 @@ const addProviderSessionIdMapping = (db: Database): void => {
   const sessionsTableInfo = getTableInfo(db, 'sessions');
   const columnNames = sessionsTableInfo.map((column) => column.name);
 
+  // DHC CLI: backfill only when the column is new. Runs on every start, and a new chat whose first prompt
+  // waits in the night queue has a NULL id on purpose; filling it made the first run resume a missing conversation.
+  if (columnNames.includes('provider_session_id')) {
+    return;
+  }
   addColumnToTableIfNotExists(db, 'sessions', columnNames, 'provider_session_id', 'TEXT');
   db.exec(`
     UPDATE sessions

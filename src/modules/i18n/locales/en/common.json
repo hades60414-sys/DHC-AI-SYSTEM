@@ -86,7 +86,7 @@
     "openInEditor": "Open in Editor"
   },
   "mainContent": {
-    "loading": "Loading DHC CLI",
+    "loading": "Loading DHC AI System",
     "settingUpWorkspace": "Setting up your workspace...",
     "chooseProject": "Choose Your Project",
     "selectProjectDescription": "Select a project from the sidebar to start coding with Claude. Each project contains your chat sessions and file history.",
@@ -108,6 +108,8 @@
     "name": "Name",
     "size": "Size",
     "modified": "Modified",
+    "sortByTime": "Sorted by time (click for name)",
+    "sortByName": "Sorted by name (click for time)",
     "permissions": "Permissions",
     "noFilesFound": "No files found",
     "checkProjectPath": "Check if the project path is accessible",

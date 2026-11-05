@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileIcon, PencilIcon, XIcon } from 'lucide-react';
 
-import { ImageLightbox } from '@/modules/chat/transcript/ChatMessageImages';
 import ImageAnnotator from '@/modules/chat/composer/ImageAnnotator';
 
 type ComposerAttachmentProps = {
@@ -10,6 +10,8 @@ type ComposerAttachmentProps = {
   /** DHC CLI: swaps in the marked-up image; without it the image cannot be edited. */
   onReplace?: (file: File) => void;
   error?: string;
+  /** DHC CLI: chunked-upload progress 0–1; absent when not uploading. */
+  progress?: number;
 };
 
 const formatFileSize = (size: number) => {
@@ -21,10 +23,12 @@ const formatFileSize = (size: number) => {
 /**
  * Rendered by chat's ChatComposer for each pending attachment, showing its
  * thumbnail or file chip, upload progress and remove control.
+ * DHC CLI 11/01: clicking an image opens the annotator directly (it has its own zoom), so there is
+ * no separate lightbox; the always-visible pencil only tells people the image can be edited.
  */
-const ComposerAttachment = ({ file, onRemove, onReplace, error }: ComposerAttachmentProps) => {
+const ComposerAttachment = ({ file, onRemove, onReplace, error, progress }: ComposerAttachmentProps) => {
+  const { t } = useTranslation();
   const [preview, setPreview] = useState<string | undefined>(undefined);
-  const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const isImage = file.type.startsWith('image/');
 
@@ -43,12 +47,14 @@ const ComposerAttachment = ({ file, onRemove, onReplace, error }: ComposerAttach
       {isImage ? (
         <button
           type="button"
-          onClick={() => preview && setExpanded(true)}
-          aria-label={`Expand ${file.name}`}
+          onClick={() => preview && onReplace && setEditing(true)}
+          title={onReplace ? '編輯圖片：畫筆、方框、文字' : undefined}
+          aria-label={t('chat:misc.editFile', { name: file.name })}
+          data-testid="composer-attachment-edit"
           className="block overflow-hidden rounded-xl border border-border/50 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
         >
           {preview
-            ? <img src={preview} alt={file.name} className="h-20 w-20 cursor-zoom-in object-cover" />
+            ? <img src={preview} alt={file.name} className={`h-20 w-20 object-cover ${onReplace ? 'cursor-pointer' : ''}`} />
             : <div className="h-20 w-20 animate-pulse bg-muted" />}
         </button>
       ) : (
@@ -62,6 +68,16 @@ const ComposerAttachment = ({ file, onRemove, onReplace, error }: ComposerAttach
           </div>
         </div>
       )}
+      {progress !== undefined && (
+        <div
+          className="pointer-events-none absolute inset-x-1 bottom-1 h-1.5 overflow-hidden rounded-full bg-muted"
+          role="progressbar"
+          aria-valuenow={Math.round(progress * 100)}
+          title={`上傳中 ${Math.round(progress * 100)}%`}
+        >
+          <div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round(progress * 100)}%` }} />
+        </div>
+      )}
       {error && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/50">
           <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +89,7 @@ const ComposerAttachment = ({ file, onRemove, onReplace, error }: ComposerAttach
         type="button"
         onClick={onRemove}
         className="absolute -right-1.5 -top-1.5 rounded-full border border-border/40 bg-background/90 p-1 text-foreground shadow-sm backdrop-blur transition-opacity hover:bg-background focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-        aria-label={`Remove ${file.name}`}
+        aria-label={t('chat:misc.removeFile', { name: file.name })}
       >
         <XIcon className="h-3 w-3" aria-hidden />
       </button>
@@ -82,9 +98,9 @@ const ComposerAttachment = ({ file, onRemove, onReplace, error }: ComposerAttach
           type="button"
           onClick={() => setEditing(true)}
           title="編輯圖片：畫筆、方框、文字"
-          aria-label={`Edit ${file.name}`}
-          data-testid="composer-attachment-edit"
-          className="absolute -left-1.5 -top-1.5 rounded-full border border-border/40 bg-background/90 p-1 text-foreground shadow-sm backdrop-blur transition-opacity hover:bg-background focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+          aria-hidden
+          tabIndex={-1}
+          className="absolute -left-1.5 -top-1.5 rounded-full border border-border/40 bg-background/90 p-1 text-foreground shadow-sm backdrop-blur hover:bg-background"
         >
           <PencilIcon className="h-3 w-3" aria-hidden />
         </button>
@@ -98,9 +114,6 @@ const ComposerAttachment = ({ file, onRemove, onReplace, error }: ComposerAttach
             onReplace(edited);
           }}
         />
-      )}
-      {expanded && preview && (
-        <ImageLightbox src={preview} alt={file.name} onClose={() => setExpanded(false)} />
       )}
     </div>
   );

@@ -73,6 +73,67 @@ test('a message due in the past is sent on the next pass, not skipped', async ()
   });
 });
 
+test('messages due together in different sessions all start, even while one turn is still running', async () => {
+  await withIsolatedDatabase(async (userId) => {
+    const otherSession = 'scheduled-session-2';
+    sessionsDb.createAppSession(otherSession, 'claude', tmpdir(), 'Other session');
+    const due = new Date(Date.now() - 60_000).toISOString();
+    scheduledMessagesService.schedule({ userId, sessionId: SESSION_ID, content: 'long video job', scheduledFor: due });
+    scheduledMessagesService.schedule({ userId, sessionId: otherSession, content: 'quick follow-up', scheduledFor: due });
+
+    const started: string[] = [];
+    let release = () => {};
+    const blocked = new Promise<void>((resolve) => { release = resolve; });
+    const runtime = {
+      hasRuntime: () => true,
+      run: async (_provider: string, command: string) => {
+        started.push(command);
+        // Every turn stays open until released, like a long real turn.
+        await blocked;
+      },
+      abort: async () => true,
+    } as never;
+
+    const pass = dispatchDueScheduledMessages(runtime);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(started.sort(), ['long video job', 'quick follow-up']);
+
+    release();
+    assert.equal(await pass, 2);
+  });
+});
+
+test('a due message waiting behind another in its session shows as sending, and a restart sends it again', async () => {
+  await withIsolatedDatabase(async (userId) => {
+    const due = new Date(Date.now() - 60_000).toISOString();
+    scheduledMessagesService.schedule({ userId, sessionId: SESSION_ID, content: 'first', scheduledFor: due });
+    scheduledMessagesService.schedule({ userId, sessionId: SESSION_ID, content: 'second', scheduledFor: due });
+
+    let release = () => {};
+    const blocked = new Promise<void>((resolve) => { release = resolve; });
+    const runtime = {
+      hasRuntime: () => true,
+      run: async () => { await blocked; },
+      abort: async () => true,
+    } as never;
+
+    const pass = dispatchDueScheduledMessages(runtime);
+    await new Promise((resolve) => setImmediate(resolve));
+    const statusOf = (content: string) =>
+      scheduledMessagesDb.listForSession(userId, SESSION_ID).find((row) => row.content === content)?.status;
+    assert.equal(statusOf('first'), 'sent');
+    assert.equal(statusOf('second'), 'sending');
+    assert.equal(scheduledMessagesService.listPending(userId).length, 1);
+
+    // The server stops here; on the way back up the waiting one is due again.
+    assert.equal(scheduledMessagesDb.releaseUnstarted(), 1);
+    assert.equal(statusOf('second'), 'pending');
+
+    release();
+    await pass;
+  });
+});
+
 test('a queued message is sent by the server without a browser connection', async () => {
   await withIsolatedDatabase(async (userId) => {
     sessionDraftsDb.saveDraft(userId, SESSION_ID, {

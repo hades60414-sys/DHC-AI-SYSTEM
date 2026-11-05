@@ -262,7 +262,7 @@ export const sessionsService = {
    */
   async forkSessionById(
     sessionId: string,
-    options: { upToAnchorId?: string; title?: string } = {},
+    options: { upToAnchorId?: string; title?: string; projectId?: string } = {},
   ): Promise<CreateAppSessionResult> {
     const source = sessionsDb.getSessionById(sessionId);
     if (!source) {
@@ -301,14 +301,46 @@ export const sessionsService = {
       title: sessionName,
     });
 
+    // DHC CLI 10/16: a Co-Work member's fork goes to the member's own project. Claude finds a transcript by
+    // its working directory, so the copy moves into that project's ~/.claude/projects folder, and every row's
+    // cwd is rewritten because the session synchronizer takes the project from the first row's cwd.
+    let projectPath = source.project_path ?? '';
+    let jsonlPath = forked.jsonlPath;
+    if (options.projectId) {
+      const targetPath = projectsDb.getProjectPathById(options.projectId);
+      if (!targetPath) {
+        throw new AppError(`Project "${options.projectId}" was not found.`, {
+          code: 'PROJECT_NOT_FOUND',
+          statusCode: 404,
+        });
+      }
+      if (targetPath !== projectPath && provider === 'claude') {
+        const targetDir = path.join(path.dirname(path.dirname(forked.jsonlPath)), targetPath.replace(/[^a-zA-Z0-9]/g, '-'));
+        await fsp.mkdir(targetDir, { recursive: true });
+        jsonlPath = path.join(targetDir, path.basename(forked.jsonlPath));
+        const rows = (await fsp.readFile(forked.jsonlPath, 'utf8')).split('\n').map((line) => {
+          if (!line.includes('"cwd"')) return line;
+          try {
+            const row = JSON.parse(line) as { cwd?: unknown };
+            return typeof row.cwd === 'string' ? JSON.stringify({ ...row, cwd: targetPath }) : line;
+          } catch {
+            return line;
+          }
+        });
+        await fsp.writeFile(jsonlPath, rows.join('\n'), 'utf8');
+        await fsp.rm(forked.jsonlPath);
+      }
+      projectPath = targetPath;
+    }
+
     const forkSessionId = randomUUID();
     sessionsDb.createForkedSession({
       sessionId: forkSessionId,
       provider,
-      projectPath: source.project_path ?? '',
+      projectPath,
       customName: sessionName,
       providerSessionId: forked.providerSessionId,
-      jsonlPath: forked.jsonlPath,
+      jsonlPath,
       forkedFromSessionId: sessionId,
       // A fork that silently dropped to the catalog default would answer
       // differently from the conversation it was branched from.
@@ -321,7 +353,7 @@ export const sessionsService = {
     return {
       sessionId: forkSessionId,
       provider,
-      projectPath: source.project_path ?? '',
+      projectPath,
       sessionName,
     };
   },

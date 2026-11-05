@@ -247,7 +247,7 @@ export const nightQueueDb = {
            SET status = 'failed', failure_reason = ?, updated_at = CURRENT_TIMESTAMP
            WHERE status = 'running' AND attempts >= ?`,
         )
-        .run(`連續 ${maxAttempts} 次執行到一半被中斷（DHC CLI 重啟），已停止重試。`, maxAttempts).changes;
+        .run(`連續 ${maxAttempts} 次執行到一半被中斷（DHC AI System 重啟），已停止重試。`, maxAttempts).changes;
       const requeued = db
         .prepare(
           `UPDATE night_queue_items SET status = 'pending', updated_at = CURRENT_TIMESTAMP

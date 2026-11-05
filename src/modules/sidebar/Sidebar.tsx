@@ -11,6 +11,7 @@ import { useBusySessionIdSet } from '@/shared/context/SessionProtectionContext';
 import { startSessionBoxesSync } from '@/shared/sessionBoxes';
 import { startCoSessionsSync } from '@/shared/coSessions';
 import { startFlashSessionsSync } from '@/shared/flashTasks';
+import { startBotSessionsSync } from '@/shared/botSessions';
 import { startDistillSessionsSync } from '@/shared/distillSessions';
 import type { LLMProvider, LoadingProgress, MCPServerStatus, Project, ProjectSession, SidebarProjectListProps } from '@/shared/types';
 import SidebarCollapsed from '@/modules/sidebar/SidebarCollapsed';
@@ -28,7 +29,7 @@ type SidebarProps = {
   onProjectSelect: (project: Project) => void;
   onSessionSelect: (session: ProjectSession) => void;
   onNewSession: (project: Project) => void;
-  onSessionDelete?: (sessionId: string) => void;
+  onSessionDelete?: (sessionId: string, hardDelete?: boolean) => void;
   onLoadMoreSessions?: (projectId: string) => Promise<void> | void;
   // `projectId` is the DB identifier; the sidebar hands it back to the parent
   // when the delete flow completes.
@@ -89,6 +90,7 @@ function Sidebar({
   useEffect(() => startSessionBoxesSync(), []);
   useEffect(() => startFlashSessionsSync(), []);
   useEffect(() => startDistillSessionsSync(), []);
+  useEffect(() => startBotSessionsSync(), []);
   useEffect(() => startCoSessionsSync(), []);
 
   const {
@@ -346,7 +348,6 @@ function Sidebar({
               void refreshProjects();
             }}
             isRefreshing={isRefreshing}
-            onCreateProject={() => setShowNewProject(true)}
             onCollapseSidebar={handleCollapseSidebar}
             updateAvailable={updateAvailable}
             restartRequired={restartRequired}

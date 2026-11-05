@@ -472,7 +472,7 @@
     },
     "managed": {
       "badge": "已托管",
-      "hint": "由 DHC CLI 管理。"
+      "hint": "由 DHC AI System 管理。"
     },
     "help": {
       "title": "关于 Codex MCP",
@@ -504,7 +504,7 @@
     "docs": "文档",
     "sections": {
       "officialTitle": "官方插件",
-      "officialDescription": "由 DHC CLI 团队维护，可直接安装。",
+      "officialDescription": "由 DHC AI System 团队维护，可直接安装。",
       "unofficialTitle": "其他插件",
       "unofficialDescription": "来自其他用户的非官方插件和集成。安装前请审查源代码。"
     },
@@ -533,9 +533,9 @@
       "install": "安装"
     },
     "prismCloudCLI": {
-      "name": "PRISM DHC CLI",
+      "name": "PRISM DHC AI System",
       "badge": "非官方",
-      "description": "DHC CLI 内的 Claude Code 会话智能分析。无需离开浏览器即可了解会话为何消耗大量 Token。",
+      "description": "DHC AI System 内的 Claude Code 会话智能分析。无需离开浏览器即可了解会话为何消耗大量 Token。",
       "install": "安装"
     },
     "sessionManagerPlugin": {

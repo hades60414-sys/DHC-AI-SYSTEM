@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef } from 'react';
-import { Check, ChevronDown, ChevronRight, Edit3, Loader2, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Edit3, Loader2, X } from 'lucide-react';
 import type { TFunction } from 'i18next';
 
 import { Button, Tooltip } from '@/shared/ui';
@@ -27,6 +27,7 @@ type SidebarProjectItemProps = {
   isEditing: boolean;
   renameDraft: string;
   sessions: SessionWithProvider[];
+  sessionActivity?: ReadonlyMap<string, number>;
   initialSessionsLoaded: boolean;
   isLoadingMoreSessions: boolean;
   currentTime: Date;
@@ -72,6 +73,7 @@ function SidebarProjectItem({
   isEditing,
   renameDraft,
   sessions,
+  sessionActivity,
   initialSessionsLoaded,
   isLoadingMoreSessions,
   currentTime,
@@ -85,7 +87,6 @@ function SidebarProjectItem({
   onStartEditingProject,
   onCancelEditingProject,
   onSaveProjectName,
-  onDeleteProject,
   onSessionSelect,
   onDeleteSession,
   onForkSession,
@@ -275,16 +276,6 @@ function SidebarProjectItem({
                 ) : (
                   <>
                     <button
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-500/10 active:scale-90 dark:border-red-800 dark:bg-red-900/30"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onDeleteProject(project);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    </button>
-
-                    <button
                       className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 active:scale-90 dark:border-primary/30 dark:bg-primary/20"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -399,16 +390,6 @@ function SidebarProjectItem({
                 >
                   <Edit3 className="h-3 w-3" />
                 </div>
-                <div
-                  className="touch:opacity-100 flex h-6 w-6 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-200 hover:bg-red-50 group-hover:opacity-100 dark:hover:bg-red-900/20"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onDeleteProject(project);
-                  }}
-                  title={t('tooltips.deleteProject')}
-                >
-                  <Trash2 className="h-3 w-3 text-red-600 dark:text-red-400" />
-                </div>
                 {isExpanded ? (
                   <ChevronDown className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
                 ) : (
@@ -425,6 +406,7 @@ function SidebarProjectItem({
         project={project}
         isExpanded={isExpanded}
         sessions={sessions}
+        sessionActivity={sessionActivity}
         selectedSession={selectedSession}
         initialSessionsLoaded={initialSessionsLoaded}
         hasMoreSessions={Boolean(project.sessionMeta?.hasMore)}

@@ -19,7 +19,7 @@ type ScheduledMessageListProps = {
 export function ScheduledMessageList({ scheduledMessages, onCancel }: ScheduledMessageListProps) {
   const { t } = useTranslation('chat');
   const visible = scheduledMessages.filter(
-    (message) => message.status === 'pending' || message.status === 'failed',
+    (message) => message.status === 'pending' || message.status === 'sending' || message.status === 'failed',
   );
 
   if (visible.length === 0) {
@@ -49,7 +49,9 @@ export function ScheduledMessageList({ scheduledMessages, onCancel }: ScheduledM
               <p className="text-[11px] text-muted-foreground">
                 {isFailed
                   ? t('schedule.failed', { reason: message.failureReason ?? '' })
-                  : t('schedule.pending', { when: new Date(message.scheduledFor).toLocaleString() })}
+                  : message.status === 'sending'
+                    ? t('schedule.sending')
+                    : t('schedule.pending', { when: new Date(message.scheduledFor).toLocaleString() })}
               </p>
               <p className="mt-0.5 truncate text-foreground">{message.content}</p>
             </div>

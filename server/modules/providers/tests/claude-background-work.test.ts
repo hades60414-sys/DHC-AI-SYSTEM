@@ -65,3 +65,20 @@ test('subagent traffic after the turn is not mistaken for a follow-up turn', () 
   assert.equal(tracker.observe({ ...reply, parent_tool_use_id: 'toolu_01' }, true), false);
   assert.equal(tracker.snapshot()?.followUp, false);
 });
+
+test('a held process adopts a new turn with its permission mode and model, but not a different system prompt', async () => {
+  const { planHeldAdoption } = await import('@/modules/providers/list/claude/claude-runtime.provider.js');
+  const prompt = { type: 'preset', preset: 'claude_code' };
+  const held = { systemPrompt: prompt, permissionMode: 'bypassPermissions', model: 'opus' };
+
+  assert.deepEqual(planHeldAdoption(held, { systemPrompt: { ...prompt }, permissionMode: 'plan', model: 'sonnet' }), {
+    permissionMode: 'plan',
+    model: 'sonnet',
+  });
+  assert.deepEqual(planHeldAdoption(held, { systemPrompt: prompt, model: 'opus' }), {
+    permissionMode: 'default',
+    model: 'opus',
+  });
+  assert.equal(planHeldAdoption(held, { systemPrompt: { ...prompt, append: 'night run' }, model: 'opus' }), null);
+  assert.equal(planHeldAdoption(null, { systemPrompt: prompt, model: 'opus' }), null);
+});

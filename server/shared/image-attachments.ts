@@ -93,6 +93,8 @@ export function normalizeImageDescriptors(images: unknown): ImageAttachmentDescr
   return normalizeAttachmentDescriptors(images);
 }
 
+const MAX_INLINE_IMAGE_BYTES = Math.floor((5 * 1024 * 1024 * 3) / 4);
+
 const IMAGE_FILE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']);
 
 /**
@@ -100,6 +102,11 @@ const IMAGE_FILE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp']
  * provider-native image input instead of the general file reference channel.
  */
 export function isImageAttachmentDescriptor(descriptor: ChatAttachmentDescriptor): boolean {
+  // DHC CLI: the Claude API rejects images over 5MB once base64-encoded, which
+  // would fail the whole turn; larger images go through as file paths instead.
+  if (typeof descriptor.size === 'number' && descriptor.size > MAX_INLINE_IMAGE_BYTES) {
+    return false;
+  }
   if (descriptor.mimeType && CLAUDE_IMAGE_MEDIA_TYPES.has(descriptor.mimeType)) {
     return true;
   }

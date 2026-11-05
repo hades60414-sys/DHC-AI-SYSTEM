@@ -15,6 +15,7 @@ import { api } from '@/shared/api';
  * 10/07: `todayRank` is the order dragged into 今日待辦; tasks never dragged follow, in quadrant order.
  * 10/13: optional `due` (local YYYY-MM-DD), typed as a trailing「@10/20」when adding or editing; `todayAt` is when
  * the task last went onto 今日待辦, so the list can ask about tasks left over from an earlier day.
+ * 10/15 行事曆: the calendar sets and moves `due` directly (drag to a day), and adds tasks onto a chosen day.
  */
 export type Quadrant = 'q1' | 'q2' | 'q3' | 'q4';
 export type TodoItem = {
@@ -232,6 +233,13 @@ export const withTodoEdited = (state: PersonTodos, id: string, text: string, due
   }),
 });
 
+/** Sets or clears the due date only (行事曆 drag and drop); the text stays as it is. */
+export const withTodoDue = (state: PersonTodos, id: string, due: string | undefined): PersonTodos =>
+  patchItem(state, id, (item) => {
+    const { due: _drop, ...rest } = item;
+    return due ? { ...rest, due } : rest;
+  });
+
 /** Removes the task with all its subtasks, split out or not. */
 export const withTodoRemoved = (state: PersonTodos, id: string): PersonTodos => {
   const gone = new Set([id, ...todoDescendants(state.items, id).map((item) => item.id)]);
@@ -335,10 +343,11 @@ export function usePersonTodos(projectId: string): PersonTodos {
 
 const cleanText = (text: string) => text.trim().replace(/\s+/g, ' ').slice(0, MAX_TEXT_LENGTH);
 
-type NewTodoPlace = { parentId?: string; quadrant?: Quadrant; today?: boolean };
+type NewTodoPlace = { parentId?: string; quadrant?: Quadrant; today?: boolean; due?: string };
 
 export function addTodo(projectId: string, text: string, place: NewTodoPlace = {}): boolean {
-  const { text: body, due } = splitDue(text);
+  const { text: body, due: typedDue } = splitDue(text);
+  const due = typedDue ?? (place.due && DATE_KEY.test(place.due) ? place.due : undefined);
   const trimmed = cleanText(body);
   if (!trimmed) return false;
   if (place.parentId && todoDepth(readPersonTodos(projectId).items, place.parentId) >= MAX_TODO_DEPTH) return false;
@@ -398,6 +407,16 @@ export function editTodo(projectId: string, id: string, text: string): void {
   const { text: body, due } = splitDue(text);
   const trimmed = cleanText(body);
   if (trimmed) void updatePersonTodos(projectId, (state) => withTodoEdited(state, id, trimmed, due));
+}
+
+export function setTodoDue(projectId: string, id: string, due: string | undefined): void {
+  if (due && !DATE_KEY.test(due)) return;
+  void updatePersonTodos(projectId, (state) => withTodoDue(state, id, due));
+}
+
+/** Puts deleted tasks back as they were (垃圾桶「復原」); ids already present are left alone. */
+export function restoreTodos(projectId: string, removed: TodoItem[]): void {
+  void updatePersonTodos(projectId, (state) => removed.reduce(withTodoAdded, state));
 }
 
 export function removeTodo(projectId: string, id: string): void {

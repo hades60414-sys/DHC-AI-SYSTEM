@@ -3,7 +3,7 @@ import type { TFunction } from 'i18next';
 
 import { api } from '@/shared/api';
 import { useBackgroundWorkMap } from '@/shared/backgroundWork';
-import { renameCoSession } from '@/shared/coSessions';
+import { coForkProjectId, renameCoSession } from '@/shared/coSessions';
 import { forgetFlashTrash, isFlashProject, onFlashSessionEnded } from '@/shared/flashTasks';
 import { getUserPreferencesVersion, resolveSettingsProjectId, subscribeToUserPreferences } from '@/shared/userSettings';
 import { usePaletteOps } from '@/modules/command-palette';
@@ -21,14 +21,19 @@ import {
 } from '@/modules/sidebar/utils/sidebarStoredPreferences';
 
 
-/** 工作區＝父資料夾就是工作區根目錄的專案（每個工作各一個資料夾）。 */
+
+/** The server's recents total counts rows the sidebar filter hides (hidden / query projects); show only what the list can show. */
+export const visibleRecentTotal = (serverTotal: number, loaded: number, visible: number): number =>
+  Math.max(visible, serverTotal - (loaded - visible));
+
+/** 工作區＝父資料夾就是工作區根目錄的專案（同事各自的資料夾）。 */
 export const isWorkspaceProject = (project: Pick<Project, 'fullPath' | 'path'>): boolean => {
   const parts = String(project.fullPath || project.path || '').split(/[\\/]+/).filter(Boolean);
   return parts.length >= 2 && parts[parts.length - 2] === getWorkspaceRootName();
 };
 
 /**
- * DHC CLI 查詢分頁：工作區根目錄下的「內部資料查詢」和它底下第一層子資料夾（各專區）。
+ * DHC CLI 查詢分頁：「工作區根目錄\內部資料查詢」（法遵專區）和它底下第一層子資料夾（其他專區）。
  * 只在查詢分頁出現，不列在專案清單。新增專區＝在內部資料查詢底下建資料夾＋註冊專案，再在 SidebarContent 查詢說明卡補一行。
  */
 export const QUERY_PROJECT_FOLDER = '內部資料查詢';
@@ -41,7 +46,7 @@ export const isQueryProject = (project: Pick<Project, 'fullPath' | 'path'>): boo
 };
 
 /**
- * DHC CLI 例行分頁：工作區根目錄下「例行工作」底下第一層子資料夾，一個資料夾＝一項例行工作（例：月報）。
+ * DHC CLI 例行分頁：「工作區根目錄\例行工作」底下第一層子資料夾，一個資料夾＝一項例行工作（例：月報）。
  * 共用規則寫在 例行工作\CLAUDE.md，各項的規格寫在自己資料夾的 CLAUDE.md。只在例行分頁出現。
  */
 export const ROUTINE_PROJECT_FOLDER = '例行工作';
@@ -108,7 +113,7 @@ type UseSidebarControllerArgs = {
   onRefresh: () => Promise<void> | void;
   onProjectSelect: (project: Project) => void;
   onSessionSelect: (session: ProjectSession) => void;
-  onSessionDelete?: (sessionId: string) => void;
+  onSessionDelete?: (sessionId: string, hardDelete?: boolean) => void;
   onLoadMoreSessions?: (projectId: string) => Promise<void> | void;
   // `projectId` is the DB-assigned identifier; callbacks use that post-migration.
   onProjectDelete?: (projectId: string) => void;
@@ -717,6 +722,11 @@ export function useSidebarController({
     [projects],
   );
 
+  const queryProjectIds = useMemo(
+    () => new Set(projects.filter((project) => isQueryProject(project)).map((project) => project.projectId)),
+    [projects],
+  );
+
   // DHC：設定檔綁定的專案置頂；切換設定檔會重新整理，所以 hydrate 後讀一次即可。
   useSyncExternalStore(subscribeToUserPreferences, getUserPreferencesVersion);
   const settingsProjectId = resolveSettingsProjectId(projects);
@@ -731,9 +741,13 @@ export function useSidebarController({
   );
 
   const visibleRecentConversations = useMemo(
-    () => recentConversations.filter((conversation) => !conversation.projectId || !hiddenProjectIds.has(conversation.projectId)),
-    [hiddenProjectIds, recentConversations],
+    // 無痕查詢 (10/31): query conversations are never listed among the recents either.
+    () => recentConversations.filter((conversation) => !conversation.projectId
+      || (!hiddenProjectIds.has(conversation.projectId) && !queryProjectIds.has(conversation.projectId))),
+    [hiddenProjectIds, queryProjectIds, recentConversations],
   );
+
+  const visibleRecentConversationsTotal = visibleRecentTotal(recentConversationsTotal, recentConversations.length, visibleRecentConversations.length);
 
   const runningProjects = useMemo(() => {
     if (activeSessionIds.size === 0) {
@@ -895,7 +909,7 @@ export function useSidebarController({
       const response = await api.deleteSession(sessionId, hardDelete);
 
       if (response.ok) {
-        onSessionDelete?.(sessionId);
+        onSessionDelete?.(sessionId, hardDelete);
         // Same gap as rename: nothing refetched the recents feed, so the row the
         // user just archived stayed in the list. Archiving keeps the session, so
         // only the non-archived total moves.
@@ -965,7 +979,8 @@ export function useSidebarController({
         const err = data.error;
         const message =
           typeof err === 'string' ? err : err && typeof err === 'object' && err.message ? err.message : t('messages.deleteProjectFailed');
-        alert(message);
+        console.error('deleteProject', message);
+        alert(t('messages.deleteProjectFailed', '刪除專案失敗，請稍後再試一次。'));
       }
     } catch (error) {
       console.error('Error deleting project:', error);
@@ -1120,7 +1135,8 @@ export function useSidebarController({
   const forkSession = useCallback(
     async (session: SessionWithProvider) => {
       try {
-        const response = await api.forkSession(session.id);
+        const projectId = coForkProjectId(session.id);
+        const response = await api.forkSession(session.id, projectId ? { projectId } : {});
         const payload = await response.json();
         const forkedSessionId = payload?.data?.sessionId;
         if (!response.ok || typeof forkedSessionId !== 'string') {
@@ -1131,7 +1147,7 @@ export function useSidebarController({
           id: forkedSessionId,
           summary: payload.data.sessionName,
           __provider: session.__provider,
-          __projectId: session.__projectId,
+          __projectId: projectId ?? session.__projectId,
         } as ProjectSession);
       } catch (error) {
         console.error('[Sidebar] Error forking session:', error);
@@ -1169,7 +1185,7 @@ export function useSidebarController({
     archivedSessionsCount: archivedProjects.length + archivedSessions.length,
     isArchivedSessionsLoading,
     recentConversations: visibleRecentConversations,
-    recentConversationsTotal,
+    recentConversationsTotal: visibleRecentConversationsTotal,
     recentConversationsHasMore,
     isRecentConversationsLoading,
     isLoadingMoreRecentConversations,

@@ -56,6 +56,30 @@
     --nav-input-bg: 44 15% 91% / 0.5;
     --nav-input-focus-ring: 221.2 83.2% 53.3% / 0.22;
 
+    /* gray-* / blue-* utilities read these (tailwind.config.js themedScale); defaults are Tailwind's own values. */
+    --c-gray-50: 249 250 251;
+    --c-gray-100: 243 244 246;
+    --c-gray-200: 229 231 235;
+    --c-gray-300: 209 213 219;
+    --c-gray-400: 156 163 175;
+    --c-gray-500: 107 114 128;
+    --c-gray-600: 75 85 99;
+    --c-gray-700: 55 65 81;
+    --c-gray-800: 31 41 55;
+    --c-gray-900: 17 24 39;
+    --c-gray-950: 3 7 18;
+    --c-blue-50: 239 246 255;
+    --c-blue-100: 219 234 254;
+    --c-blue-200: 191 219 254;
+    --c-blue-300: 147 197 253;
+    --c-blue-400: 96 165 250;
+    --c-blue-500: 59 130 246;
+    --c-blue-600: 37 99 235;
+    --c-blue-700: 29 78 216;
+    --c-blue-800: 30 64 175;
+    --c-blue-900: 30 58 138;
+    --c-blue-950: 23 37 84;
+
     /* Safe area CSS variables */
     --safe-area-inset-top: env(safe-area-inset-top);
     --safe-area-inset-right: env(safe-area-inset-right);
@@ -1014,3 +1038,1863 @@
     }
   }
 }
+
+/* Phone right-edge rail: handles stay folded behind MobileRailToggle until it sets data-rail-open. */
+@media (max-width: 767px) {
+  html:not([data-rail-open]) [data-rail-item] {
+    display: none !important;
+  }
+}
+
+/* 手機不做滑動手勢：擋掉瀏覽器邊緣橫滑（返回／上一頁）與橫向橡皮筋，面板一律用按鈕開。 */
+@media (max-width: 767px) {
+  html,
+  body {
+    overscroll-behavior-x: none;
+  }
+}
+
+/* 10/27 使用者：電腦版預設放大 10%。用根字級放大而不用 CSS zoom——zoom 會讓選單、白板等用座標定位的東西偏掉 10%。px 寫死的尺寸不會跟著放大。 */
+@media (min-width: 768px) {
+  html {
+    font-size: 110%;
+  }
+}
+
+
+/* DHC CLI: 投影 外觀 — a PRESENTER (DHC CLI) look-alike on top of the light theme.
+   ThemeContext puts .presenter on <html>; .presenter-reveal is added while Alt is held. */
+@layer base {
+  .presenter {
+    --background: 0 0% 97%;
+    --foreground: 0 0% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+    --primary: 357 66% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 25%;
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 46%;
+    --accent: 0 0% 93%;
+    --accent-foreground: 0 0% 20%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 357 66% 42%;
+    --radius: 0.375rem;
+    --nav-glass-bg: 0 0% 100% / 0.9;
+    --nav-tab-glow: 357 66% 42% / 0.12;
+    --nav-tab-ring: 357 66% 42% / 0.10;
+    --nav-input-focus-ring: 357 66% 42% / 0.18;
+  }
+
+  .presenter body {
+    font-family: "Microsoft JhengHei", "微軟正黑體", "PingFang TC", "Segoe UI", sans-serif;
+  }
+
+  /* The left rail is dark charcoal in PRESENTER: re-scope the palette for the whole sidebar. */
+  .presenter [data-presenter-sidebar] {
+    --background: 0 0% 19%;
+    --foreground: 0 0% 92%;
+    --card: 0 0% 19%;
+    --card-foreground: 0 0% 92%;
+    --popover: 0 0% 22%;
+    --popover-foreground: 0 0% 92%;
+    --secondary: 0 0% 26%;
+    --secondary-foreground: 0 0% 92%;
+    --muted: 0 0% 25%;
+    --muted-foreground: 0 0% 66%;
+    --accent: 0 0% 27%;
+    --accent-foreground: 0 0% 96%;
+    --border: 0 0% 27%;
+    --input: 0 0% 30%;
+    --nav-glass-bg: 0 0% 19% / 0.9;
+    --nav-input-bg: 0 0% 26% / 0.8;
+    --nav-divider-color: 0 0% 27% / 0.8;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  .presenter [data-presenter-main] {
+    background-color: hsl(var(--background));
+  }
+
+  .presenter .presenter-watermark {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+  }
+
+  /* User message: cream box, tan border, brown text, square-ish corners. */
+  .presenter [data-presenter="user-bubble"] {
+    border-radius: 4px;
+    border-color: #d8b98c;
+    background-color: #fdf8ef;
+    color: #6b4a2b;
+    box-shadow: none;
+  }
+  .presenter [data-presenter="user-bubble"] .font-serif {
+    font-family: inherit;
+  }
+
+  /* Assistant: pink round "AI" badge instead of the provider logo and name. */
+  .presenter [data-presenter="ai-logo"] {
+    width: 1.75rem;
+    height: 1.75rem;
+    background-color: #fbe3e3;
+  }
+  .presenter [data-presenter="ai-logo"] > * {
+    display: none;
+  }
+  .presenter [data-presenter="ai-logo"]::after {
+    content: "AI";
+    color: #e0565b;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .presenter [data-presenter="ai-name"],
+  .presenter .presenter-hide {
+    display: none !important;
+  }
+
+  /* Composer: flat light-grey pill like PRESENTER's 請輸入您想問的問題 bar. */
+  .presenter [data-slot="prompt-input"] {
+    border-radius: 1.25rem;
+    border-color: transparent;
+    background-color: hsl(0 0% 94%);
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  /* Sessions too: the desktop sidebar shrinks to PRESENTER's dark icon rail; Alt lays the full
+     sidebar over the content (no reflow), and it stays while the pointer is on it. */
+  .presenter [data-presenter-rail] {
+    position: relative;
+    width: 3.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23eee%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%229%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22%2F%3E%3Cpath%20d%3D%22M12%203v6M12%2015v6M3%2012h6M15%2012h6%22%2F%3E%3C%2Fsvg%3E"), url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23eee%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M21%2012a8%208%200%200%201-12%207l-5%201%201-4a8%208%200%201%201%2016-4z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: center 16px, center 64px;
+  }
+  .presenter [data-presenter-rail] > * {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    box-shadow: 4px 0 16px rgb(0 0 0 / 0.25);
+  }
+  .presenter:not(.presenter-reveal) [data-presenter-rail] > * {
+    display: none;
+  }
+  .presenter:not(.presenter-reveal) [data-presenter-title] > * {
+    display: none;
+  }
+  .presenter:not(.presenter-reveal) [data-presenter-title]::before {
+    content: "DHC CLI";
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  /* 保護色: whatever Alt brings up must not shout. The overlay sidebar takes PRESENTER's own light
+     greys, and every revealed extra loses its colour. */
+  .presenter [data-presenter-rail] > * {
+    --background: 0 0% 97%;
+    --foreground: 0 0% 25%;
+    --card: 0 0% 97%;
+    --card-foreground: 0 0% 25%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 25%;
+    --primary: 0 0% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 30%;
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 0 0% 92%;
+    --accent-foreground: 0 0% 20%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --nav-glass-bg: 0 0% 97% / 0.95;
+    --nav-input-bg: 0 0% 93% / 0.9;
+    --nav-divider-color: 0 0% 88% / 0.8;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    filter: grayscale(1);
+    box-shadow: 1px 0 0 hsl(0 0% 88%);
+  }
+  /* display:contents wrappers have no box, so their children take the filter; the right-edge
+     dock is left alone because a filter would re-anchor its fixed panels. */
+  .presenter [data-presenter-extra]:not(.contents),
+  .presenter [data-presenter-extra].contents:not([data-presenter-extra="dock"]) > * {
+    filter: grayscale(1);
+  }
+  .presenter [data-presenter-extra="dock"] {
+    --primary: 0 0% 45%;
+    --ring: 0 0% 45%;
+  }
+  .presenter-only {
+    display: none;
+  }
+  .presenter:not(.presenter-reveal) .presenter-only {
+    display: flex;
+  }
+
+  /* Send: PRESENTER's bare grey paper plane, no coloured box; no red focus ring on the input. */
+  .presenter [data-presenter-send] {
+    background-color: transparent;
+    color: hsl(0 0% 45%);
+    box-shadow: none;
+  }
+  .presenter [data-presenter-send]:hover {
+    background-color: hsl(0 0% 88%);
+  }
+  .presenter [data-slot="prompt-input"]:focus-within {
+    border-color: transparent;
+    box-shadow: none;
+    --tw-ring-shadow: 0 0 #0000;
+  }
+
+  /* DHC-only extras hide in the PRESENTER look; holding Alt brings them back. */
+  .presenter:not(.presenter-reveal) [data-presenter-extra] {
+    display: none !important;
+  }
+}
+
+/* DHC CLI themes (2026-10-30). ThemeContext puts theme-<name> on <html>; dark-based themes also get .dark,
+   so every dark: utility still applies. Each block re-tints the shadcn tokens plus the gray/blue scales.
+   Unlayered on purpose: Tailwind drops @layer rules whose class names never appear in the source, and
+   the theme-* classes are built at runtime. */
+
+  /* 淺色：暖紙底、靛紫主色、帶一點紫的 hover。 */
+  html.theme-light {
+    --background: 38 33% 97%;
+    --foreground: 232 18% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 232 18% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 232 18% 14%;
+    --primary: 245 58% 57%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 38 22% 93%;
+    --secondary-foreground: 232 15% 22%;
+    --muted: 38 22% 93%;
+    --muted-foreground: 232 7% 44%;
+    --accent: 245 60% 96%;
+    --accent-foreground: 245 40% 30%;
+    --border: 36 16% 88%;
+    --input: 36 16% 86%;
+    --ring: 245 58% 57%;
+    --radius: 0.625rem;
+    --nav-glass-bg: 38 33% 97% / 0.72;
+    --nav-tab-glow: 245 58% 57% / 0.16;
+    --nav-tab-ring: 245 58% 57% / 0.10;
+    --nav-float-ring: 36 16% 88% / 0.6;
+    --nav-divider-color: 36 16% 88% / 0.6;
+    --nav-input-bg: 38 22% 93% / 0.6;
+    --nav-input-focus-ring: 245 58% 57% / 0.22;
+    --c-gray-50: 250 250 248;
+    --c-gray-100: 245 244 241;
+    --c-gray-200: 231 229 225;
+    --c-gray-300: 213 210 205;
+    --c-gray-400: 166 162 157;
+    --c-gray-500: 118 114 112;
+    --c-gray-600: 86 83 84;
+    --c-gray-700: 66 64 68;
+    --c-gray-800: 40 39 44;
+    --c-gray-900: 26 25 31;
+    --c-gray-950: 12 11 16;
+    --c-blue-50: 238 240 255;
+    --c-blue-100: 225 228 255;
+    --c-blue-200: 200 205 254;
+    --c-blue-300: 166 174 251;
+    --c-blue-400: 131 136 246;
+    --c-blue-500: 104 100 236;
+    --c-blue-600: 86 76 220;
+    --c-blue-700: 72 61 192;
+    --c-blue-800: 58 50 156;
+    --c-blue-900: 49 45 124;
+    --c-blue-950: 30 27 72;
+  }
+
+  /* 深色：從純灰改成帶藍的墨色，主色換長春花藍。 */
+  html.theme-dark {
+    --background: 232 16% 8%;
+    --foreground: 225 22% 92%;
+    --card: 232 15% 11%;
+    --card-foreground: 225 22% 92%;
+    --popover: 232 15% 12%;
+    --popover-foreground: 225 22% 92%;
+    --primary: 243 88% 75%;
+    --primary-foreground: 240 35% 10%;
+    --secondary: 232 13% 16%;
+    --secondary-foreground: 225 22% 92%;
+    --muted: 232 13% 16%;
+    --muted-foreground: 228 10% 63%;
+    --accent: 242 22% 19%;
+    --accent-foreground: 225 25% 95%;
+    --border: 232 12% 18%;
+    --input: 232 11% 24%;
+    --ring: 243 88% 75%;
+    --radius: 0.625rem;
+    --nav-glass-bg: 232 15% 11% / 0.6;
+    --nav-tab-glow: 243 88% 75% / 0.22;
+    --nav-tab-ring: 243 88% 75% / 0.14;
+    --nav-float-ring: 232 12% 18% / 0.4;
+    --nav-divider-color: 232 12% 18% / 0.6;
+    --nav-input-bg: 232 13% 16% / 0.55;
+    --nav-input-focus-ring: 243 88% 75% / 0.25;
+    --c-gray-50: 246 247 250;
+    --c-gray-100: 236 238 244;
+    --c-gray-200: 220 223 232;
+    --c-gray-300: 193 197 211;
+    --c-gray-400: 146 151 169;
+    --c-gray-500: 106 111 130;
+    --c-gray-600: 74 78 97;
+    --c-gray-700: 50 53 68;
+    --c-gray-800: 33 35 46;
+    --c-gray-900: 22 23 31;
+    --c-gray-950: 13 14 19;
+    --c-blue-50: 240 241 255;
+    --c-blue-100: 226 228 255;
+    --c-blue-200: 203 206 255;
+    --c-blue-300: 174 177 253;
+    --c-blue-400: 144 145 250;
+    --c-blue-500: 118 114 242;
+    --c-blue-600: 96 88 226;
+    --c-blue-700: 80 70 196;
+    --c-blue-800: 64 56 158;
+    --c-blue-900: 52 47 122;
+    --c-blue-950: 32 29 74;
+  }
+
+  /* 蒸氣夕陽（synthwave / outrun）：午夜紫底、霓虹粉主色、青色當藍、頂端夕陽漸層線、底部地平線光暈與透視格線。 */
+  html.theme-synthwave {
+    --background: 258 45% 8%;
+    --foreground: 300 45% 95%;
+    --card: 260 40% 12%;
+    --card-foreground: 300 45% 95%;
+    --popover: 260 40% 13%;
+    --popover-foreground: 300 45% 95%;
+    --primary: 322 100% 67%;
+    --primary-foreground: 260 50% 8%;
+    --secondary: 262 35% 18%;
+    --secondary-foreground: 300 45% 95%;
+    --muted: 262 32% 17%;
+    --muted-foreground: 285 22% 72%;
+    --accent: 286 45% 22%;
+    --accent-foreground: 300 45% 97%;
+    --destructive: 350 85% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 268 35% 22%;
+    --input: 268 32% 27%;
+    --ring: 322 100% 67%;
+    --radius: 0.75rem;
+    --nav-glass-bg: 260 40% 12% / 0.6;
+    --nav-tab-glow: 322 100% 67% / 0.28;
+    --nav-tab-ring: 322 100% 67% / 0.18;
+    --nav-float-shadow: 300 100% 50% / 0.18;
+    --nav-float-ring: 268 35% 22% / 0.5;
+    --nav-divider-color: 268 35% 22% / 0.7;
+    --nav-input-bg: 262 35% 18% / 0.6;
+    --nav-input-focus-ring: 322 100% 67% / 0.3;
+    --c-gray-50: 250 245 255;
+    --c-gray-100: 241 233 250;
+    --c-gray-200: 226 214 240;
+    --c-gray-300: 204 188 226;
+    --c-gray-400: 166 146 196;
+    --c-gray-500: 128 108 162;
+    --c-gray-600: 92 74 128;
+    --c-gray-700: 62 46 96;
+    --c-gray-800: 40 28 68;
+    --c-gray-900: 26 17 45;
+    --c-gray-950: 15 9 28;
+    --c-blue-50: 236 254 255;
+    --c-blue-100: 207 250 254;
+    --c-blue-200: 165 243 252;
+    --c-blue-300: 103 232 249;
+    --c-blue-400: 34 211 238;
+    --c-blue-500: 6 182 212;
+    --c-blue-600: 8 145 178;
+    --c-blue-700: 14 116 144;
+    --c-blue-800: 21 94 117;
+    --c-blue-900: 22 78 99;
+    --c-blue-950: 8 51 68;
+  }
+
+  /* 極光：深夜藍綠底、極光綠主色、天空藍；頂端綠青紫光帶。 */
+  html.theme-aurora {
+    --background: 210 40% 7%;
+    --foreground: 180 22% 92%;
+    --card: 210 35% 10%;
+    --card-foreground: 180 22% 92%;
+    --popover: 210 35% 11%;
+    --popover-foreground: 180 22% 92%;
+    --primary: 160 70% 50%;
+    --primary-foreground: 210 45% 7%;
+    --secondary: 208 30% 15%;
+    --secondary-foreground: 180 22% 92%;
+    --muted: 208 28% 14%;
+    --muted-foreground: 195 13% 64%;
+    --accent: 188 35% 17%;
+    --accent-foreground: 180 22% 96%;
+    --border: 205 28% 17%;
+    --input: 205 25% 22%;
+    --ring: 160 70% 50%;
+    --radius: 0.625rem;
+    --nav-glass-bg: 210 35% 10% / 0.6;
+    --nav-tab-glow: 160 70% 50% / 0.22;
+    --nav-tab-ring: 160 70% 50% / 0.14;
+    --nav-float-ring: 205 28% 17% / 0.5;
+    --nav-divider-color: 205 28% 17% / 0.7;
+    --nav-input-bg: 208 30% 15% / 0.6;
+    --nav-input-focus-ring: 160 70% 50% / 0.25;
+    --c-gray-50: 244 249 250;
+    --c-gray-100: 232 241 243;
+    --c-gray-200: 211 226 230;
+    --c-gray-300: 178 199 206;
+    --c-gray-400: 128 153 163;
+    --c-gray-500: 92 115 126;
+    --c-gray-600: 64 84 96;
+    --c-gray-700: 42 58 70;
+    --c-gray-800: 25 38 48;
+    --c-gray-900: 15 26 34;
+    --c-gray-950: 8 16 22;
+    --c-blue-50: 240 249 255;
+    --c-blue-100: 224 242 254;
+    --c-blue-200: 186 230 253;
+    --c-blue-300: 125 211 252;
+    --c-blue-400: 56 189 248;
+    --c-blue-500: 14 165 233;
+    --c-blue-600: 2 132 199;
+    --c-blue-700: 3 105 161;
+    --c-blue-800: 7 89 133;
+    --c-blue-900: 12 74 110;
+    --c-blue-950: 8 47 73;
+  }
+
+  /* 抹茶和紙：生成色紙底、墨色字、抹茶主色、藍染當藍；淡淡紙紋。 */
+  html.theme-washi {
+    --background: 42 36% 93%;
+    --foreground: 28 22% 14%;
+    --card: 44 45% 97%;
+    --card-foreground: 28 22% 14%;
+    --popover: 44 45% 97%;
+    --popover-foreground: 28 22% 14%;
+    --primary: 88 34% 33%;
+    --primary-foreground: 44 45% 97%;
+    --secondary: 40 28% 88%;
+    --secondary-foreground: 28 22% 20%;
+    --muted: 40 28% 88%;
+    --muted-foreground: 30 10% 36%;
+    --accent: 80 26% 86%;
+    --accent-foreground: 88 34% 20%;
+    --destructive: 4 64% 46%;
+    --destructive-foreground: 44 45% 97%;
+    --border: 38 22% 82%;
+    --input: 38 22% 80%;
+    --ring: 88 34% 33%;
+    --radius: 0.375rem;
+    --nav-glass-bg: 42 36% 93% / 0.75;
+    --nav-tab-glow: 88 34% 33% / 0.16;
+    --nav-tab-ring: 88 34% 33% / 0.12;
+    --nav-float-shadow: 30 40% 20% / 0.08;
+    --nav-float-ring: 38 22% 82% / 0.6;
+    --nav-divider-color: 38 22% 82% / 0.7;
+    --nav-input-bg: 40 28% 88% / 0.6;
+    --nav-input-focus-ring: 88 34% 33% / 0.22;
+    --c-gray-50: 251 249 244;
+    --c-gray-100: 245 241 232;
+    --c-gray-200: 232 226 212;
+    --c-gray-300: 212 204 187;
+    --c-gray-400: 166 157 138;
+    --c-gray-500: 122 113 96;
+    --c-gray-600: 92 84 70;
+    --c-gray-700: 70 63 52;
+    --c-gray-800: 46 41 34;
+    --c-gray-900: 31 27 22;
+    --c-gray-950: 18 15 12;
+    --c-blue-50: 240 244 249;
+    --c-blue-100: 222 230 241;
+    --c-blue-200: 190 205 226;
+    --c-blue-300: 146 170 204;
+    --c-blue-400: 98 128 176;
+    --c-blue-500: 66 98 150;
+    --c-blue-600: 49 77 126;
+    --c-blue-700: 40 62 103;
+    --c-blue-800: 34 51 84;
+    --c-blue-900: 29 42 69;
+    --c-blue-950: 18 27 46;
+  }
+
+  html.theme-light ::selection { background: hsl(245 58% 57% / 0.22); }
+  html.theme-dark ::selection { background: hsl(243 88% 75% / 0.3); }
+  html.theme-synthwave ::selection { background: hsl(322 100% 67% / 0.4); color: #fff; }
+  html.theme-aurora ::selection { background: hsl(160 70% 50% / 0.32); }
+  html.theme-washi ::selection { background: hsl(88 34% 33% / 0.25); }
+
+  /* Signature strip along the very top edge (decorative, never takes clicks). */
+  html.theme-synthwave body::before,
+  html.theme-aurora body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 2px;
+    z-index: 60;
+    pointer-events: none;
+  }
+  html.theme-synthwave body::before {
+    background: linear-gradient(90deg, #8c1eff, #f222ff 25%, #ff2975 50%, #ff901f 75%, #ffd319);
+    box-shadow: 0 0 10px #ff2975aa;
+  }
+  html.theme-aurora body::before {
+    background: linear-gradient(90deg, #2de2a6, #22d3ee 40%, #818cf8 75%, #c084fc);
+    box-shadow: 0 0 10px #2de2a688;
+  }
+
+  /* Ambient layer over the main area: horizon glow + perspective grid (synthwave), sky glow (aurora),
+     paper fibre (washi). Low alpha and pointer-events none so text and clicks are untouched. */
+  html.theme-synthwave [data-presenter-main]::after,
+  html.theme-aurora [data-presenter-main]::after,
+  html.theme-washi [data-presenter-main]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+  }
+  html.theme-synthwave [data-presenter-main]::after {
+    background:
+      radial-gradient(120% 60% at 50% 100%, rgb(255 41 117 / 0.16), rgb(242 34 255 / 0.07) 45%, transparent 70%),
+      linear-gradient(to top, rgb(255 144 31 / 0.06), transparent 30%);
+    mix-blend-mode: screen;
+  }
+  html.theme-synthwave [data-presenter-main] {
+    overflow: clip;
+  }
+  html.theme-synthwave [data-presenter-main]::before {
+    content: "";
+    position: absolute;
+    left: -50%;
+    right: -50%;
+    bottom: 0;
+    height: 34%;
+    z-index: 5;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgb(242 34 255 / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(242 34 255 / 0.5) 1px, transparent 1px);
+    background-size: 56px 28px;
+    transform: perspective(320px) rotateX(58deg);
+    transform-origin: 50% 100%;
+    -webkit-mask-image: linear-gradient(to top, rgb(0 0 0 / 0.14), transparent 85%);
+    mask-image: linear-gradient(to top, rgb(0 0 0 / 0.14), transparent 85%);
+  }
+  html.theme-aurora [data-presenter-main]::after {
+    background:
+      radial-gradient(60% 40% at 20% 0%, rgb(45 226 166 / 0.10), transparent 70%),
+      radial-gradient(50% 35% at 75% 0%, rgb(129 140 248 / 0.10), transparent 70%),
+      radial-gradient(40% 30% at 50% 0%, rgb(34 211 238 / 0.06), transparent 70%);
+    mix-blend-mode: screen;
+  }
+  html.theme-washi [data-presenter-main]::after {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.28 0 0 0 0 0.18 0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: 0.07;
+    mix-blend-mode: multiply;
+  }
+
+  /* Primary buttons glow a little in the neon themes. */
+  html.theme-synthwave .bg-primary {
+    box-shadow: 0 0 14px hsl(322 100% 67% / 0.35);
+  }
+  html.theme-aurora .bg-primary {
+    box-shadow: 0 0 12px hsl(160 70% 50% / 0.25);
+  }
+
+  @media print {
+    html.theme-synthwave [data-presenter-main]::before { display: none; }
+  }
+
+/* 極簡模式 (2026-10-31). ThemeContext puts .minimal on <html> (never together with .presenter). Unlike the PRESENTER
+   look, nothing waits behind a key: each DHC extra comes back where the user is about to use it.
+   Unlayered for the same reason as the theme-* blocks: the class is set at runtime. */
+html.minimal:not([data-composer-engaged]) [data-slot="prompt-input"]:not(:focus-within):not(:hover) [data-presenter-extra]:not(.contents),
+html.minimal:not([data-composer-engaged]) [data-slot="prompt-input"]:not(:focus-within):not(:hover) [data-presenter-extra].contents > * {
+  display: none !important;
+}
+/* Header tabs and the flash-task button keep their place (no reflow under the pointer) and fade in. */
+html.minimal [data-minimal-zone="header"] [data-presenter-extra],
+html.minimal [data-minimal-zone="footer"] [data-presenter-extra]:not([data-presenter-extra="usage"]) {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+html.minimal [data-minimal-zone="header"]:is(:hover, :focus-within) [data-presenter-extra],
+html.minimal [data-minimal-zone="footer"]:is(:hover, :focus-within) [data-presenter-extra] {
+  opacity: 1;
+}
+/* 11/01: pieces that minimal mode removes outright (message-jump dots, the title's sticky-note and chat-room
+   icons), and the header chat-room entry that only exists in minimal mode (it fades in with the header tabs). */
+html.minimal [data-minimal-hide] {
+  display: none !important;
+}
+html:not(.minimal) [data-minimal-only] {
+  display: none !important;
+}
+/* 11/01 教學模式: newcomer explanations (data-tutorial) only show under html.tutorial (ThemeContext, Ctrl gestures). */
+html:not(.tutorial) [data-tutorial] {
+  display: none !important;
+}
+/* The app's own hover tooltip would sit on top of the coach-mark callout that says the same thing (only those). */
+html.tutorial [data-app-tooltip="covered"] {
+  display: none !important;
+}
+/* Coach-mark colours stay off the theme palette so they never blend in: amber on dark themes (the old Co-Work dot amber-500, user 11/01), coffee on light. */
+:root {
+  --tutorial-ink: #78350f;
+  --tutorial-text: #fffbeb;
+  --tutorial-halo: #fffbeb;
+}
+html.dark {
+  --tutorial-ink: #f59e0b;
+  --tutorial-text: #1c1917;
+  --tutorial-halo: #1c1917;
+}
+/* 10/31 收起輸入框 (every mode, desktop pointer only): an empty, untouched composer folds to its first line and
+   opens when the pointer reaches it. data-foldable is set by ChatComposer (nothing typed, not engaged, no call…). */
+@media (min-width: 768px) and (hover: hover) {
+  [data-composer-dock] form[data-slot="prompt-input"] {
+    transition: opacity 150ms ease;
+  }
+  /* Opens on focus, not hover: opening grows the box upward, so a hover-open moved the input line out from
+     under the pointer and the click landed on the toolbar (10/31). Clicking the strip focuses the input. */
+  html:not(.tutorial) [data-composer-dock][data-foldable]:not(:focus-within) form[data-slot="prompt-input"] {
+    max-height: 2.75rem;
+    opacity: 0.6;
+  }
+  html:not(.tutorial) [data-composer-dock][data-foldable]:not(:focus-within):hover form[data-slot="prompt-input"] {
+    opacity: 1;
+  }
+}
+/* Usage meters open above the settings row, so the row under the pointer does not move.
+   10/31: in every mode, not only minimal: the meters were in the way of the session list. */
+[data-minimal-zone="footer"]:not(:hover):not(:focus-within) [data-presenter-extra="usage"] {
+  display: none !important;
+}
+/* Right-edge handles: a 6px sliver until the pointer reaches it. clip-path, not transform, so fixed
+   panels inside a handle keep the viewport as their containing block; clipped parts take no hover.
+   Once reached the clip goes away entirely: the 自選功能 fan reaches ~100px above and below its handle. */
+@media (min-width: 768px) {
+  html.minimal [data-rail-item]:not([data-rail-aux]) {
+    clip-path: inset(0 0 0 calc(100% - 6px));
+    opacity: 0.55;
+    transition: clip-path 150ms ease, opacity 150ms ease;
+  }
+  html.minimal [data-rail-item]:not([data-rail-aux]):is(:hover, :focus-within) {
+    clip-path: none;
+    opacity: 1;
+  }
+  html.minimal [data-rail-aux] {
+    opacity: 0 !important;
+  }
+  html.minimal [data-rail-aux]:is(:hover, :focus-visible) {
+    opacity: 1 !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.minimal [data-rail-item],
+  html.minimal [data-minimal-zone] [data-presenter-extra] {
+    transition: none;
+  }
+}
+
+/* 色澤微調 BEGIN (generated by scripts/gen-theme-tint.cjs, do not edit by hand) */
+  html.theme-light {
+    --c-red-50: 251 241 255;
+    --c-red-100: 250 226 240;
+    --c-red-200: 248 203 217;
+    --c-red-300: 245 167 181;
+    --c-red-400: 239 119 132;
+    --c-red-500: 229 80 92;
+    --c-red-600: 210 57 68;
+    --c-red-700: 176 45 56;
+    --c-red-800: 145 39 50;
+    --c-red-900: 121 37 48;
+    --c-red-950: 65 15 25;
+    --c-orange-50: 252 246 251;
+    --c-orange-100: 251 237 229;
+    --c-orange-200: 249 215 190;
+    --c-orange-300: 246 188 142;
+    --c-orange-400: 242 150 97;
+    --c-orange-500: 239 122 74;
+    --c-orange-600: 224 97 64;
+    --c-orange-700: 185 74 54;
+    --c-orange-800: 147 59 48;
+    --c-orange-900: 118 50 42;
+    --c-orange-950: 63 23 24;
+    --c-amber-50: 252 250 250;
+    --c-amber-100: 250 242 218;
+    --c-amber-200: 248 230 165;
+    --c-amber-300: 246 212 118;
+    --c-amber-400: 244 193 94;
+    --c-amber-500: 237 161 79;
+    --c-amber-600: 209 123 66;
+    --c-amber-700: 172 88 54;
+    --c-amber-800: 139 68 47;
+    --c-amber-900: 114 56 42;
+    --c-amber-950: 65 28 23;
+    --c-yellow-50: 251 251 247;
+    --c-yellow-100: 250 248 215;
+    --c-yellow-200: 249 240 166;
+    --c-yellow-300: 247 224 117;
+    --c-yellow-400: 243 205 92;
+    --c-yellow-500: 227 181 82;
+    --c-yellow-600: 195 140 68;
+    --c-yellow-700: 155 101 54;
+    --c-yellow-800: 127 79 47;
+    --c-yellow-900: 108 65 44;
+    --c-yellow-950: 62 33 25;
+    --c-lime-50: 245 253 247;
+    --c-lime-100: 234 251 221;
+    --c-lime-200: 216 247 181;
+    --c-lime-300: 190 240 135;
+    --c-lime-400: 164 228 103;
+    --c-lime-500: 133 202 83;
+    --c-lime-600: 102 161 67;
+    --c-lime-700: 77 123 55;
+    --c-lime-800: 62 97 48;
+    --c-lime-900: 53 82 44;
+    --c-lime-950: 24 45 24;
+    --c-green-50: 238 252 255;
+    --c-green-100: 220 250 246;
+    --c-green-200: 189 245 224;
+    --c-green-300: 140 236 190;
+    --c-green-400: 88 219 150;
+    --c-green-500: 55 194 118;
+    --c-green-600: 40 160 97;
+    --c-green-700: 32 126 81;
+    --c-green-800: 28 99 69;
+    --c-green-900: 23 81 60;
+    --c-green-950: 6 45 35;
+    --c-emerald-50: 235 252 255;
+    --c-emerald-100: 209 248 243;
+    --c-emerald-200: 170 240 223;
+    --c-emerald-300: 119 228 198;
+    --c-emerald-400: 71 208 169;
+    --c-emerald-500: 46 182 145;
+    --c-emerald-600: 32 147 120;
+    --c-emerald-700: 23 118 100;
+    --c-emerald-800: 17 93 82;
+    --c-emerald-900: 13 76 70;
+    --c-emerald-950: 3 43 44;
+    --c-teal-50: 238 252 255;
+    --c-teal-100: 205 249 254;
+    --c-teal-200: 159 243 241;
+    --c-teal-300: 107 231 224;
+    --c-teal-400: 69 209 203;
+    --c-teal-500: 49 181 177;
+    --c-teal-600: 36 145 147;
+    --c-teal-700: 29 116 120;
+    --c-teal-800: 25 92 99;
+    --c-teal-900: 24 76 84;
+    --c-teal-950: 6 45 55;
+    --c-cyan-50: 235 253 255;
+    --c-cyan-100: 208 248 255;
+    --c-cyan-200: 169 240 255;
+    --c-cyan-300: 115 229 255;
+    --c-cyan-400: 65 208 245;
+    --c-cyan-500: 47 179 219;
+    --c-cyan-600: 37 142 184;
+    --c-cyan-700: 31 114 151;
+    --c-cyan-800: 30 92 124;
+    --c-cyan-900: 27 76 106;
+    --c-cyan-950: 12 49 75;
+    --c-sky-50: 238 248 255;
+    --c-sky-100: 223 241 255;
+    --c-sky-200: 187 228 255;
+    --c-sky-300: 131 208 255;
+    --c-sky-400: 74 186 252;
+    --c-sky-500: 47 162 236;
+    --c-sky-600: 33 130 202;
+    --c-sky-700: 25 103 165;
+    --c-sky-800: 22 87 138;
+    --c-sky-900: 21 72 116;
+    --c-sky-950: 12 45 79;
+    --c-indigo-50: 236 241 255;
+    --c-indigo-100: 222 230 255;
+    --c-indigo-200: 198 209 255;
+    --c-indigo-300: 165 179 255;
+    --c-indigo-400: 130 139 250;
+    --c-indigo-500: 100 102 240;
+    --c-indigo-600: 80 71 227;
+    --c-indigo-700: 68 57 200;
+    --c-indigo-800: 56 47 163;
+    --c-indigo-900: 49 45 132;
+    --c-indigo-950: 30 25 80;
+    --c-violet-50: 243 242 255;
+    --c-violet-100: 235 232 255;
+    --c-violet-200: 219 213 255;
+    --c-violet-300: 194 181 255;
+    --c-violet-400: 165 139 252;
+    --c-violet-500: 137 94 245;
+    --c-violet-600: 122 62 235;
+    --c-violet-700: 107 45 215;
+    --c-violet-800: 89 36 182;
+    --c-violet-900: 74 30 150;
+    --c-violet-950: 45 14 104;
+    --c-purple-50: 247 244 255;
+    --c-purple-100: 240 231 255;
+    --c-purple-200: 230 213 255;
+    --c-purple-300: 212 180 255;
+    --c-purple-400: 188 134 255;
+    --c-purple-500: 164 89 247;
+    --c-purple-600: 143 57 233;
+    --c-purple-700: 123 40 205;
+    --c-purple-800: 104 36 169;
+    --c-purple-900: 85 29 138;
+    --c-purple-950: 57 6 103;
+    --c-fuchsia-50: 250 243 255;
+    --c-fuchsia-100: 247 232 255;
+    --c-fuchsia-200: 241 208 255;
+    --c-fuchsia-300: 235 173 255;
+    --c-fuchsia-400: 225 125 253;
+    --c-fuchsia-500: 210 79 241;
+    --c-fuchsia-600: 185 50 213;
+    --c-fuchsia-700: 156 38 178;
+    --c-fuchsia-800: 129 32 147;
+    --c-fuchsia-900: 108 30 122;
+    --c-fuchsia-950: 71 6 83;
+    --c-pink-50: 250 241 255;
+    --c-pink-100: 248 231 255;
+    --c-pink-200: 246 207 244;
+    --c-pink-300: 242 170 223;
+    --c-pink-400: 236 119 192;
+    --c-pink-500: 227 82 164;
+    --c-pink-600: 210 55 131;
+    --c-pink-700: 182 42 106;
+    --c-pink-800: 150 35 89;
+    --c-pink-900: 125 32 78;
+    --c-pink-950: 76 13 46;
+    --c-rose-50: 252 240 255;
+    --c-rose-100: 251 228 244;
+    --c-rose-200: 249 206 225;
+    --c-rose-300: 246 166 190;
+    --c-rose-400: 242 119 149;
+    --c-rose-500: 234 77 113;
+    --c-rose-600: 215 52 92;
+    --c-rose-700: 181 40 78;
+    --c-rose-800: 151 34 72;
+    --c-rose-900: 129 30 68;
+    --c-rose-950: 72 11 36;
+    --c-slate-50: 246 249 255;
+    --c-slate-100: 239 244 255;
+    --c-slate-200: 224 231 252;
+    --c-slate-300: 202 212 236;
+    --c-slate-400: 147 162 193;
+    --c-slate-500: 100 115 147;
+    --c-slate-600: 71 84 113;
+    --c-slate-700: 51 64 93;
+    --c-slate-800: 30 39 66;
+    --c-slate-900: 15 21 48;
+    --c-slate-950: 2 4 29;
+    --c-zinc-50: 248 249 255;
+    --c-zinc-100: 242 243 255;
+    --c-zinc-200: 226 227 244;
+    --c-zinc-300: 210 211 228;
+    --c-zinc-400: 159 160 181;
+    --c-zinc-500: 111 112 132;
+    --c-zinc-600: 80 81 101;
+    --c-zinc-700: 61 62 79;
+    --c-zinc-800: 37 38 51;
+    --c-zinc-900: 23 23 35;
+    --c-zinc-950: 8 8 18;
+    --c-neutral-50: 248 249 255;
+    --c-neutral-100: 243 244 255;
+    --c-neutral-200: 227 228 242;
+    --c-neutral-300: 210 211 225;
+    --c-neutral-400: 161 162 175;
+    --c-neutral-500: 113 114 126;
+    --c-neutral-600: 80 81 93;
+    --c-neutral-700: 62 63 74;
+    --c-neutral-800: 36 37 47;
+    --c-neutral-900: 21 22 32;
+    --c-neutral-950: 9 9 18;
+    --c-stone-50: 248 249 255;
+    --c-stone-100: 243 244 255;
+    --c-stone-200: 228 228 241;
+    --c-stone-300: 211 210 222;
+    --c-stone-400: 165 161 171;
+    --c-stone-500: 117 112 120;
+    --c-stone-600: 85 82 89;
+    --c-stone-700: 66 63 71;
+    --c-stone-800: 39 36 46;
+    --c-stone-900: 26 24 32;
+    --c-stone-950: 10 9 17;
+  }
+  html.theme-dark {
+    --c-red-50: 251 241 255;
+    --c-red-100: 250 226 240;
+    --c-red-200: 248 203 217;
+    --c-red-300: 244 168 182;
+    --c-red-400: 237 120 133;
+    --c-red-500: 227 82 94;
+    --c-red-600: 208 59 70;
+    --c-red-700: 175 47 58;
+    --c-red-800: 144 40 51;
+    --c-red-900: 120 37 49;
+    --c-red-950: 64 15 26;
+    --c-orange-50: 252 246 252;
+    --c-orange-100: 251 236 230;
+    --c-orange-200: 248 215 191;
+    --c-orange-300: 245 188 144;
+    --c-orange-400: 241 151 100;
+    --c-orange-500: 238 123 77;
+    --c-orange-600: 223 98 67;
+    --c-orange-700: 184 75 57;
+    --c-orange-800: 146 59 50;
+    --c-orange-900: 117 50 44;
+    --c-orange-950: 63 23 25;
+    --c-amber-50: 252 250 251;
+    --c-amber-100: 250 242 219;
+    --c-amber-200: 248 230 167;
+    --c-amber-300: 245 212 122;
+    --c-amber-400: 243 193 98;
+    --c-amber-500: 236 162 83;
+    --c-amber-600: 208 124 69;
+    --c-amber-700: 171 89 56;
+    --c-amber-800: 139 69 49;
+    --c-amber-900: 114 57 43;
+    --c-amber-950: 65 28 24;
+    --c-yellow-50: 251 251 248;
+    --c-yellow-100: 251 248 216;
+    --c-yellow-200: 249 239 169;
+    --c-yellow-300: 247 224 121;
+    --c-yellow-400: 243 205 97;
+    --c-yellow-500: 226 181 86;
+    --c-yellow-600: 194 140 71;
+    --c-yellow-700: 154 101 56;
+    --c-yellow-800: 127 79 49;
+    --c-yellow-900: 107 65 45;
+    --c-yellow-950: 62 34 26;
+    --c-lime-50: 245 253 247;
+    --c-lime-100: 235 250 222;
+    --c-lime-200: 216 247 183;
+    --c-lime-300: 191 240 138;
+    --c-lime-400: 165 227 107;
+    --c-lime-500: 135 201 87;
+    --c-lime-600: 103 161 70;
+    --c-lime-700: 78 122 57;
+    --c-lime-800: 63 97 49;
+    --c-lime-900: 54 82 45;
+    --c-lime-950: 25 45 25;
+    --c-green-50: 239 251 255;
+    --c-green-100: 221 250 246;
+    --c-green-200: 190 244 224;
+    --c-green-300: 143 235 191;
+    --c-green-400: 92 218 152;
+    --c-green-500: 61 193 120;
+    --c-green-600: 46 160 99;
+    --c-green-700: 36 125 82;
+    --c-green-800: 31 99 70;
+    --c-green-900: 26 81 61;
+    --c-green-950: 7 45 35;
+    --c-emerald-50: 235 251 255;
+    --c-emerald-100: 210 248 244;
+    --c-emerald-200: 172 240 223;
+    --c-emerald-300: 122 227 199;
+    --c-emerald-400: 77 207 170;
+    --c-emerald-500: 53 181 146;
+    --c-emerald-600: 38 147 121;
+    --c-emerald-700: 28 117 101;
+    --c-emerald-800: 22 93 83;
+    --c-emerald-900: 17 76 71;
+    --c-emerald-950: 5 42 44;
+    --c-teal-50: 239 251 255;
+    --c-teal-100: 206 248 254;
+    --c-teal-200: 161 242 241;
+    --c-teal-300: 111 230 224;
+    --c-teal-400: 75 208 203;
+    --c-teal-500: 56 180 177;
+    --c-teal-600: 42 145 147;
+    --c-teal-700: 34 115 120;
+    --c-teal-800: 29 92 99;
+    --c-teal-900: 26 76 84;
+    --c-teal-950: 9 45 55;
+    --c-cyan-50: 236 252 255;
+    --c-cyan-100: 209 248 255;
+    --c-cyan-200: 171 240 255;
+    --c-cyan-300: 119 228 255;
+    --c-cyan-400: 72 207 244;
+    --c-cyan-500: 54 178 218;
+    --c-cyan-600: 43 142 184;
+    --c-cyan-700: 35 113 150;
+    --c-cyan-800: 33 91 124;
+    --c-cyan-900: 30 76 106;
+    --c-cyan-950: 14 49 75;
+    --c-sky-50: 239 248 255;
+    --c-sky-100: 224 240 255;
+    --c-sky-200: 189 228 255;
+    --c-sky-300: 134 208 255;
+    --c-sky-400: 79 186 251;
+    --c-sky-500: 53 162 235;
+    --c-sky-600: 39 129 201;
+    --c-sky-700: 30 103 164;
+    --c-sky-800: 26 87 137;
+    --c-sky-900: 23 72 115;
+    --c-sky-950: 14 45 79;
+    --c-indigo-50: 237 241 255;
+    --c-indigo-100: 223 230 255;
+    --c-indigo-200: 199 209 255;
+    --c-indigo-300: 166 179 255;
+    --c-indigo-400: 131 139 248;
+    --c-indigo-500: 101 103 238;
+    --c-indigo-600: 81 72 224;
+    --c-indigo-700: 68 58 198;
+    --c-indigo-800: 56 48 162;
+    --c-indigo-900: 50 45 130;
+    --c-indigo-950: 30 25 79;
+    --c-violet-50: 243 242 255;
+    --c-violet-100: 235 232 255;
+    --c-violet-200: 219 213 255;
+    --c-violet-300: 194 181 255;
+    --c-violet-400: 165 140 251;
+    --c-violet-500: 137 95 243;
+    --c-violet-600: 121 64 233;
+    --c-violet-700: 107 47 213;
+    --c-violet-800: 89 37 180;
+    --c-violet-900: 74 31 149;
+    --c-violet-950: 45 15 103;
+    --c-purple-50: 248 244 255;
+    --c-purple-100: 240 231 255;
+    --c-purple-200: 230 213 255;
+    --c-purple-300: 212 180 255;
+    --c-purple-400: 188 134 253;
+    --c-purple-500: 163 90 245;
+    --c-purple-600: 143 59 231;
+    --c-purple-700: 122 42 203;
+    --c-purple-800: 104 38 168;
+    --c-purple-900: 85 30 136;
+    --c-purple-950: 57 8 102;
+    --c-fuchsia-50: 250 243 255;
+    --c-fuchsia-100: 247 231 255;
+    --c-fuchsia-200: 241 208 255;
+    --c-fuchsia-300: 234 173 255;
+    --c-fuchsia-400: 225 126 252;
+    --c-fuchsia-500: 209 81 239;
+    --c-fuchsia-600: 184 53 212;
+    --c-fuchsia-700: 155 41 177;
+    --c-fuchsia-800: 128 34 146;
+    --c-fuchsia-900: 107 31 121;
+    --c-fuchsia-950: 70 7 83;
+    --c-pink-50: 250 241 255;
+    --c-pink-100: 248 231 255;
+    --c-pink-200: 246 207 244;
+    --c-pink-300: 242 170 223;
+    --c-pink-400: 235 120 192;
+    --c-pink-500: 225 84 164;
+    --c-pink-600: 208 58 131;
+    --c-pink-700: 180 44 106;
+    --c-pink-800: 149 37 89;
+    --c-pink-900: 124 33 78;
+    --c-pink-950: 75 14 46;
+    --c-rose-50: 252 240 255;
+    --c-rose-100: 251 228 244;
+    --c-rose-200: 248 206 225;
+    --c-rose-300: 245 167 190;
+    --c-rose-400: 240 120 150;
+    --c-rose-500: 232 79 114;
+    --c-rose-600: 213 54 93;
+    --c-rose-700: 180 42 79;
+    --c-rose-800: 150 35 73;
+    --c-rose-900: 129 31 69;
+    --c-rose-950: 71 12 37;
+    --c-slate-50: 246 249 255;
+    --c-slate-100: 239 244 255;
+    --c-slate-200: 225 231 252;
+    --c-slate-300: 202 212 236;
+    --c-slate-400: 148 161 193;
+    --c-slate-500: 100 114 147;
+    --c-slate-600: 71 83 113;
+    --c-slate-700: 51 63 92;
+    --c-slate-800: 30 39 66;
+    --c-slate-900: 15 21 48;
+    --c-slate-950: 3 4 28;
+    --c-zinc-50: 248 249 255;
+    --c-zinc-100: 242 243 255;
+    --c-zinc-200: 226 227 244;
+    --c-zinc-300: 210 211 228;
+    --c-zinc-400: 159 160 181;
+    --c-zinc-500: 111 112 132;
+    --c-zinc-600: 81 81 101;
+    --c-zinc-700: 62 62 79;
+    --c-zinc-800: 38 38 51;
+    --c-zinc-900: 23 23 35;
+    --c-zinc-950: 8 8 19;
+    --c-neutral-50: 248 249 255;
+    --c-neutral-100: 243 244 255;
+    --c-neutral-200: 227 228 242;
+    --c-neutral-300: 210 211 225;
+    --c-neutral-400: 161 162 175;
+    --c-neutral-500: 113 114 127;
+    --c-neutral-600: 80 81 93;
+    --c-neutral-700: 62 63 74;
+    --c-neutral-800: 37 37 47;
+    --c-neutral-900: 22 22 32;
+    --c-neutral-950: 9 9 18;
+    --c-stone-50: 248 249 255;
+    --c-stone-100: 243 244 255;
+    --c-stone-200: 229 228 241;
+    --c-stone-300: 212 210 222;
+    --c-stone-400: 166 161 171;
+    --c-stone-500: 118 112 120;
+    --c-stone-600: 85 82 90;
+    --c-stone-700: 66 63 71;
+    --c-stone-800: 39 36 46;
+    --c-stone-900: 26 24 32;
+    --c-stone-950: 11 9 17;
+  }
+  html.theme-synthwave {
+    --c-red-50: 255 232 249;
+    --c-red-100: 255 217 234;
+    --c-red-200: 255 194 211;
+    --c-red-300: 255 158 176;
+    --c-red-400: 249 109 129;
+    --c-red-500: 237 68 91;
+    --c-red-600: 217 40 67;
+    --c-red-700: 184 26 54;
+    --c-red-800: 154 20 48;
+    --c-red-900: 130 19 45;
+    --c-red-950: 74 0 22;
+    --c-orange-50: 255 237 245;
+    --c-orange-100: 255 227 225;
+    --c-orange-200: 255 206 187;
+    --c-orange-300: 255 178 141;
+    --c-orange-400: 254 141 98;
+    --c-orange-500: 249 112 76;
+    --c-orange-600: 233 86 66;
+    --c-orange-700: 194 61 54;
+    --c-orange-800: 156 46 46;
+    --c-orange-900: 128 37 40;
+    --c-orange-950: 73 8 21;
+    --c-amber-50: 255 241 244;
+    --c-amber-100: 255 233 214;
+    --c-amber-200: 255 220 165;
+    --c-amber-300: 255 202 121;
+    --c-amber-400: 255 183 98;
+    --c-amber-500: 250 152 83;
+    --c-amber-600: 220 114 68;
+    --c-amber-700: 183 77 54;
+    --c-amber-800: 150 57 45;
+    --c-amber-900: 125 45 39;
+    --c-amber-950: 75 16 20;
+    --c-yellow-50: 255 242 242;
+    --c-yellow-100: 255 239 212;
+    --c-yellow-200: 255 230 167;
+    --c-yellow-300: 255 215 121;
+    --c-yellow-400: 255 196 98;
+    --c-yellow-500: 243 171 87;
+    --c-yellow-600: 210 131 70;
+    --c-yellow-700: 168 91 54;
+    --c-yellow-800: 140 70 46;
+    --c-yellow-900: 120 55 41;
+    --c-yellow-950: 74 23 22;
+    --c-lime-50: 255 243 241;
+    --c-lime-100: 255 241 218;
+    --c-lime-200: 243 237 180;
+    --c-lime-300: 220 230 137;
+    --c-lime-400: 196 218 107;
+    --c-lime-500: 167 193 87;
+    --c-lime-600: 134 152 68;
+    --c-lime-700: 106 114 54;
+    --c-lime-800: 89 89 46;
+    --c-lime-900: 78 74 41;
+    --c-lime-950: 46 38 21;
+    --c-green-50: 255 242 251;
+    --c-green-100: 248 241 240;
+    --c-green-200: 221 235 219;
+    --c-green-300: 181 226 187;
+    --c-green-400: 142 209 148;
+    --c-green-500: 117 185 117;
+    --c-green-600: 99 152 95;
+    --c-green-700: 83 118 78;
+    --c-green-800: 70 92 65;
+    --c-green-900: 61 74 56;
+    --c-green-950: 37 38 30;
+    --c-emerald-50: 255 242 252;
+    --c-emerald-100: 239 238 237;
+    --c-emerald-200: 206 231 217;
+    --c-emerald-300: 165 218 193;
+    --c-emerald-400: 130 198 165;
+    --c-emerald-500: 110 173 141;
+    --c-emerald-600: 92 139 115;
+    --c-emerald-700: 77 110 95;
+    --c-emerald-800: 64 86 77;
+    --c-emerald-900: 55 69 65;
+    --c-emerald-950: 36 36 39;
+    --c-teal-50: 255 242 255;
+    --c-teal-100: 236 239 247;
+    --c-teal-200: 197 234 234;
+    --c-teal-300: 158 221 217;
+    --c-teal-400: 130 200 196;
+    --c-teal-500: 112 172 171;
+    --c-teal-600: 93 137 140;
+    --c-teal-700: 79 108 114;
+    --c-teal-800: 67 85 93;
+    --c-teal-900: 60 69 78;
+    --c-teal-950: 39 39 49;
+    --c-cyan-50: 255 243 255;
+    --c-cyan-100: 238 239 255;
+    --c-cyan-200: 206 231 254;
+    --c-cyan-300: 164 220 248;
+    --c-cyan-400: 129 199 235;
+    --c-cyan-500: 112 171 209;
+    --c-cyan-600: 94 135 175;
+    --c-cyan-700: 80 107 142;
+    --c-cyan-800: 70 85 116;
+    --c-cyan-900: 62 69 99;
+    --c-cyan-950: 43 43 68;
+    --c-sky-50: 255 238 255;
+    --c-sky-100: 250 231 255;
+    --c-sky-200: 218 219 253;
+    --c-sky-300: 170 200 248;
+    --c-sky-400: 127 179 240;
+    --c-sky-500: 107 155 224;
+    --c-sky-600: 89 123 191;
+    --c-sky-700: 74 96 155;
+    --c-sky-800: 66 81 129;
+    --c-sky-900: 58 66 107;
+    --c-sky-950: 42 39 72;
+    --c-indigo-50: 255 232 255;
+    --c-indigo-100: 248 221 255;
+    --c-indigo-200: 224 200 252;
+    --c-indigo-300: 191 171 246;
+    --c-indigo-400: 155 133 236;
+    --c-indigo-500: 124 97 225;
+    --c-indigo-600: 102 68 211;
+    --c-indigo-700: 89 54 186;
+    --c-indigo-800: 76 43 151;
+    --c-indigo-900: 68 39 121;
+    --c-indigo-950: 46 18 72;
+    --c-violet-50: 255 233 255;
+    --c-violet-100: 255 223 255;
+    --c-violet-200: 242 205 254;
+    --c-violet-300: 216 173 248;
+    --c-violet-400: 185 132 240;
+    --c-violet-500: 154 89 230;
+    --c-violet-600: 137 58 219;
+    --c-violet-700: 121 41 200;
+    --c-violet-800: 103 31 168;
+    --c-violet-900: 88 23 139;
+    --c-violet-950: 58 5 94;
+    --c-purple-50: 255 235 255;
+    --c-purple-100: 255 222 255;
+    --c-purple-200: 252 204 255;
+    --c-purple-300: 232 172 250;
+    --c-purple-400: 205 127 242;
+    --c-purple-500: 178 83 233;
+    --c-purple-600: 156 52 218;
+    --c-purple-700: 135 34 192;
+    --c-purple-800: 117 28 157;
+    --c-purple-900: 98 20 127;
+    --c-purple-950: 68 0 94;
+    --c-fuchsia-50: 255 234 255;
+    --c-fuchsia-100: 255 223 255;
+    --c-fuchsia-200: 255 200 254;
+    --c-fuchsia-300: 251 165 248;
+    --c-fuchsia-400: 239 118 241;
+    --c-fuchsia-500: 221 71 228;
+    --c-fuchsia-600: 195 40 201;
+    --c-fuchsia-700: 166 25 167;
+    --c-fuchsia-800: 139 16 138;
+    --c-fuchsia-900: 118 15 114;
+    --c-fuchsia-950: 80 0 76;
+    --c-pink-50: 255 232 254;
+    --c-pink-100: 255 222 248;
+    --c-pink-200: 255 199 236;
+    --c-pink-300: 255 161 215;
+    --c-pink-400: 247 110 185;
+    --c-pink-500: 236 71 157;
+    --c-pink-600: 218 40 126;
+    --c-pink-700: 189 21 101;
+    --c-pink-800: 158 14 84;
+    --c-pink-900: 134 12 73;
+    --c-pink-950: 84 0 42;
+    --c-rose-50: 255 231 249;
+    --c-rose-100: 255 219 237;
+    --c-rose-200: 255 197 219;
+    --c-rose-300: 255 158 184;
+    --c-rose-400: 252 110 145;
+    --c-rose-500: 241 64 110;
+    --c-rose-600: 222 33 89;
+    --c-rose-700: 189 16 75;
+    --c-rose-800: 160 8 68;
+    --c-rose-900: 138 6 64;
+    --c-rose-950: 80 0 33;
+    --c-slate-50: 255 240 255;
+    --c-slate-100: 255 235 254;
+    --c-slate-200: 249 222 245;
+    --c-slate-300: 227 203 229;
+    --c-slate-400: 172 153 186;
+    --c-slate-500: 123 107 140;
+    --c-slate-600: 93 76 106;
+    --c-slate-700: 72 56 86;
+    --c-slate-800: 49 33 60;
+    --c-slate-900: 32 15 43;
+    --c-slate-950: 14 1 23;
+    --c-zinc-50: 255 240 255;
+    --c-zinc-100: 255 234 251;
+    --c-zinc-200: 250 218 237;
+    --c-zinc-300: 233 202 221;
+    --c-zinc-400: 181 151 174;
+    --c-zinc-500: 132 104 126;
+    --c-zinc-600: 100 73 95;
+    --c-zinc-700: 79 54 74;
+    --c-zinc-800: 54 31 46;
+    --c-zinc-900: 37 16 31;
+    --c-zinc-950: 20 3 14;
+    --c-neutral-50: 255 240 255;
+    --c-neutral-100: 255 235 251;
+    --c-neutral-200: 251 219 235;
+    --c-neutral-300: 233 202 218;
+    --c-neutral-400: 183 153 169;
+    --c-neutral-500: 134 106 120;
+    --c-neutral-600: 99 73 87;
+    --c-neutral-700: 80 55 69;
+    --c-neutral-800: 52 30 42;
+    --c-neutral-900: 36 15 27;
+    --c-neutral-950: 21 3 14;
+    --c-stone-50: 255 240 255;
+    --c-stone-100: 255 235 250;
+    --c-stone-200: 252 219 234;
+    --c-stone-300: 235 201 216;
+    --c-stone-400: 187 152 165;
+    --c-stone-500: 137 104 115;
+    --c-stone-600: 103 74 84;
+    --c-stone-700: 83 55 66;
+    --c-stone-800: 54 29 41;
+    --c-stone-900: 40 17 28;
+    --c-stone-950: 23 3 13;
+  }
+  html.theme-aurora {
+    --c-red-50: 239 248 238;
+    --c-red-100: 239 233 223;
+    --c-red-200: 237 210 200;
+    --c-red-300: 234 176 165;
+    --c-red-400: 228 130 116;
+    --c-red-500: 219 95 75;
+    --c-red-600: 200 74 49;
+    --c-red-700: 167 61 37;
+    --c-red-800: 137 53 32;
+    --c-red-900: 113 48 32;
+    --c-red-950: 59 24 10;
+    --c-orange-50: 241 253 234;
+    --c-orange-100: 240 243 213;
+    --c-orange-200: 238 222 174;
+    --c-orange-300: 235 195 125;
+    --c-orange-400: 232 158 78;
+    --c-orange-500: 229 132 52;
+    --c-orange-600: 214 108 42;
+    --c-orange-700: 176 85 32;
+    --c-orange-800: 139 68 28;
+    --c-orange-900: 110 58 24;
+    --c-orange-950: 57 30 8;
+    --c-amber-50: 241 255 233;
+    --c-amber-100: 239 249 201;
+    --c-amber-200: 237 236 148;
+    --c-amber-300: 235 218 99;
+    --c-amber-400: 233 199 72;
+    --c-amber-500: 226 168 56;
+    --c-amber-600: 199 131 43;
+    --c-amber-700: 163 96 31;
+    --c-amber-800: 131 76 26;
+    --c-amber-900: 107 64 22;
+    --c-amber-950: 58 35 5;
+    --c-yellow-50: 240 255 230;
+    --c-yellow-100: 239 254 198;
+    --c-yellow-200: 239 245 150;
+    --c-yellow-300: 237 230 98;
+    --c-yellow-400: 233 211 70;
+    --c-yellow-500: 217 187 59;
+    --c-yellow-600: 185 147 44;
+    --c-yellow-700: 146 107 31;
+    --c-yellow-800: 119 86 26;
+    --c-yellow-900: 100 71 25;
+    --c-yellow-950: 55 39 8;
+    --c-lime-50: 234 255 230;
+    --c-lime-100: 223 255 205;
+    --c-lime-200: 205 252 165;
+    --c-lime-300: 179 244 117;
+    --c-lime-400: 153 232 82;
+    --c-lime-500: 122 205 60;
+    --c-lime-600: 90 165 44;
+    --c-lime-700: 65 126 32;
+    --c-lime-800: 51 100 27;
+    --c-lime-900: 41 85 25;
+    --c-lime-950: 11 48 6;
+    --c-green-50: 227 255 240;
+    --c-green-100: 208 255 228;
+    --c-green-200: 177 250 207;
+    --c-green-300: 128 240 174;
+    --c-green-400: 71 222 133;
+    --c-green-500: 27 197 101;
+    --c-green-600: 0 163 80;
+    --c-green-700: 0 129 64;
+    --c-green-800: 0 102 53;
+    --c-green-900: 0 85 45;
+    --c-green-950: 0 48 21;
+    --c-emerald-50: 223 255 241;
+    --c-emerald-100: 198 254 226;
+    --c-emerald-200: 159 245 206;
+    --c-emerald-300: 105 232 182;
+    --c-emerald-400: 49 211 153;
+    --c-emerald-500: 2 185 129;
+    --c-emerald-600: 0 151 104;
+    --c-emerald-700: 0 121 85;
+    --c-emerald-800: 0 97 68;
+    --c-emerald-900: 0 80 56;
+    --c-emerald-950: 0 46 31;
+    --c-teal-50: 227 255 246;
+    --c-teal-100: 194 255 237;
+    --c-teal-200: 146 248 223;
+    --c-teal-300: 91 235 207;
+    --c-teal-400: 44 213 186;
+    --c-teal-500: 7 185 161;
+    --c-teal-600: 0 149 131;
+    --c-teal-700: 0 120 105;
+    --c-teal-800: 0 96 84;
+    --c-teal-900: 0 80 70;
+    --c-teal-950: 0 49 42;
+    --c-cyan-50: 224 255 250;
+    --c-cyan-100: 197 254 248;
+    --c-cyan-200: 157 246 244;
+    --c-cyan-300: 100 234 239;
+    --c-cyan-400: 34 213 227;
+    --c-cyan-500: 0 184 201;
+    --c-cyan-600: 0 148 168;
+    --c-cyan-700: 0 119 135;
+    --c-cyan-800: 0 97 109;
+    --c-cyan-900: 0 81 92;
+    --c-cyan-950: 0 54 62;
+    --c-sky-50: 227 254 250;
+    --c-sky-100: 212 247 248;
+    --c-sky-200: 176 234 245;
+    --c-sky-300: 118 214 240;
+    --c-sky-400: 49 192 234;
+    --c-sky-500: 0 169 218;
+    --c-sky-600: 0 136 185;
+    --c-sky-700: 0 109 149;
+    --c-sky-800: 0 93 123;
+    --c-sky-900: 0 78 101;
+    --c-sky-950: 0 51 66;
+    --c-indigo-50: 225 248 249;
+    --c-indigo-100: 211 237 248;
+    --c-indigo-200: 187 216 244;
+    --c-indigo-300: 153 187 239;
+    --c-indigo-400: 117 149 231;
+    --c-indigo-500: 85 114 221;
+    --c-indigo-600: 64 87 207;
+    --c-indigo-700: 51 73 182;
+    --c-indigo-800: 40 61 147;
+    --c-indigo-900: 35 56 116;
+    --c-indigo-950: 17 34 67;
+    --c-violet-50: 231 249 249;
+    --c-violet-100: 223 239 247;
+    --c-violet-200: 207 221 245;
+    --c-violet-300: 182 189 241;
+    --c-violet-400: 153 150 234;
+    --c-violet-500: 125 108 226;
+    --c-violet-600: 110 82 216;
+    --c-violet-700: 95 67 196;
+    --c-violet-800: 78 57 164;
+    --c-violet-900: 64 48 134;
+    --c-violet-950: 34 31 90;
+    --c-purple-50: 236 251 250;
+    --c-purple-100: 229 239 248;
+    --c-purple-200: 219 220 246;
+    --c-purple-300: 201 189 242;
+    --c-purple-400: 177 145 236;
+    --c-purple-500: 153 105 228;
+    --c-purple-600: 132 79 214;
+    --c-purple-700: 112 64 187;
+    --c-purple-800: 94 56 153;
+    --c-purple-900: 76 47 122;
+    --c-purple-950: 48 28 89;
+    --c-fuchsia-50: 239 250 250;
+    --c-fuchsia-100: 235 239 249;
+    --c-fuchsia-200: 230 216 246;
+    --c-fuchsia-300: 223 183 241;
+    --c-fuchsia-400: 214 139 235;
+    --c-fuchsia-500: 199 100 223;
+    --c-fuchsia-600: 175 76 196;
+    --c-fuchsia-700: 146 63 162;
+    --c-fuchsia-800: 120 53 132;
+    --c-fuchsia-900: 99 47 108;
+    --c-fuchsia-950: 63 26 71;
+    --c-pink-50: 239 248 243;
+    --c-pink-100: 237 238 238;
+    --c-pink-200: 235 215 226;
+    --c-pink-300: 231 179 206;
+    --c-pink-400: 225 132 176;
+    --c-pink-500: 216 99 148;
+    --c-pink-600: 200 75 116;
+    --c-pink-700: 172 61 91;
+    --c-pink-800: 141 52 75;
+    --c-pink-900: 117 47 65;
+    --c-pink-950: 69 26 34;
+    --c-rose-50: 240 247 238;
+    --c-rose-100: 240 235 227;
+    --c-rose-200: 237 213 208;
+    --c-rose-300: 235 175 174;
+    --c-rose-400: 231 131 134;
+    --c-rose-500: 223 93 97;
+    --c-rose-600: 205 71 76;
+    --c-rose-700: 172 59 63;
+    --c-rose-800: 143 51 58;
+    --c-rose-900: 122 45 54;
+    --c-rose-950: 65 23 24;
+    --c-slate-50: 234 255 247;
+    --c-slate-100: 228 251 244;
+    --c-slate-200: 213 237 235;
+    --c-slate-300: 190 218 219;
+    --c-slate-400: 136 168 177;
+    --c-slate-500: 88 121 132;
+    --c-slate-600: 59 89 99;
+    --c-slate-700: 39 69 79;
+    --c-slate-800: 17 45 54;
+    --c-slate-900: 2 27 37;
+    --c-slate-950: 0 9 18;
+    --c-zinc-50: 236 255 246;
+    --c-zinc-100: 230 250 241;
+    --c-zinc-200: 215 234 226;
+    --c-zinc-300: 199 218 211;
+    --c-zinc-400: 148 166 165;
+    --c-zinc-500: 101 118 117;
+    --c-zinc-600: 70 87 86;
+    --c-zinc-700: 52 67 66;
+    --c-zinc-800: 28 43 39;
+    --c-zinc-900: 13 28 24;
+    --c-zinc-950: 2 12 8;
+    --c-neutral-50: 236 255 246;
+    --c-neutral-100: 231 251 241;
+    --c-neutral-200: 215 235 225;
+    --c-neutral-300: 199 217 208;
+    --c-neutral-400: 150 168 159;
+    --c-neutral-500: 103 120 111;
+    --c-neutral-600: 70 87 79;
+    --c-neutral-700: 53 68 61;
+    --c-neutral-800: 27 42 35;
+    --c-neutral-900: 12 27 20;
+    --c-neutral-950: 2 13 8;
+    --c-stone-50: 236 255 245;
+    --c-stone-100: 231 251 240;
+    --c-stone-200: 217 235 224;
+    --c-stone-300: 200 217 205;
+    --c-stone-400: 155 167 155;
+    --c-stone-500: 108 118 105;
+    --c-stone-600: 75 88 75;
+    --c-stone-700: 57 68 57;
+    --c-stone-800: 30 41 33;
+    --c-stone-900: 18 29 20;
+    --c-stone-950: 4 13 7;
+  }
+  html.theme-washi {
+    --c-red-50: 250 245 235;
+    --c-red-100: 249 229 220;
+    --c-red-200: 246 206 197;
+    --c-red-300: 242 172 162;
+    --c-red-400: 235 125 113;
+    --c-red-500: 225 88 72;
+    --c-red-600: 206 66 45;
+    --c-red-700: 173 53 33;
+    --c-red-800: 143 46 28;
+    --c-red-900: 119 42 28;
+    --c-red-950: 64 19 7;
+    --c-orange-50: 251 249 231;
+    --c-orange-100: 250 239 210;
+    --c-orange-200: 247 218 170;
+    --c-orange-300: 244 191 122;
+    --c-orange-400: 239 154 73;
+    --c-orange-500: 236 126 46;
+    --c-orange-600: 221 102 35;
+    --c-orange-700: 182 79 26;
+    --c-orange-800: 145 63 23;
+    --c-orange-900: 116 53 19;
+    --c-orange-950: 62 26 4;
+    --c-amber-50: 252 253 230;
+    --c-amber-100: 250 245 198;
+    --c-amber-200: 247 232 145;
+    --c-amber-300: 244 214 95;
+    --c-amber-400: 242 195 66;
+    --c-amber-500: 234 164 49;
+    --c-amber-600: 206 127 36;
+    --c-amber-700: 170 92 25;
+    --c-amber-800: 137 72 20;
+    --c-amber-900: 113 59 17;
+    --c-amber-950: 64 31 1;
+    --c-yellow-50: 251 254 227;
+    --c-yellow-100: 250 251 195;
+    --c-yellow-200: 249 242 146;
+    --c-yellow-300: 246 226 93;
+    --c-yellow-400: 242 207 63;
+    --c-yellow-500: 225 183 52;
+    --c-yellow-600: 193 143 37;
+    --c-yellow-700: 153 103 24;
+    --c-yellow-800: 126 82 21;
+    --c-yellow-900: 107 67 20;
+    --c-yellow-950: 62 35 4;
+    --c-lime-50: 245 255 226;
+    --c-lime-100: 234 253 202;
+    --c-lime-200: 217 249 161;
+    --c-lime-300: 192 241 113;
+    --c-lime-400: 167 228 77;
+    --c-lime-500: 137 202 54;
+    --c-lime-600: 105 162 37;
+    --c-lime-700: 79 123 26;
+    --c-lime-800: 64 98 22;
+    --c-lime-900: 54 83 21;
+    --c-lime-950: 26 46 3;
+    --c-green-50: 238 254 237;
+    --c-green-100: 220 253 225;
+    --c-green-200: 191 246 204;
+    --c-green-300: 145 237 171;
+    --c-green-400: 96 219 130;
+    --c-green-500: 67 194 98;
+    --c-green-600: 51 161 76;
+    --c-green-700: 40 126 61;
+    --c-green-800: 33 100 50;
+    --c-green-900: 27 82 42;
+    --c-green-950: 8 46 18;
+    --c-emerald-50: 235 254 238;
+    --c-emerald-100: 211 250 223;
+    --c-emerald-200: 173 242 203;
+    --c-emerald-300: 125 229 179;
+    --c-emerald-400: 81 209 150;
+    --c-emerald-500: 58 183 126;
+    --c-emerald-600: 42 148 101;
+    --c-emerald-700: 31 119 83;
+    --c-emerald-800: 23 94 65;
+    --c-emerald-900: 18 78 54;
+    --c-emerald-950: 5 44 29;
+    --c-teal-50: 239 255 243;
+    --c-teal-100: 206 251 234;
+    --c-teal-200: 162 245 220;
+    --c-teal-300: 114 232 204;
+    --c-teal-400: 78 210 183;
+    --c-teal-500: 59 182 158;
+    --c-teal-600: 44 147 128;
+    --c-teal-700: 35 117 103;
+    --c-teal-800: 29 94 82;
+    --c-teal-900: 26 78 67;
+    --c-teal-950: 7 47 40;
+    --c-cyan-50: 235 255 247;
+    --c-cyan-100: 209 251 245;
+    --c-cyan-200: 172 243 241;
+    --c-cyan-300: 121 231 237;
+    --c-cyan-400: 74 210 224;
+    --c-cyan-500: 56 182 199;
+    --c-cyan-600: 43 145 165;
+    --c-cyan-700: 34 117 133;
+    --c-cyan-800: 31 95 107;
+    --c-cyan-900: 28 79 90;
+    --c-cyan-950: 11 52 60;
+    --c-sky-50: 238 251 247;
+    --c-sky-100: 223 244 245;
+    --c-sky-200: 188 231 242;
+    --c-sky-300: 134 212 238;
+    --c-sky-400: 79 190 231;
+    --c-sky-500: 52 166 215;
+    --c-sky-600: 36 134 182;
+    --c-sky-700: 26 107 147;
+    --c-sky-800: 22 91 120;
+    --c-sky-900: 20 76 99;
+    --c-sky-950: 10 49 64;
+    --c-indigo-50: 236 244 246;
+    --c-indigo-100: 222 233 245;
+    --c-indigo-200: 198 213 241;
+    --c-indigo-300: 165 184 236;
+    --c-indigo-400: 128 146 228;
+    --c-indigo-500: 97 111 218;
+    --c-indigo-600: 76 84 205;
+    --c-indigo-700: 63 70 180;
+    --c-indigo-800: 52 59 145;
+    --c-indigo-900: 46 53 114;
+    --c-indigo-950: 27 32 65;
+    --c-violet-50: 242 245 246;
+    --c-violet-100: 234 236 244;
+    --c-violet-200: 218 217 242;
+    --c-violet-300: 193 186 238;
+    --c-violet-400: 163 146 231;
+    --c-violet-500: 134 105 224;
+    --c-violet-600: 118 78 213;
+    --c-violet-700: 103 64 194;
+    --c-violet-800: 85 53 162;
+    --c-violet-900: 71 45 132;
+    --c-violet-950: 42 28 88;
+    --c-purple-50: 247 247 247;
+    --c-purple-100: 239 235 245;
+    --c-purple-200: 229 217 243;
+    --c-purple-300: 211 186 239;
+    --c-purple-400: 185 142 233;
+    --c-purple-500: 160 101 225;
+    --c-purple-600: 139 75 211;
+    --c-purple-700: 119 60 185;
+    --c-purple-800: 101 52 150;
+    --c-purple-900: 82 43 120;
+    --c-purple-950: 54 24 87;
+    --c-fuchsia-50: 249 247 247;
+    --c-fuchsia-100: 246 235 246;
+    --c-fuchsia-200: 239 213 243;
+    --c-fuchsia-300: 232 179 238;
+    --c-fuchsia-400: 222 135 232;
+    --c-fuchsia-500: 206 94 220;
+    --c-fuchsia-600: 181 70 193;
+    --c-fuchsia-700: 153 57 159;
+    --c-fuchsia-800: 126 47 130;
+    --c-fuchsia-900: 105 42 105;
+    --c-fuchsia-950: 69 21 68;
+    --c-pink-50: 249 245 240;
+    --c-pink-100: 247 234 235;
+    --c-pink-200: 244 212 224;
+    --c-pink-300: 240 175 203;
+    --c-pink-400: 232 127 173;
+    --c-pink-500: 223 92 146;
+    --c-pink-600: 206 68 114;
+    --c-pink-700: 178 53 89;
+    --c-pink-800: 147 45 72;
+    --c-pink-900: 122 41 62;
+    --c-pink-950: 74 20 31;
+    --c-rose-50: 251 244 235;
+    --c-rose-100: 250 231 224;
+    --c-rose-200: 247 209 205;
+    --c-rose-300: 243 171 171;
+    --c-rose-400: 238 126 131;
+    --c-rose-500: 230 86 94;
+    --c-rose-600: 211 63 73;
+    --c-rose-700: 178 50 59;
+    --c-rose-800: 149 43 55;
+    --c-rose-900: 127 38 52;
+    --c-rose-950: 70 17 21;
+    --c-slate-50: 245 252 244;
+    --c-slate-100: 239 247 241;
+    --c-slate-200: 224 234 232;
+    --c-slate-300: 201 215 216;
+    --c-slate-400: 147 165 174;
+    --c-slate-500: 99 118 129;
+    --c-slate-600: 70 87 96;
+    --c-slate-700: 50 67 77;
+    --c-slate-800: 29 43 51;
+    --c-slate-900: 13 25 35;
+    --c-slate-950: 1 8 17;
+    --c-zinc-50: 247 252 243;
+    --c-zinc-100: 241 246 238;
+    --c-zinc-200: 225 230 223;
+    --c-zinc-300: 209 214 208;
+    --c-zinc-400: 158 163 162;
+    --c-zinc-500: 111 115 115;
+    --c-zinc-600: 80 84 84;
+    --c-zinc-700: 61 65 64;
+    --c-zinc-800: 37 41 36;
+    --c-zinc-900: 22 25 22;
+    --c-zinc-950: 7 10 7;
+    --c-neutral-50: 247 252 243;
+    --c-neutral-100: 242 247 238;
+    --c-neutral-200: 226 231 222;
+    --c-neutral-300: 209 214 205;
+    --c-neutral-400: 160 165 156;
+    --c-neutral-500: 113 117 109;
+    --c-neutral-600: 80 84 76;
+    --c-neutral-700: 62 66 58;
+    --c-neutral-800: 36 39 33;
+    --c-neutral-900: 21 24 18;
+    --c-neutral-950: 8 11 6;
+    --c-stone-50: 247 252 242;
+    --c-stone-100: 242 247 237;
+    --c-stone-200: 228 231 221;
+    --c-stone-300: 211 213 202;
+    --c-stone-400: 165 164 152;
+    --c-stone-500: 117 115 103;
+    --c-stone-600: 84 85 73;
+    --c-stone-700: 65 66 55;
+    --c-stone-800: 39 39 31;
+    --c-stone-900: 26 26 18;
+    --c-stone-950: 10 11 5;
+  }
+/* 色澤微調 END */
+
+/* 色澤微調: Markdown text came from the typography plugin's fixed hex greys; point it at the themed gray scale.
+   :where keeps this at .prose specificity so dark:prose-invert still switches to the invert set. */
+:where(html.theme-light, html.theme-dark, html.theme-synthwave, html.theme-aurora, html.theme-washi) .prose {
+  --tw-prose-body: rgb(var(--c-gray-700));
+  --tw-prose-headings: rgb(var(--c-gray-900));
+  --tw-prose-lead: rgb(var(--c-gray-600));
+  --tw-prose-links: rgb(var(--c-gray-900));
+  --tw-prose-bold: rgb(var(--c-gray-900));
+  --tw-prose-counters: rgb(var(--c-gray-500));
+  --tw-prose-bullets: rgb(var(--c-gray-300));
+  --tw-prose-hr: rgb(var(--c-gray-200));
+  --tw-prose-quotes: rgb(var(--c-gray-900));
+  --tw-prose-quote-borders: rgb(var(--c-gray-200));
+  --tw-prose-captions: rgb(var(--c-gray-500));
+  --tw-prose-kbd: rgb(var(--c-gray-900));
+  --tw-prose-code: rgb(var(--c-gray-900));
+  --tw-prose-pre-code: rgb(var(--c-gray-200));
+  --tw-prose-pre-bg: rgb(var(--c-gray-800));
+  --tw-prose-th-borders: rgb(var(--c-gray-300));
+  --tw-prose-td-borders: rgb(var(--c-gray-200));
+  --tw-prose-invert-body: rgb(var(--c-gray-300));
+  --tw-prose-invert-lead: rgb(var(--c-gray-400));
+  --tw-prose-invert-counters: rgb(var(--c-gray-400));
+  --tw-prose-invert-bullets: rgb(var(--c-gray-600));
+  --tw-prose-invert-hr: rgb(var(--c-gray-700));
+  --tw-prose-invert-quotes: rgb(var(--c-gray-100));
+  --tw-prose-invert-quote-borders: rgb(var(--c-gray-700));
+  --tw-prose-invert-captions: rgb(var(--c-gray-400));
+  --tw-prose-invert-pre-code: rgb(var(--c-gray-300));
+  --tw-prose-invert-th-borders: rgb(var(--c-gray-600));
+  --tw-prose-invert-td-borders: rgb(var(--c-gray-700));
+}
+
+/* 11/01 極簡：輸入框上方整排小工具（電話、上下文用量、月亮、閃電、燒杯、版面、⋯、×、排程／模型／權限）在極簡模式
+   一律不出現，連碰到或聚焦輸入框也不出現；只有按住 Alt（ThemeContext 暫時拿掉 .minimal）才看得到。
+   手機／窄螢幕沒有 Alt，所以只在寬螢幕＋滑鼠時才藏，觸控裝置照常顯示。 */
+@media (min-width: 768px) and (pointer: fine) {
+  html.minimal [data-slot="prompt-input"] [data-presenter-extra]:not(.contents),
+  html.minimal [data-slot="prompt-input"] [data-presenter-extra].contents > * {
+    display: none !important;
+  }
+}
+/* 11/01 對話右緣導覽點點讀主題雙色：提問＝主色（--primary）染過的主題灰（--muted-foreground），Co-Work 卡＝主題輔色
+   （--c-blue-*：蒸氣夕陽是青、極光是天藍、抹茶和紙是藍、淺色／深色是靛）。目前位置（active）提問用 --foreground，
+   Co-Work 用輔色滿版；兩者都放大並加光暈。投影（.presenter）維持原本的灰／琥珀。 */
+:root {
+  --jump-prompt: color-mix(in srgb, hsl(var(--primary)) 30%, hsl(var(--muted-foreground)));
+  --jump-cowork: rgb(var(--c-blue-400));
+}
+[data-jump-dot] {
+  background: var(--jump-c);
+}
+[data-jump-dot="prompt"] {
+  --jump-c: color-mix(in srgb, var(--jump-prompt) 70%, transparent);
+}
+[data-jump-dot="cowork"] {
+  --jump-c: color-mix(in srgb, var(--jump-cowork) 85%, transparent);
+}
+[data-jump-dot][data-state="hover"] {
+  --jump-c: color-mix(in srgb, var(--jump-prompt) 100%, transparent);
+}
+[data-jump-dot="cowork"][data-state="hover"] {
+  --jump-c: var(--jump-cowork);
+}
+[data-jump-dot][data-state="active"] {
+  --jump-c: hsl(var(--foreground));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--jump-prompt) 55%, transparent);
+}
+[data-jump-dot="cowork"][data-state="active"] {
+  --jump-c: var(--jump-cowork);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--jump-cowork) 45%, transparent);
+}
+html.presenter [data-jump-dot="prompt"] { --jump-c: hsl(var(--muted-foreground) / 0.5); }
+html.presenter [data-jump-dot="prompt"][data-state="hover"] { --jump-c: hsl(var(--foreground) / 0.7); }
+html.presenter [data-jump-dot="prompt"][data-state="active"] { --jump-c: hsl(var(--foreground)); box-shadow: none; }
+html.presenter [data-jump-dot="cowork"] { --jump-c: rgb(245 158 11 / 0.8); }
+html.presenter [data-jump-dot="cowork"][data-state="hover"],
+html.presenter [data-jump-dot="cowork"][data-state="active"] { --jump-c: rgb(245 158 11); box-shadow: none; }

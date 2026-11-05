@@ -117,6 +117,7 @@ function ComposerPermissionMenu({
         aria-expanded={isOpen}
         aria-label={heading}
         title={t('input.clickToChangeMode')}
+        data-tutorial-tip="權限模式：決定 Claude 動手前要不要先問你"
       >
         <ActiveIcon className="h-4 w-4" />
       </button>

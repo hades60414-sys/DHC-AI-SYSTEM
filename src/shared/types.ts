@@ -5,7 +5,7 @@ import type { NavigateFunction } from 'react-router-dom';
 //----------------- LLM PROVIDER MODEL CATALOG ------------
 
 /** Identifies which coding-agent CLI backs a session, project selection or model list. */
-export type LLMProvider = 'claude' | 'cursor' | 'codex' | 'opencode';
+export type LLMProvider = 'claude' | 'cursor' | 'codex' | 'opencode' | 'agy';
 
 /** One selectable model in a provider's model menu, including its optional reasoning-effort choices. */
 export type ProviderModelOption = {
@@ -93,7 +93,8 @@ export type ScheduledMessage = {
   options: Record<string, unknown>;
   /** ISO instant, so the schedule does not move when the user changes time zone. */
   scheduledFor: string;
-  status: 'pending' | 'sent' | 'failed' | 'cancelled';
+  /** `sending`: due, waiting for an earlier turn in the same session to finish. */
+  status: 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled';
   /** Why it did not go, when `status` is `failed`. */
   failureReason: string | null;
   createdAt: string;
@@ -341,6 +342,8 @@ export type ChatMessage = {
   isLocalCommand?: boolean;
   isLocalCommandStdout?: boolean;
   isCompactSummary?: boolean;
+  /** DHC CLI: sent while a turn was running and handed to that turn (shown as 「插話」). */
+  midTurn?: boolean;
   isSubagentContainer?: boolean;
   /** The agent this row spawned, when it spawned one. Its presence is what makes a row a subagent container. */
   subagent?: SubagentInfo;
@@ -485,6 +488,8 @@ export type NormalizedMessage = {
   isLocalCommand?: boolean;
   isLocalCommandStdout?: boolean;
   isCompactSummary?: boolean;
+  /** DHC CLI: a user message that joined a turn already running instead of starting one. */
+  midTurn?: boolean;
   images?: Array<{ path?: string; data?: string; name?: string }>;
   files?: Array<{ path?: string; name?: string; mimeType?: string; size?: number }>;
   toolName?: string;
@@ -1322,7 +1327,7 @@ export type SidebarProjectListProps = SessionRowActions & {
 export type ProjectSortOrder = 'name' | 'date';
 
 /** Which list the sidebar is currently showing: projects, conversation search results, running sessions or archived items. */
-export type SidebarSearchMode = 'projects' | 'conversations' | 'query' | 'routine' | 'running' | 'archived';
+export type SidebarSearchMode = 'projects' | 'conversations' | 'query' | 'routine' | 'running' | 'scheduled' | 'archived';
 
 /** A Project narrowed to the archived state so archived entries can be listed and restored without being mistaken for active projects. */
 export type ArchivedProjectListItem = Project & { isArchived: true };

@@ -20,7 +20,7 @@ export default function BackgroundWorkIndicator({ label, className, position = '
   return (
     <Tooltip content={label} position={position}>
       <span
-        role="status"
+        role="img"
         aria-label={label}
         className={cn('flex h-5 w-5 items-center justify-center rounded-md text-violet-500 dark:text-violet-400', className)}
       >
@@ -38,7 +38,7 @@ export default function BackgroundWorkIndicator({ label, className, position = '
 export function RunningHeartbeat({ label }: { label: string }) {
   return (
     <Tooltip content={label} position="right">
-      <span role="status" aria-label={label} data-testid="running-heartbeat" className="relative flex h-2 w-2">
+      <span role="img" aria-label={label} data-testid="running-heartbeat" className="relative flex h-2 w-2">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
       </span>
@@ -61,7 +61,7 @@ export function WaitingIndicator({ kind, className, position = 'top' }: {
   return (
     <Tooltip content={label} position={position}>
       <span
-        role="status"
+        role="img"
         aria-label={label}
         data-testid="waiting-indicator"
         data-kind={kind}

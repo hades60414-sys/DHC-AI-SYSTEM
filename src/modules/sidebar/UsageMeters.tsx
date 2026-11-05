@@ -1,23 +1,14 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Gauge } from 'lucide-react';
-
 import { authenticatedFetch } from '@/shared/api';
 
 // DHC CLI addition: Claude subscription usage meters (mirrors Claude Code's /usage).
-// Data comes from the server (GET /api/dhc/usage, refreshed every 2 minutes), which calls Anthropic's OAuth usage API.
+// Data comes from a local usage endpoint (60s cache), which calls Anthropic's OAuth usage API.
 
 type Bucket = { percent: number; resets_at: string | null; severity?: string } | null;
 type LoginInfo = { state: 'ok' | 'expiring' | 'expired' | 'logged_out'; expires_at?: string; days_left?: number; long_token?: boolean };
 type UsagePayload = { session?: Bucket; weekly_all?: Bucket; weekly_fable?: Bucket; fetched_at?: string; error?: string; stale?: boolean; reason?: string; login?: LoginInfo };
 
-// Readable reasons for GET /api/dhc/usage errors; anything else is shown as its code.
-const USAGE_ERRORS: Record<string, string> = {
-  not_logged_in: '這台主機還沒登入 Claude',
-  token_expired: '登入權杖已過期，用一次 Claude Code 就會更新',
-  upstream_429: '查詢太頻繁，5 分鐘後再試',
-  network: '連不到伺服器',
-  timeout: '查詢逾時',
-};
 const POLL_MS = 120_000; // server refreshes upstream on its own cadence; this only re-reads the cache
 
 function relTime(iso: string | null | undefined, now: number): string {
@@ -99,15 +90,101 @@ function LoginWarning({ login }: { login: LoginInfo | null }) {
   );
 }
 
+// 2026-10-31: how much of this week's work ran on other vendors (Codex, Gemini) instead of the shared Claude
+// subscription. From GET /_usage/top when the host runs a transcript scanner (optional; hidden otherwise), in fresh tokens:
+// new input + cache writes + output, cache reads left out on every side.
+type Vendor = { tokens: number; calls: number; models: Record<string, number> };
+type TopWindow = { start: string; end: string; total: { in: number; cw: number; out: number }; offload?: Record<string, Vendor> };
+type Slice = { name: string; tokens: number; color: string; models?: Record<string, number> };
+
+const VENDOR_COLORS: Record<string, string> = { Codex: 'bg-emerald-500', Gemini: 'bg-sky-500' };
+
+/** HH:mm of a moment, for 「更新失敗，顯示的是 HH:mm 的資料」. */
+export const hhmm = (ms: number): string => `${String(new Date(ms).getHours()).padStart(2, '0')}:${String(new Date(ms).getMinutes()).padStart(2, '0')}`;
+
+function fmtTokens(n: number): string {
+  if (n >= 1e8) return `${(n / 1e8).toFixed(2)} 億`;
+  if (n >= 1e4) return `${Math.round(n / 1e4).toLocaleString()} 萬`;
+  return n.toLocaleString();
+}
+
+function fmtShare(p: number): string {
+  if (p <= 0) return '0%';
+  if (p < 0.001) return '<0.1%';
+  return `${(p * 100).toFixed(1)}%`;
+}
+
+export function splitSlices(week: TopWindow): Slice[] {
+  const claude = week.total.in + week.total.cw + week.total.out;
+  const others = Object.entries(week.offload ?? {})
+    .filter(([, v]) => v.tokens > 0)
+    .sort((a, b) => b[1].tokens - a[1].tokens)
+    .map(([name, v]) => ({ name, tokens: v.tokens, color: VENDOR_COLORS[name] ?? 'bg-violet-500', models: v.models }));
+  return [{ name: 'Claude', tokens: claude, color: 'bg-primary' }, ...others];
+}
+
+/** `staleSince`: when the numbers shown were last refreshed, set once a refresh has failed (11/01: it used to look current). */
+export function OffloadSplit({ week, staleSince = null }: { week: TopWindow | null; staleSince?: number | null }) {
+  if (!week) return null;
+  const slices = splitSlices(week);
+  const total = slices.reduce((s, x) => s + x.tokens, 0);
+  if (!total) return null;
+  const offShare = slices.slice(1).reduce((s, x) => s + x.tokens, 0) / total;
+  const tip = [
+    `${clockOf(week.start)} 起本週，新處理 token（新輸入＋快取寫入＋輸出，不含快取讀取）`,
+    ...slices.map((x) => `${x.name}：${fmtTokens(x.tokens)}（${fmtShare(x.tokens / total)}）${x.models ? '　' + Object.entries(x.models).map(([m, v]) => `${m} ${fmtTokens(v)}`).join('、') : ''}`),
+  ].join('\n');
+  return (
+    <div className="space-y-0.5" title={tip} data-testid="offload-split">
+      <div className="flex items-center justify-between text-[11px] leading-tight">
+        <span className="text-muted-foreground">本週分流</span>
+        <span className="font-medium text-foreground">其他模型分擔 {fmtShare(offShare)}</span>
+      </div>
+      {staleSince !== null && (
+        <div className="text-[10px] leading-tight text-amber-600 dark:text-amber-400">更新失敗，顯示的是 {hhmm(staleSince)} 的資料</div>
+      )}
+      <div className={`flex h-1.5 w-full overflow-hidden rounded-full bg-muted ${staleSince !== null ? 'opacity-50' : ''}`}>
+        {slices.map((x) => (
+          <div key={x.name} className={`h-full ${x.color}`} style={{ width: `${(x.tokens / total) * 100}%`, minWidth: x.tokens > 0 ? 2 : 0 }} />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-x-2 text-[10px] leading-tight text-muted-foreground/80">
+        {slices.map((x) => (
+          <span key={x.name} className="inline-flex items-center gap-1">
+            <span className={`inline-block h-1.5 w-1.5 rounded-full ${x.color}`} />
+            {x.name} {fmtShare(x.tokens / total)}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Rendered by SidebarFooter (desktop) above the settings row. */
 export default function UsageMeters() {
   const [data, setData] = useState<UsagePayload | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [login, setLogin] = useState<LoginInfo | null>(null);
+  const [week, setWeek] = useState<TopWindow | null>(null);
+  const [weekStale, setWeekStale] = useState<number | null>(null);
 
   useEffect(() => {
     let alive = true;
+    let splitOkAt: number | null = null;
+    const loadSplit = async () => {
+      try {
+        const r = await fetch('/_usage/top', { cache: 'no-store' });
+        const j = (await r.json()) as { windows?: { week?: TopWindow } };
+        if (!j.windows?.week) throw new Error('no week');
+        splitOkAt = Date.now();
+        if (alive) { setWeek(j.windows.week); setWeekStale(null); }
+      } catch {
+        // The transcript scanner is optional: never answered = no split; answered before = keep it, say it is old.
+        if (alive) { if (splitOkAt !== null) setWeekStale(splitOkAt); else { setWeek(null); setWeekStale(null); } }
+      }
+    };
     const load = async () => {
+      void loadSplit();
       try {
         const r = await authenticatedFetch('/api/dhc/usage', { cache: 'no-store' });
         const j = (await r.json()) as UsagePayload;
@@ -119,9 +196,13 @@ export default function UsageMeters() {
       }
     };
     load();
-    const poll = setInterval(load, POLL_MS);
-    const tick = setInterval(() => setNow(Date.now()), 30_000);
-    return () => { alive = false; clearInterval(poll); clearInterval(tick); };
+    const poll = setInterval(() => { if (document.visibilityState === 'visible') void load(); }, POLL_MS);
+    const tick = setInterval(() => { if (document.visibilityState === 'visible') setNow(Date.now()); }, 30_000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') { setNow(Date.now()); void load(); }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { alive = false; clearInterval(poll); clearInterval(tick); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
 
   if (!data) return null;
@@ -129,8 +210,9 @@ export default function UsageMeters() {
     return (
       <>
         <LoginWarning login={login} />
-        <div className="px-3 py-1.5 text-[10px] text-muted-foreground/70">
-          <Gauge className="mr-1 inline h-3 w-3" />用量：無法取得（{USAGE_ERRORS[data.error] ?? data.error}）
+        {/* 10/25 R4 (稽核 P1-5): plain words; the raw reason only on hover. */}
+        <div className="px-3 py-1.5 text-[10px] text-muted-foreground/70" title={data.error}>
+          <Gauge className="mr-1 inline h-3 w-3" />用量暫時讀不到，稍後會自己再試
         </div>
       </>
     );
@@ -138,7 +220,7 @@ export default function UsageMeters() {
   return (
     <>
     <LoginWarning login={login} />
-    <div className="space-y-2 px-3 py-2">
+    <div className="space-y-2 px-3 py-2" data-tutorial-tip="Claude 用量：5 小時時段和本週已用百分比，下方寫重置時間">
       <div className="flex items-center gap-1.5 text-[11px] font-medium text-foreground">
         <Gauge className="h-3.5 w-3.5 text-primary" />
         Claude 用量
@@ -153,7 +235,7 @@ export default function UsageMeters() {
       </div>
       <Meter label="目前時段（5 小時）" bucket={data.session ?? null} now={now} stale={Boolean(data.stale)} />
       <Meter label="本週（全部模型）" bucket={data.weekly_all ?? null} now={now} stale={Boolean(data.stale)} />
-      <Meter label="本週（Fable）" bucket={data.weekly_fable ?? null} now={now} stale={Boolean(data.stale)} />
+      <OffloadSplit week={week} staleSince={weekStale} />
     </div>
     </>
   );

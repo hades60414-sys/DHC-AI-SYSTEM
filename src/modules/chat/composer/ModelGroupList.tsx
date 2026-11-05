@@ -15,6 +15,8 @@ export type ModelGroup = {
   provider: LLMProvider;
   name: string;
   models: ProviderModelOption[];
+  /** When set, the branch cannot be used and this text says why (shown under its heading). */
+  disabledReason?: string;
 };
 
 type ModelGroupListProps = {
@@ -102,6 +104,12 @@ export default function ModelGroupList({
               </button>
             }
           >
+            {group.disabledReason ? (
+              <CommandItem disabled className="ml-4 border-l border-border/40 pl-4 text-[11px] text-amber-700 dark:text-amber-300">
+                {group.disabledReason}
+              </CommandItem>
+            ) : null}
+
             {group.models.length === 0 && loading ? (
               <CommandItem disabled className="ml-4 border-l border-border/40 pl-4 text-muted-foreground">
                 {loadingLabel}
@@ -113,7 +121,7 @@ export default function ModelGroupList({
               items are all gone, and a vanished heading cannot be clicked open
               again. This row doubles as that click target.
             */}
-            {isCollapsed && group.models.length > 0 ? (
+            {isCollapsed && group.models.length > 0 && !group.disabledReason ? (
               <CommandItem
                 value={`${group.name} show`}
                 onSelect={() => toggle(group.key)}
@@ -123,7 +131,7 @@ export default function ModelGroupList({
               </CommandItem>
             ) : null}
 
-            {!isCollapsed && group.models.map((model) => {
+            {!isCollapsed && !group.disabledReason && group.models.map((model) => {
               const isSelected = provider === group.provider && currentModel === model.value;
 
               return (

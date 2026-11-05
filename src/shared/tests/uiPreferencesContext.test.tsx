@@ -45,11 +45,12 @@ test('a toggle persists to the single stored blob', () => {
   const { result } = renderHook(() => useSetUiPreference(), { wrapper });
 
   act(() => {
-    result.current('voiceEnabled', true);
+    result.current('voiceEnabled', false);
   });
 
   const stored = readUserPreference<Record<string, unknown>>('uiPreferences', {});
-  assert.equal(stored.voiceEnabled, true);
+  assert.equal(stored.voiceEnabled, false);
+  assert.equal(stored.voiceDefaultV2, true, '存檔帶旗標，之後的關閉才算使用者表態');
 });
 
 test('a change made elsewhere is picked up', () => {

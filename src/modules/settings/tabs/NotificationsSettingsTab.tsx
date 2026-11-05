@@ -217,7 +217,7 @@ export default function NotificationsSettingsTab({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    notifyBrowser({ kind: 'stop', title: 'DHC CLI 測試通知', body: t('notifications.browser.testBody', { defaultValue: '通知會長這樣。點一下會回到對應的 session。' }), force: true });
+                    notifyBrowser({ kind: 'stop', title: 'DHC AI System 測試通知', body: t('notifications.browser.testBody', { defaultValue: '通知會長這樣。點一下會回到對應的 session。' }), force: true });
                   }}
                 >
                   <Play className="h-4 w-4" />

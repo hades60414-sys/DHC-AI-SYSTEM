@@ -7,9 +7,31 @@ import { api } from '@/shared/api';
  * `dhc.boards:p:<profileId>`, so every device of that person shows the same ones. A save re-reads the server's
  * copy and only replaces the boards this page changed, so a board edited on another device stays.
  */
-export type PlanNode = { id: string; x: number; y: number; w: number; h: number; text: string };
+/** 10/19: `shape` absent is a rectangle; a diamond is a decision. */
+export type PlanShape = 'rectangle' | 'ellipse' | 'diamond';
+/** 10/19: a box linked with @@ to a conversation or another whiteboard (its customData.dhcRef). */
+export type PlanLink = { kind: 'session' | 'board'; id: string; label: string };
+/** `link` absent keeps the box's link as it is; null (only from the AI) takes it off. */
+export type PlanNode = { id: string; x: number; y: number; w: number; h: number; text: string; shape?: PlanShape; link?: PlanLink | null };
 export type PlanEdge = { id: string; from: string; to: string; text: string };
-export type PlanChatMessage = { role: 'user' | 'assistant'; text: string };
+/**
+ * 10/19: anything on the canvas that is neither a box nor an arrow bound at both ends to boxes: free text, loose lines
+ * and arrows, freehand. The AI sees them (with id and place) so it can move a note or clear a stale line.
+ */
+export type PlanLoose = { id: string; kind: 'text' | 'line' | 'arrow' | 'freedraw'; text?: string; x: number; y: number; w: number; h: number };
+/** 10/19: free text the AI keeps, moves or adds; a known id is a move or rewrite, none (or an unknown one) a new note. */
+export type PlanNote = { id?: string; text: string; x: number; y: number };
+/**
+ * 10/14: `at` (ISO time) and `by` (who asked, on a shared board) let two people's chats merge; `who` is the asker's
+ * project, which gives the avatar beside the message.
+ */
+export type PlanChatMessage = { role: 'user' | 'assistant'; text: string; at?: string; by?: string; who?: string };
+/** 10/14 Co-Work: who a shared board belongs to, who else is in it, and their unopened invitations. */
+export type CoBoardInfo = {
+  ownerProjectId: string;
+  members: string[];
+  invites?: Record<string, { from: string; message: string; at: string }>;
+};
 /** 10/14: how the AI lays the board out and what 開工 asks for (自由／SOP 泳道／心智圖／資料流程). */
 export type BoardMode = 'free' | 'sop' | 'mindmap' | 'dataflow';
 const MODES: BoardMode[] = ['free', 'sop', 'mindmap', 'dataflow'];
@@ -22,6 +44,10 @@ export type PlanBoard = {
   elements: unknown[];
   chat: PlanChatMessage[];
   updatedAt: string;
+  /** 11/01: a new board nobody named yet; it takes a name from what gets drawn or asked first (PlanBoard.tsx autoNameOf). */
+  autoName?: true;
+  /** Set on a shared board (kept in `dhc.coBoards`, see coBoards.ts), absent on the person's own. */
+  co?: CoBoardInfo;
 };
 
 export const BOX_WIDTH = 200;
@@ -35,6 +61,7 @@ const legacyKeyOf = (projectId: string) => `dhc.boards:${projectId}`;
 const styleKeyOf = (profileId: string) => `dhc.boardStyle:p:${profileId}`;
 export const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
+const SHAPES: PlanShape[] = ['rectangle', 'ellipse', 'diamond'];
 const num = (value: unknown, fallback: number) => (typeof value === 'number' && Number.isFinite(value) ? value : fallback);
 const str = (value: unknown) => (typeof value === 'string' ? value : '');
 
@@ -49,6 +76,28 @@ export function parseNodes(value: unknown): PlanNode[] {
       w: Math.max(80, num(item.w, BOX_WIDTH)),
       h: Math.max(40, num(item.h, BOX_HEIGHT)),
       text: str(item.text),
+      ...(SHAPES.includes(item.shape as PlanShape) ? { shape: item.shape } : {}),
+      ...parseLink(item.link),
+    }));
+}
+
+/** The AI's link on a box: null unlinks; a kind and id is checked against what @@ offers later (acceptLinks). */
+function parseLink(value: unknown): { link?: PlanLink | null } {
+  if (value === null) return { link: null };
+  const raw = (value && typeof value === 'object' ? value : {}) as Partial<PlanLink>;
+  if ((raw.kind !== 'session' && raw.kind !== 'board') || !str(raw.id)) return {};
+  return { link: { kind: raw.kind, id: str(raw.id), label: str(raw.label) } };
+}
+
+export function parseNotes(value: unknown): PlanNote[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item) => item && typeof item === 'object' && str((item as PlanNote).text).trim())
+    .map((item: Partial<PlanNote>) => ({
+      ...(str(item.id) ? { id: str(item.id) } : {}),
+      text: str(item.text).trim(),
+      x: num(item.x, 0),
+      y: num(item.y, 0),
     }));
 }
 
@@ -67,7 +116,7 @@ export function parseEdges(value: unknown, nodes: PlanNode[]): PlanEdge[] {
     .filter((edge) => ids.has(edge.from) && ids.has(edge.to) && edge.from !== edge.to);
 }
 
-export function parseBoards(value: unknown): PlanBoard[] {
+export function parseBoards(value: unknown, maxChat = MAX_CHAT): PlanBoard[] {
   const raw = value && typeof value === 'object' ? (value as { items?: unknown }).items : null;
   if (!Array.isArray(raw)) return [];
   return raw
@@ -81,15 +130,27 @@ export function parseBoards(value: unknown): PlanBoard[] {
         chat: Array.isArray(item.chat)
           ? item.chat
             .filter((m): m is PlanChatMessage => Boolean(m) && (m.role === 'user' || m.role === 'assistant') && typeof m.text === 'string')
-            .slice(-MAX_CHAT)
+            .slice(-maxChat)
           : [],
         updatedAt: str(item.updatedAt),
+        ...(item.autoName === true ? { autoName: true as const } : {}),
       };
     });
 }
 
 export function emptyBoard(name: string, mode: BoardMode = 'free'): PlanBoard {
   return { id: newId(), name, mode, elements: [], chat: [], updatedAt: new Date().toISOString() };
+}
+
+const AUTO_NAME_MAX = 20;
+/** A name for an unnamed board: the first thing asked of the AI, else the top-left box; null while both are empty. */
+export function autoNameOf(chat: ReadonlyArray<PlanChatMessage>, nodes: ReadonlyArray<{ x: number; y: number; text: string }>): string | null {
+  const firstLine = (text: string) => text.trim().split('\n')[0].trim();
+  const asked = chat.find((item) => item.role === 'user' && firstLine(item.text));
+  const box = [...nodes].filter((node) => firstLine(node.text)).sort((a, b) => a.y - b.y || a.x - b.x)[0];
+  const name = asked ? firstLine(asked.text) : box ? firstLine(box.text) : '';
+  if (!name) return null;
+  return name.length > AUTO_NAME_MAX ? `${name.slice(0, AUTO_NAME_MAX)}…` : name;
 }
 
 async function fetchPreferences(): Promise<Record<string, unknown>> {

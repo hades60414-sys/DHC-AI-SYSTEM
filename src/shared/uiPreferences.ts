@@ -28,8 +28,19 @@ const DEFAULTS: UiPreferences = {
   showThinking: true,
   sendByCtrlEnter: false,
   sidebarVisible: true,
-  voiceEnabled: false,
+  voiceEnabled: true,
 };
+
+/**
+ * 10/25 語音預設改開。舊的存檔會把預設值 voiceEnabled:false 一併寫出去，分不出是使用者關的還是預設，
+ * 所以存檔帶這個旗標：沒有旗標的存檔一律當成「還沒表態」→ 語音開；之後使用者任何一次切換都會連旗標寫回，
+ * 從那時起他關掉就是關掉。
+ */
+export const VOICE_DEFAULT_FLAG = 'voiceDefaultV2';
+export const withPersistFlags = (preferences: UiPreferences): UiPreferences & { [VOICE_DEFAULT_FLAG]: true } => ({
+  ...preferences,
+  [VOICE_DEFAULT_FLAG]: true,
+});
 
 const PREFERENCE_KEYS = Object.keys(DEFAULTS) as UiPreferenceKey[];
 /** Prevents an unknown key from being written into the blob. */
@@ -58,7 +69,9 @@ export const readStoredUiPreferences = (): UiPreferences => {
   const stored = readUserPreference<Record<string, unknown>>('uiPreferences', {});
 
   return PREFERENCE_KEYS.reduce((acc, key) => {
-    acc[key] = parseBoolean(stored[key], DEFAULTS[key]);
+    acc[key] = key === 'voiceEnabled' && stored[VOICE_DEFAULT_FLAG] !== true
+      ? true
+      : parseBoolean(stored[key], DEFAULTS[key]);
     return acc;
   }, { ...DEFAULTS });
 };

@@ -2,7 +2,9 @@ import { randomUUID } from 'node:crypto';
 
 import { getConnection } from '@/modules/database/connection.js';
 
-export type ScheduledMessageStatus = 'pending' | 'sent' | 'failed' | 'cancelled';
+// `sending`: its time has come and it is waiting for its turn to start (an
+// earlier message in the same session is still running). `sent` once it starts.
+export type ScheduledMessageStatus = 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled';
 
 export type ScheduledMessageRow = {
   id: string;
@@ -61,7 +63,7 @@ export const scheduledMessagesDb = {
     return getConnection()
       .prepare(
         `SELECT ${COLUMNS} FROM scheduled_messages
-         WHERE user_id = ? AND status = 'pending'
+         WHERE user_id = ? AND status IN ('pending', 'sending')
          ORDER BY scheduled_for ASC`
       )
       .all(userId) as ScheduledMessageRow[];
@@ -91,12 +93,36 @@ export const scheduledMessagesDb = {
 
       for (const row of due) {
         db.prepare(
-          `UPDATE scheduled_messages SET status = 'sent', updated_at = CURRENT_TIMESTAMP WHERE id = ?`
+          `UPDATE scheduled_messages SET status = 'sending', updated_at = CURRENT_TIMESTAMP WHERE id = ?`
         ).run(row.id);
       }
 
       return due;
     })();
+  },
+
+  /** Moves a claimed message to `sent` as its turn starts; false if it was cancelled while waiting. */
+  markSent(id: string): boolean {
+    return getConnection()
+      .prepare(
+        `UPDATE scheduled_messages SET status = 'sent', updated_at = CURRENT_TIMESTAMP
+         WHERE id = ? AND status = 'sending'`
+      )
+      .run(id).changes > 0;
+  },
+
+  /**
+   * Puts claimed messages that never started back to `pending`. Called once at
+   * startup: a restart drops the in-memory wait, so without this a message that
+   * was waiting behind another turn would be lost.
+   */
+  releaseUnstarted(): number {
+    return getConnection()
+      .prepare(
+        `UPDATE scheduled_messages SET status = 'pending', updated_at = CURRENT_TIMESTAMP
+         WHERE status = 'sending'`
+      )
+      .run().changes;
   },
 
   markFailed(id: string, reason: string): void {
@@ -118,7 +144,7 @@ export const scheduledMessagesDb = {
       .prepare(
         `UPDATE scheduled_messages
          SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
-         WHERE id = ? AND user_id = ? AND status IN ('pending', 'failed')`
+         WHERE id = ? AND user_id = ? AND status IN ('pending', 'sending', 'failed')`
       )
       .run(id, userId);
 

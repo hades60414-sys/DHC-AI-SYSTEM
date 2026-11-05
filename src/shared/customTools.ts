@@ -38,9 +38,15 @@ const readLocalPicks = (): Picks => {
   }
 };
 
-/** The person's five slots; setPicks saves them at once. */
-export function usePicks(profileId: string | null): [Picks, (next: Picks) => void] {
+/**
+ * The person's five slots; setPicks saves them at once. With a profile, nothing is saved until the server's slots
+ * have loaded (else the empty placeholder would overwrite them); the third value is a message when a change was
+ * refused or did not reach the server.
+ */
+export function usePicks(profileId: string | null): [Picks, (next: Picks) => void, string] {
   const [picks, setPicksState] = useState<Picks>(() => (profileId ? emptyPicks() : readLocalPicks()));
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!profileId) {
@@ -48,25 +54,36 @@ export function usePicks(profileId: string | null): [Picks, (next: Picks) => voi
       return undefined;
     }
     let cancelled = false;
+    setLoaded(false);
     fetchPreferences()
-      .then((preferences) => { if (!cancelled) setPicksState(parsePicks(preferences[picksKeyOf(profileId)])); })
-      .catch(() => { /* Empty slots until the next open. */ });
+      .then((preferences) => {
+        if (cancelled) return;
+        setPicksState(parsePicks(preferences[picksKeyOf(profileId)]));
+        setLoaded(true);
+      })
+      .catch(() => { /* Not loaded: changes are refused until the next open. */ });
     return () => { cancelled = true; };
   }, [profileId]);
 
   const setPicks = (next: Picks) => {
     const clean = parsePicks(next);
-    setPicksState(clean);
     if (!profileId) {
+      setPicksState(clean);
       try { localStorage.setItem(LOCAL_PICKS_KEY, JSON.stringify(clean)); } catch { /* this page load only */ }
       return;
     }
-    void api.user.savePreferences({ [picksKeyOf(profileId)]: clean }).catch(() => {
-      // The slots stay as set on this page; the next change tries again.
-    });
+    if (!loaded) {
+      setError('自選還沒從伺服器載入，這次沒有儲存。請關掉工具庫再打開。');
+      return;
+    }
+    setError('');
+    setPicksState(clean);
+    void api.user.savePreferences({ [picksKeyOf(profileId)]: clean })
+      .then((response) => { if (!response.ok) throw new Error(String(response.status)); })
+      .catch(() => { setError('自選沒存到伺服器，換頁後可能會還原，請再試一次。'); });
   };
 
-  return [picks, setPicks];
+  return [picks, setPicks, error];
 }
 
 /** Puts a tool in the first empty slot; false when all five are taken or it is already there. */
@@ -133,21 +150,47 @@ export function createToolSaver(toolId: string, profileId: string, onError: () =
 }
 
 export type AssistMessage = { role: 'user' | 'assistant'; text: string };
-export type AssistAnswer = { reply: string; result: unknown };
+/** `lostResult`: the AI sent something to apply that could not be read (server tool-assist.service.ts). */
+export type AssistAnswer = { reply: string; result: unknown; lostResult?: boolean };
 
-/** Asks the AI beside a tool; never throws, a failure comes back as a reply saying so. */
+// Codes from server/modules/providers/services/tool-assist/tool-assist.service.ts (FAILURE_CODES).
+const FAILURE_TEXT: Record<string, string> = {
+  ASSIST_TIMEOUT: 'AI 逾時：超過 5 分鐘沒做完，已經停掉。可以把要求拆小一點再試。',
+  ASSIST_QUOTA: 'AI 額度用完了，要等額度重置後再試。',
+  ASSIST_AUTH: '主機的 Claude 登入過期了，要請管理主機的人重新登入。',
+  ASSIST_FORMAT: 'AI 的回應格式錯誤，讀不出內容，再試一次。',
+  ASSIST_ABORTED: '已停止。',
+};
+
+/** The plain-Chinese reason for a failed answer; anything unknown shows the first 80 characters of the original. */
+export function assistFailureText(error: { code?: unknown; message?: unknown } | null | undefined): string {
+  const code = typeof error?.code === 'string' ? error.code : '';
+  const message = typeof error?.message === 'string' && error.message.trim() ? error.message.trim() : '沒有錯誤訊息';
+  return FAILURE_TEXT[code] ?? `AI 這次沒有完成。其他：${message.slice(0, 80)}`;
+}
+
+/** Asks the AI beside a tool; never throws, a failure comes back as a reply saying why. */
 export async function askToolAssist(
   tool: string,
-  input: { message: string; context: unknown; chat: AssistMessage[] },
+  input: { message: string; context: unknown; chat: AssistMessage[]; projectId?: string | null },
+  signal?: AbortSignal,
 ): Promise<AssistAnswer> {
   try {
-    const response = await api.toolAssist({ tool, ...input });
-    const payload = (await response.json().catch(() => null)) as { data?: { reply?: string; result?: unknown } } | null;
+    const response = await api.toolAssist({ tool, ...input }, signal);
+    // The server sends 200 at once and the outcome later, so a failure is {success:false,error} under 200.
+    const payload = (await response.json().catch(() => null)) as
+      | { data?: { reply?: string; result?: unknown; lostResult?: boolean }; error?: { code?: unknown; message?: unknown } }
+      | null;
+    if (response.status === 404) return { reply: '要等系統重啟後才能用 AI。', result: null };
     if (!response.ok || !payload?.data) {
-      return { reply: response.status === 404 ? '要等系統重啟後才能用 AI。' : 'AI 這次沒有回應，稍後再試一次。', result: null };
+      return { reply: payload?.error ? assistFailureText(payload.error) : `AI 這次沒有回應（HTTP ${response.status}），稍後再試一次。`, result: null };
     }
-    return { reply: payload.data.reply ?? '', result: payload.data.result ?? null };
+    return { reply: payload.data.reply ?? '', result: payload.data.result ?? null, lostResult: payload.data.lostResult === true };
   } catch {
+    if (signal?.aborted) return { reply: FAILURE_TEXT.ASSIST_ABORTED, result: null };
     return { reply: '連不到伺服器，稍後再試一次。', result: null };
   }
 }
+
+/** The reply says it changed something, yet nothing came back to apply. */
+export const claimsChange = (reply: string) => /已(經)?(修改|更新|新增|加上|加入|改好|做好|調整|刪除|套用|拆成|排好|補上|改寫)|做好了|改好了/.test(reply);

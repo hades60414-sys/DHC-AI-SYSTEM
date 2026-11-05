@@ -85,15 +85,18 @@
     "copyPath": "複製路徑",
     "openInEditor": "在編輯器中開啟"
   },
+  "misc": {
+    "openMenu": "專案列表"
+  },
   "mainContent": {
-    "loading": "正在載入 DHC CLI",
+    "loading": "正在載入 DHC AI System",
     "settingUpWorkspace": "正在設定您的工作區...",
-    "chooseProject": "選擇您的專案",
-    "selectProjectDescription": "從側邊欄選擇一個專案以開始使用 Claude 進行程式開發。每個專案包含您的聊天紀錄和檔案歷史。",
+    "chooseProject": "從這裡開始",
+    "selectProjectDescription": "有問題先問團隊小助理；要整理表格、排工作、寫文件就打開工具庫；要長時間做一件事，選你的專案開一個對話。",
     "tip": "提示",
     "createProjectMobile": "點擊上方的選單按鈕以存取專案",
     "createProjectDesktop": "點擊側邊欄中的資料夾圖示以建立新專案",
-    "newSession": "新工作階段",
+    "newSession": "新增AI對話",
     "untitledSession": "未命名工作階段",
     "projectFiles": "專案檔案"
   },
@@ -108,6 +111,8 @@
     "name": "名稱",
     "size": "大小",
     "modified": "修改時間",
+    "sortByTime": "依時間排序（按一下改依名稱）",
+    "sortByName": "依名稱排序（按一下改依時間）",
     "permissions": "權限",
     "noFilesFound": "找不到檔案",
     "checkProjectPath": "請檢查專案路徑是否可存取",
@@ -266,5 +271,46 @@
       "updateAvailable": "有可用更新",
       "closeSidebar": "關閉側邊欄"
     }
+  },
+  "commandPalette": {
+    "title": "指令面板",
+    "pages": {
+      "actions": "動作",
+      "files": "檔案",
+      "sessions": "對話",
+      "commits": "提交",
+      "branches": "分支"
+    },
+    "backToAll": "回到全部",
+    "backspaceHint": "按 Backspace 返回",
+    "searchPage": "搜尋{{page}}…",
+    "searchAnything": "輸入關鍵字搜尋…",
+    "noResults": "找不到結果。",
+    "groupActions": "動作",
+    "groupNavigate": "前往",
+    "groupGit": "Git",
+    "groupSettings": "設定",
+    "groupSessions": "對話",
+    "groupFiles": "檔案",
+    "groupCommits": "提交",
+    "groupBranches": "分支",
+    "startNewChat": "開新對話",
+    "selectProjectFirst": "請先選擇專案",
+    "openSettings": "開啟設定",
+    "toggleTheme": "切換主題",
+    "navChat": "前往對話",
+    "navFiles": "前往檔案",
+    "navShell": "前往終端機",
+    "navGit": "前往 Git",
+    "navTasks": "前往任務",
+    "gitFetch": "Git：擷取",
+    "gitPull": "Git：拉取",
+    "gitPush": "Git：推送",
+    "settingsItem": "設定：{{label}}",
+    "browseAllSessions": "瀏覽全部對話（{{count}}）",
+    "browseAllFiles": "瀏覽全部檔案（{{count}}）",
+    "browseAllCommits": "瀏覽全部提交（{{count}}）",
+    "browseAllBranches": "瀏覽全部分支（{{count}}）",
+    "switchTo": "切換到：{{name}}"
   }
 }

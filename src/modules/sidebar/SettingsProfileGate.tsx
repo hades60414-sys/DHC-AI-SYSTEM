@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { Check, Folder, Trash2, UserRound, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Check, Folder, FolderPlus, Trash2, UserRound, X } from 'lucide-react';
 
 import { api } from '@/shared/api';
 import type { Project } from '@/shared/types';
@@ -47,11 +48,15 @@ function switchTo(profileId: string): void {
  * onDone runs when the already-active entry is picked (switching reloads the page).
  */
 export function SettingsProfilePicker({ onDone }: { onDone?: () => void }) {
+  const { t } = useTranslation('sidebar');
   useSyncExternalStore(subscribeToUserPreferences, getUserPreferencesVersion);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [listState, setListState] = useState<'loading' | 'loaded' | 'failed'>('loading');
   const [copyCurrent, setCopyCurrent] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; detail: string } | null>(null);
+
+  const [listVersion, setListVersion] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,15 +70,24 @@ export function SettingsProfilePicker({ onDone }: { onDone?: () => void }) {
               .filter((project) => isWorkspaceProject(project) && !isQueryProject(project) && !isFlashProject(project))
               .sort((a, b) => (a.displayName || a.projectId).localeCompare(b.displayName || b.projectId)),
           );
+          setListState('loaded');
         }
       } catch {
         // The shared profile and existing profiles still work without the list.
+        if (!cancelled) setListState('failed');
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [listVersion]);
+
+  const toFriendlyError = (caught: unknown, fallback: string) => {
+    const raw = caught instanceof Error ? caught.message : String(caught);
+    console.error(caught);
+    // Known Chinese messages are already user-facing; anything else is technical.
+    return { message: /[一-鿿]/.test(raw) ? raw : fallback, detail: raw };
+  };
 
   const done = () => onDone?.();
   const activeId = readActiveSettingsProfileId();
@@ -100,9 +114,50 @@ export function SettingsProfilePicker({ onDone }: { onDone?: () => void }) {
       const id = await createSettingsProfile(project.displayName || project.projectId, copyCurrent, project.projectId);
       switchTo(id);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught));
+      setError(toFriendlyError(caught, t('settingsProfile.createFailed', '建立設定檔失敗，請檢查網路後再試一次。')));
       setBusy(false);
     }
+  };
+
+  // DHC CLI 11/01：側欄的「新增專案」拿掉，改在這裡建個人專案＝工作區根目錄下的新資料夾（伺服器會建資料夾）。
+  const handleCreatePersonal = async () => {
+    const sample = projects[0];
+    if (!sample) {
+      setError({
+        message: listState === 'loading'
+          ? '專案清單還沒載入，請稍後再試。'
+          : listState === 'failed'
+            ? '專案清單載入失敗，請檢查網路後重新開啟。'
+            : '專案清單已載入，但沒有可用的專案，無法新增個人專案。',
+        detail: '',
+      });
+      return;
+    }
+    const name = window.prompt('個人專案名稱（例：小明）')?.trim();
+    if (!name) {
+      return;
+    }
+    if (/[\\/:*?"<>|]/.test(name)) {
+      window.alert('名稱不能有 \\ / :* ? " < > | 這些符號。');
+      return;
+    }
+    if (projects.some((project) => (project.displayName || project.projectId) === name)) {
+      window.alert(`已經有「${name}」這個專案了。`);
+      return;
+    }
+    const workspaceRoot = String(sample.fullPath || sample.path).replace(/[\\/][^\\/]+[\\/]*$/, '');
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await api.createProject({ path: `${workspaceRoot}\\${name}`, customName: name });
+      if (!response.ok) {
+        throw new Error(`create-project ${response.status}: ${await response.text()}`);
+      }
+      setListVersion((value) => value + 1);
+    } catch (caught) {
+      setError(toFriendlyError(caught, '建立專案失敗，請再試一次。'));
+    }
+    setBusy(false);
   };
 
   const handleDelete = async (profileId: string, name: string) => {
@@ -118,7 +173,7 @@ export function SettingsProfilePicker({ onDone }: { onDone?: () => void }) {
         return;
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught));
+      setError(toFriendlyError(caught, t('settingsProfile.deleteFailed', '刪除設定檔失敗，請檢查網路後再試一次。')));
     }
     setBusy(false);
   };
@@ -195,6 +250,16 @@ export function SettingsProfilePicker({ onDone }: { onDone?: () => void }) {
           icon: 'profile',
           onSelect: () => (activeId === '' ? done() : switchTo('')),
         })}
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void handleCreatePersonal()}
+          data-tutorial-tip="在工作區根目錄下建一個人的專案資料夾，建好後點它就綁到這台裝置"
+          className="flex w-full items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
+        >
+          <FolderPlus className="h-4 w-4 flex-shrink-0" />
+          新增個人專案
+        </button>
       </div>
 
       <label className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -207,7 +272,17 @@ export function SettingsProfilePicker({ onDone }: { onDone?: () => void }) {
         第一次選某專案時，從目前畫面的設定複製（不勾＝從預設值開始）
       </label>
 
-      {error && <div className="mt-3 text-xs text-red-600 dark:text-red-400">{error}</div>}
+      {error && (
+        <div role="alert" className="mt-3 text-xs text-red-600 dark:text-red-400">
+          <div>{error.message}</div>
+          {error.detail && error.detail !== error.message && (
+            <details className="mt-1 text-muted-foreground">
+              <summary className="cursor-pointer">{t('settingsProfile.errorDetail', '詳細')}</summary>
+              <pre className="mt-1 whitespace-pre-wrap break-all">{error.detail}</pre>
+            </details>
+          )}
+        </div>
+      )}
     </div>
   );
 }

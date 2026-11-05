@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from 'react';
+import DOMPurify from 'dompurify';
 // Type-only: erased at build time, so it does not pull mermaid into the main chunk.
 import type mermaid from 'mermaid';
 
@@ -48,7 +49,7 @@ export default function MermaidDiagram({ code }: MermaidDiagramProps) {
       })
       .then((result) => {
         if (!cancelled) {
-          setSvg(result.svg);
+          setSvg(DOMPurify.sanitize(result.svg, { USE_PROFILES: { svg: true, svgFilters: true } }));
         }
       })
       .catch(() => {

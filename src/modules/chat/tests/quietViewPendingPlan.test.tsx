@@ -18,7 +18,6 @@ vi.mock('@/modules/chat/transcript/MessageComponent', () => ({
   ),
 }));
 vi.mock('@/modules/chat/utils/transcriptViewMode', () => ({ useTranscriptQuiet: () => true }));
-vi.mock('@/modules/chat/transcript/ChatExportMenu', () => ({ default: () => null }));
 vi.mock('@/modules/chat/transcript/ConversationJumpRail', () => ({ default: () => null }));
 
 const messages = [

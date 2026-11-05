@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import { scan } from 'react-scan'
 
 import App from '@/App'
+import { installPiiNetworkGuard } from '@/shared/piiGuard'
+import { installBrandText } from '@/shared/brandText'
 import '@/index.css'
 import 'katex/dist/katex.min.css'
 
@@ -15,6 +17,11 @@ import '@/modules/i18n'
 // render bug and worth none of it the rest of the time, so it is opt-in —
 // `localStorage.setItem('react-scan', 'on')` and reload.
 scan({ enabled: import.meta.env.DEV && localStorage.getItem('react-scan') === 'on' })
+
+// DHC CLI 個資防誤傳: before anything can send, so every request and socket frame is checked.
+installPiiNetworkGuard()
+// DHC CLI 品牌: "Claude" shows as "New coworker" everywhere on the page.
+installBrandText()
 
 // Register service worker for PWA + Web Push support
 if ('serviceWorker' in navigator) {

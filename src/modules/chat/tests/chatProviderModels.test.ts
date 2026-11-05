@@ -59,6 +59,8 @@ beforeEach(() => {
   // The preference store is a module-level singleton, so its in-memory copy
   // outlives localStorage.clear() and would leak one test's writes into the next.
   resetUserPreferences();
+  // Past the one-time DHC CLI defaults, so stored picks are what these tests read.
+  localStorage.setItem('dhc.claudeDefaults.20261020', '1');
   for (const provider of Object.keys(modelCatalogs)) {
     delete modelCatalogs[provider];
   }
@@ -66,6 +68,24 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.resetModules();
+});
+
+test('a browser’s first load switches Claude to Opus 1M, medium effort, bypass — once', async () => {
+  localStorage.clear();
+  localStorage.setItem('claude-model', 'sonnet');
+  localStorage.setItem('claude-effort', 'high');
+  localStorage.setItem('permissionMode-last-claude', 'plan');
+
+  const first = await renderProviderState();
+  assert.equal(localStorage.getItem('claude-model'), 'opus[1m]');
+  assert.equal(localStorage.getItem('claude-effort'), 'medium');
+  assert.equal(localStorage.getItem('permissionMode-last-claude'), 'bypassPermissions');
+  first.unmount();
+
+  localStorage.setItem('claude-model', 'sonnet');
+  vi.resetModules();
+  await renderProviderState();
+  assert.equal(localStorage.getItem('claude-model'), 'sonnet', 'a later pick is kept');
 });
 
 test('each provider gets its own model from its own storage key', async () => {

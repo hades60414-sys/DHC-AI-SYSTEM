@@ -1,9 +1,10 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
 
 import { useDeviceSettings } from '@/shared/hooks/useDeviceSettings';
 import { useUiPreferences, useSetUiPreference } from '@/shared/context/UiPreferencesContext';
 import { useTheme } from '@/shared/context/ThemeContext';
+import { useRailOpenRequest } from '@/shared/mobileRail';
 import { useQuickSettingsDrag } from '@/modules/quick-settings-panel/hooks/useQuickSettingsDrag';
 import type { PreferenceToggleKey, QuickSettingsPreferences } from '@/shared/types';
 import QuickSettingsContent from '@/modules/quick-settings-panel/QuickSettingsContent';
@@ -11,7 +12,7 @@ import QuickSettingsHandle from '@/modules/quick-settings-panel/QuickSettingsHan
 import QuickSettingsPanelHeader from '@/modules/quick-settings-panel/QuickSettingsPanelHeader';
 
 /** Exported as QuickSettingsPanel and rendered by the project-workspace module as its slide-out quick settings drawer. */
-function QuickSettingsPanelView() {
+function QuickSettingsPanelView({ onOpenAllSettings }: { onOpenAllSettings?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const { isMobile } = useDeviceSettings({ trackPWA: false });
   const { isDarkMode } = useTheme();
@@ -43,6 +44,19 @@ function QuickSettingsPanelView() {
     [setPreference],
   );
 
+  // 手機頂端選單的「設定」
+  useRailOpenRequest('settings', () => setIsOpen(true));
+
+  // Esc closes the drawer, like the full settings window.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpen]);
+
   const handleToggleFromHandle = useCallback(
     (event: ReactMouseEvent<HTMLButtonElement>) => {
       // A drag releases a click event as well; this guard prevents accidental toggles.
@@ -68,6 +82,7 @@ function QuickSettingsPanelView() {
       />
 
       <div
+        data-testid="quick-settings-panel" data-open={isOpen}
         className={`fixed right-0 top-0 z-[9999] h-full w-64 transform border-l border-border bg-background shadow-xl transition-transform duration-150 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'} ${isMobile ? 'h-screen' : ''}`}
       >
         <div className="flex h-full flex-col">
@@ -77,6 +92,20 @@ function QuickSettingsPanelView() {
             preferences={quickSettingsPreferences}
             onPreferenceChange={handlePreferenceChange}
           />
+          {onOpenAllSettings && (
+            <div className="border-t border-border p-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  onOpenAllSettings();
+                }}
+                className="min-h-11 w-full rounded-lg border border-border bg-muted/40 px-3 text-sm font-medium text-foreground active:bg-muted"
+              >
+                全部設定
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

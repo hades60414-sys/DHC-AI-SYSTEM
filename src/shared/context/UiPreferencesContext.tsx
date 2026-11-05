@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import {
   readStoredUiPreferences,
   uiPreferencesReducer,
+  withPersistFlags,
 } from '@/shared/uiPreferences';
 import type { UiPreferenceKey, UiPreferences } from '@/shared/uiPreferences';
 import { subscribeToUserPreferences, writeUserPreference } from '@/shared/userSettings';
@@ -50,7 +51,7 @@ export function UiPreferencesProvider({ children }: { children: ReactNode }) {
       return;
     }
     lastPersistedRef.current = serialized;
-    writeUserPreference('uiPreferences', preferences);
+    writeUserPreference('uiPreferences', withPersistFlags(preferences));
   }, [preferences]);
 
   useEffect(() => subscribeToUserPreferences(() => {

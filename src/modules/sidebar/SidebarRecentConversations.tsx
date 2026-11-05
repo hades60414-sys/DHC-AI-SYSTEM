@@ -40,9 +40,9 @@ type SidebarRecentConversationsProps = {
 
 const NO_FLASH_PROJECTS: ReadonlySet<string> = new Set();
 
-function RecentConversationSkeleton() {
+function RecentConversationSkeleton({ t }: { t: TFunction }) {
   return (
-    <div className="space-y-1 px-1" aria-label="Loading recent conversations">
+    <div className="space-y-1 px-1" aria-label={t('sidebar:recent.loading')}>
       {Array.from({ length: 8 }).map((_, index) => (
         <div key={index} className="flex items-center gap-2 rounded-lg px-2 py-2.5">
           <div className="h-7 w-7 animate-pulse rounded-md bg-muted" />
@@ -78,7 +78,7 @@ export default function SidebarRecentConversations({
   const waitingById = useWaitingMap();
 
   if (isLoading && conversations.length === 0) {
-    return <RecentConversationSkeleton />;
+    return <RecentConversationSkeleton t={t} />;
   }
 
   if (hasError && conversations.length === 0) {
@@ -156,12 +156,12 @@ export default function SidebarRecentConversations({
               {showAttentionIndicator && (
                 <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 transform">
                   <Tooltip
-                    content={t('tooltips.attentionRequiredIndicator', { defaultValue: 'Session needs attention' })}
+                    content={t('tooltips.attentionRequiredIndicator', { defaultValue: '已完成或在等你回覆，還沒看過' })}
                     position="right"
                   >
                     <div
-                      role="status"
-                      aria-label={t('tooltips.attentionRequiredIndicator', { defaultValue: 'Session needs attention' })}
+                      role="img"
+                      aria-label={t('tooltips.attentionRequiredIndicator', { defaultValue: '已完成或在等你回覆，還沒看過' })}
                       className="h-2 w-2 animate-pulse rounded-full bg-amber-500"
                     />
                   </Tooltip>
