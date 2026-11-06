@@ -57,10 +57,44 @@ jobs:
         run: npx tsx --tsconfig server/tsconfig.json scripts/enterprise/ci/engine-bench.ts ../ci-out/engine-bench.json
       - name: 路線圖產出與證據路徑一致
         run: python3 -B scripts/enterprise/render_roadmap.py --check
+      - name: V5.1 OPS-REPORT 資源邊界探針（合法 5 萬列完成、超限依代碼拒收；記錄耗時與子行程峰值 RSS）
+        run: npx tsx --tsconfig server/tsconfig.json scripts/enterprise/ci/ops-resource-probe.ts ../ci-out/ops-resource-probe.json
+      - name: V5.1 CSV 公式注入實測素材（真 ACC-MATCH 拒收結果的匯出＋未防護對照組）
+        run: npx tsx --tsconfig server/tsconfig.json scripts/enterprise/ci/csv-formula-fixtures.ts ../ci-out/csv-formula
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: enterprise-verify-static-unit
+          path: ci-out/
+          retention-days: 7
+
+  csv-spreadsheet-safety:
+    # V5.1 RG-V5-02：以真實試算表（LibreOffice Calc 無頭、開啟求值公式）匯入，驗證匯出 CSV 不會被當公式執行。Excel 無法在 Linux runner 執行。
+    needs: static-and-unit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: enterprise-verify-static-unit
+          path: ci-in
+      - name: 安裝 LibreOffice Calc（nogui）
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends libreoffice-calc-nogui > /dev/null
+          soffice --version
+      - name: 匯入並檢查顯示值
+        run: |
+          mkdir -p ../ci-out
+          python3 -B scripts/enterprise/ci/check_spreadsheet_import.py ../ci-in/csv-formula ../ci-out/spreadsheet-import.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: enterprise-verify-csv-spreadsheet
           path: ci-out/
           retention-days: 7
 
