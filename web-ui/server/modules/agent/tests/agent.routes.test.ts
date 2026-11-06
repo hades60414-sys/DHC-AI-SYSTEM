@@ -3,13 +3,22 @@ import * as nodeCrypto from 'node:crypto';
 import { EventEmitter, once } from 'node:events';
 import type { AddressInfo } from 'node:net';
 import { PassThrough } from 'node:stream';
-import test from 'node:test';
+import test, { after, before } from 'node:test';
 
 import express from 'express';
 
 import { createAgentRouter } from '../agent.routes.js';
 
 type AgentDependencies = Parameters<typeof createAgentRouter>[0];
+
+// V5.1 Batch D（V5-OCR-008）：路由在請求處理與回應後的非同步收尾中大量 console.log。macOS 的 stdout pipe 是非同步寫入，
+// 這些輸出偶爾與 node:test 子行程回傳父行程的序列化訊息交錯，父行程報 "Unable to deserialize cloned data"，整個檔案判失敗。
+// 壓力重現（8 併發、本機 darwin-arm64）：未靜音 4/160 失敗、以 preload 靜音 0/240、套用本檔修正後 0/120；CI（Linux，pipe 同步寫入）從未出現。
+// 只在本檔測試期間靜音 console，斷言與產品行為都不變；測試結束後還原。
+const SILENCED = ['log', 'info', 'warn', 'error'] as const;
+const originalConsole = Object.fromEntries(SILENCED.map((name) => [name, console[name]])) as Record<(typeof SILENCED)[number], (...args: unknown[]) => void>;
+before(() => { for (const name of SILENCED) console[name] = () => undefined; });
+after(() => { for (const name of SILENCED) console[name] = originalConsole[name]; });
 
 function createDependencies(
   overrides: Partial<AgentDependencies> = {},
