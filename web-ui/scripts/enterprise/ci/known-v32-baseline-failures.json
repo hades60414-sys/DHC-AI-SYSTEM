@@ -14,7 +14,8 @@
  ],
  "history": {
   "v3": "5 個 legacy 後端失敗＋1 前端 i18n（V4 PR #10）",
-  "v4": "V5：process-lock（unref 計時器）、night-queue（混用注入時鐘與真實時鐘）、assistant SOP（測試寫死日期）修好；i18n 測試改 vitest 實際執行"
+  "v4": "V5：process-lock（unref 計時器）、night-queue（混用注入時鐘與真實時鐘）、assistant SOP（測試寫死日期）修好；i18n 測試改 vitest 實際執行",
+  "2026-11-07 V5.2": "ASTRA-ROLL-008／009：新增 skipped_allowed（18 個 PG 套件在 postgres-integration 執行＋1 個 V3.2 fixture skip）與 lint_inventory.min_files；比較器接受 --runner-exit"
  },
  "backend_inventory": {
   "min_tests": 718,
@@ -1031,5 +1032,90 @@
   "src/modules/voice-call/useVoiceCall.ts|typescript(consistent-type-definitions)": 1,
   "src/modules/wish-pool/WishPool.tsx|boundaries(no-unknown)": 2,
   "src/shared/tests/personTodos.test.ts|typescript(consistent-type-imports)": 1
+ },
+ "skipped_allowed": [
+  {
+   "test_name": "ASTRA-004 Run 撤權隔離（實際 PostgreSQL、loopback 假模型）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "ASTRA-005 最後管理員不變量（實際 PostgreSQL，確定性交錯）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "ASTRA-006／014 權益與到期政策（實際 PostgreSQL）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "ASTRA-007 引用完整性（實際 PostgreSQL、loopback 假模型）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "ASTRA-008 用量帳與預算（實際 PostgreSQL、loopback 假 provider）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "ASTRA-V3-NEW-001 審批版號原子性（實際 PostgreSQL、確定性 barrier、完整 HTTP 路由）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "ASTRA-V3-NEW-002 用量對帳與飛行中預留（實際 PostgreSQL、延遲 provider）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "ASTRA-V3-NEW-003 Run 建立冪等（實際 PostgreSQL、確定性 barrier、完整 HTTP 路由）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "DOC-02 文件擷取與檢索引用（實際 PostgreSQL，合成資料）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "E02b-DR：兩個全新合成 PostgreSQL cluster 的還原契約",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "E05-DOC-01 文件版本／內容 hash／storage adapter（實際 PostgreSQL，合成資料）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "Enterprise 實際 PostgreSQL（只允許明確標記的合成 QA DB）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "RISK-SESSION-INFLIGHT 認證後降權（實際 PostgreSQL、確定性 barrier、完整 HTTP 路由）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "V5 ACC-MATCH-v1 對帳匯出（實際 PostgreSQL、完整 HTTP 路由）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "V5 OPS-REPORT-v1 營運週報（實際 PostgreSQL、完整 HTTP 路由）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "W6-B ACC-MATCH-v1 對帳（實際 PostgreSQL、完整 HTTP 路由）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "codex app-server forks a real thread at a turn",
+   "reason": "V3.2 上游：committed Codex rollout fixture 不存在（測試自身條件 skip）",
+   "owner": "DHC CLI V3.2 維護者",
+   "expires": "2026-12-31",
+   "remove_when": "補上 fixture 或刪除該條件測試"
+  },
+  {
+   "test_name": "enterprise /api/enterprise/v1 合約（實際 PostgreSQL，合成資料）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  },
+  {
+   "test_name": "文書流程：Run → 草稿 → 修改 → 審批 → 匯出（實際 PostgreSQL，合成資料）",
+   "reason": "RUNS_IN_POSTGRES_INTEGRATION"
+  }
+ ],
+ "lint_inventory": {
+  "min_files": 1158,
+  "note": "V5.1 product source 6933d5e CI 掃描 1158 檔（src/ server/）"
  }
 }
