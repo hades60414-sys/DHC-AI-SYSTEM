@@ -1,0 +1,69 @@
+{
+ "schema_version": 1,
+ "status": "LOCAL_VERIFIED_READY_TO_PUSH",
+ "target_repo": "hades60414-sys/DHC-AI-SYSTEM",
+ "base": "main@68b5bea614c1c30c8deba66128894df2b0407bfb",
+ "integration_branch": "integration/enterprise-rcfix-v4-20261106",
+ "integration_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+ "enterprise_v4_product_source_sha": "1c660de327653e35803df6f862103828f725cc62",
+ "dhc_cli_v32_sha": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff",
+ "transplant": {
+  "files": 157,
+  "product_files_byte_identical_to_merge": 1287,
+  "other_das_directories_changed": 0
+ },
+ "local_tests_on_integration_tree": {
+  "typecheck": {
+   "exit_code": 0
+  },
+  "backend": {
+   "totals": {
+    "tests": 718,
+    "pass": 712,
+    "fail": 2,
+    "cancelled": 3,
+    "skipped": 1,
+    "todo": 0
+   },
+   "new_failures": [],
+   "known_v32_baseline_failures_seen": 5,
+   "note": "718＝712+2+3+1（上一版 706/8 是在未安裝 ripgrep 執行檔的環境下量測，已更正）"
+  },
+  "frontend": {
+   "totals": {
+    "numTotalTests": 1144,
+    "numPassedTests": 1144,
+    "numFailedTests": 0,
+    "numTotalTestSuites": 249,
+    "numFailedTestSuites": 1
+   },
+   "new_failures": []
+  },
+  "lint": {
+   "error_pairs": 70,
+   "new_error_pairs": []
+  },
+  "postgres_integration": {
+   "status": "PASS",
+   "files": 16,
+   "pass": 117,
+   "fail": 0,
+   "source_sha": "5614f9d",
+   "engine": "PostgreSQL 16 (digest d81f7b51…) in local QA VM"
+  }
+ },
+ "not_run_locally": {
+  "image_build_both_arches": "LOCAL_HEAVY_BUILD=DISABLED；交給 enterprise-image-build.yml",
+  "delivery_smoke": "交給 enterprise-delivery-smoke.yml"
+ },
+ "ci": {
+  "workflows": [
+   ".github/workflows/enterprise-verify.yml",
+   ".github/workflows/enterprise-image-build.yml",
+   ".github/workflows/enterprise-delivery-smoke.yml"
+  ],
+  "run_ids": null,
+  "status": "NOT_SUBMITTED（未 push）"
+ },
+ "generated_at": "2026-11-06T17:39:05.370474+08:00"
+}

@@ -8,6 +8,9 @@ import { userDb, appConfigDb } from '../database/index.js';
 // Use env var if set, otherwise auto-generate a unique secret per installation
 const JWT_SECRET = process.env.JWT_SECRET || appConfigDb.getOrCreateJwtSecret();
 
+// SEC-01：前端 EventSource 實際使用的兩個串流端點（src/shared/api.ts）。新增 SSE 端點必須明確加入。
+const SSE_QUERY_TOKEN_PATHS = new Set(['/api/projects/clone-progress', '/api/providers/search/sessions']);
+
 // Optional API key middleware
 const validateApiKey = (req, res, next) => {
   // Skip API key validation if not configured
@@ -43,8 +46,8 @@ const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   let token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-  // Also check query param for SSE endpoints (EventSource can't set headers)
-  if (!token && req.query.token) {
+  // SEC-01：EventSource 不能帶 header，只有下列 SSE GET 端點接受 query token；其他 REST 一律拒絕 URL 中的憑證。
+  if (!token && req.query.token && req.method === 'GET' && SSE_QUERY_TOKEN_PATHS.has(new URL(req.originalUrl, 'http://localhost').pathname)) {
     token = req.query.token;
   }
 
@@ -154,7 +157,23 @@ const authenticateWebSocket = (token) => {
   }
 };
 
+/**
+ * SEC-01：已建立的 WS 每則訊息前重查主體。OSS 模式要求使用者仍存在且 active（getUserById 只回 active）；
+ * platform 模式（僅限明確 opt-in 的 loopback 部署）要求第一位 active 使用者仍是同一人。
+ */
+const isWebSocketUserActive = (user) => {
+  const id = user?.id ?? user?.userId;
+  if (id === undefined || id === null) return false;
+  try {
+    if (IS_PLATFORM) return userDb.getFirstUser()?.id === id;
+    return Boolean(userDb.getUserById(id));
+  } catch {
+    return false;
+  }
+};
+
 export {
+  isWebSocketUserActive,
   validateApiKey,
   authenticateToken,
   generateToken,

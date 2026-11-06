@@ -5,7 +5,7 @@ import path from 'node:path';
 import pty, { type IPty } from 'node-pty';
 import { WebSocket, type RawData } from 'ws';
 
-import { parseIncomingJsonObject } from '@/shared/utils.js';
+import { parseIncomingJsonObject, WORKSPACES_ROOT } from '@/shared/utils.js';
 
 type ShellIncomingMessage = {
   type?: string;
@@ -32,6 +32,17 @@ type PtySessionEntry = {
 };
 
 const ptySessionsMap = new Map<string, PtySessionEntry>();
+
+/** SEC-01 預設邊界：解析 symlink 後必須等於或位於 WORKSPACES_ROOT 之內；路徑不存在視為不允許。 */
+function isInsideWorkspaceRoot(resolvedProjectPath: string): boolean {
+  try {
+    const root = fs.realpathSync(WORKSPACES_ROOT);
+    const real = fs.realpathSync(resolvedProjectPath);
+    return real === root || real.startsWith(root + path.sep);
+  } catch {
+    return false;
+  }
+}
 const PTY_SESSION_TIMEOUT = 30 * 60 * 1000;
 const SHELL_URL_PARSE_BUFFER_LIMIT = 32768;
 const ANSI_ESCAPE_SEQUENCE_REGEX = /\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1B\\))/g;
@@ -107,6 +118,13 @@ type ShellWebSocketDependencies = {
     provider: string,
   ) => string | null | undefined;
   spawnPty?: typeof pty.spawn;
+  /**
+   * SEC-01：每則訊息前重新確認連線主體仍有效（停權／刪除後回 false）。
+   * 回 false 時終止此連線擁有的 PTY 並以 4401 關閉，不再寫入任何輸入。
+   */
+  isPrincipalActive?: () => boolean;
+  /** SEC-01：PTY 工作目錄必須在工作區邊界內（預設：realpath 位於 WORKSPACES_ROOT 之內）；測試可注入。必須同步回傳。 */
+  isProjectPathAllowed?: (resolvedProjectPath: string) => boolean;
 };
 
 /**
@@ -309,7 +327,24 @@ export function handleShellConnection(
   let urlDetectionBuffer = '';
   const announcedAuthUrls = new Set<string>();
 
+  const terminateForRevocation = () => {
+    if (ptySessionKey) {
+      const session = ptySessionsMap.get(ptySessionKey);
+      if (session && session.ws === ws) {
+        if (session.timeoutId) clearTimeout(session.timeoutId);
+        session.pty.kill();
+        ptySessionsMap.delete(ptySessionKey);
+      }
+    }
+    shellProcess = null;
+    ws.close(4401, 'principal revoked');
+  };
+
   ws.on('message', async (rawMessage) => {
+    if (dependencies.isPrincipalActive && !dependencies.isPrincipalActive()) {
+      terminateForRevocation();
+      return;
+    }
     try {
       const data = parseShellMessage(rawMessage);
       if (!data?.type) {
@@ -386,6 +421,10 @@ export function handleShellConnection(
         }
 
         const resolvedProjectPath = path.resolve(projectPath);
+        if (!(dependencies.isProjectPathAllowed ?? isInsideWorkspaceRoot)(resolvedProjectPath)) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Invalid project path' }));
+          return;
+        }
         try {
           const stats = fs.statSync(resolvedProjectPath);
           if (!stats.isDirectory()) {

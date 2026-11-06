@@ -1,0 +1,3 @@
+DROP TABLE enterprise.document_chunks;
+DROP TABLE enterprise.document_extractions;
+ALTER TABLE enterprise.document_versions DROP CONSTRAINT document_versions_organization_scope_key;

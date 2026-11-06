@@ -24,8 +24,10 @@ import {
     authenticateToken,
     authenticateWebSocket,
     authRoutes,
+    isWebSocketUserActive,
     validateApiKey,
 } from './modules/auth/index.js';
+import { createEnterpriseRuntime, createEnterpriseSecurityHeaders, enterpriseApiFence, enterpriseLegacyGate, resolveDeploymentMode } from './modules/enterprise-api/index.js';
 import { taskmasterRoutes } from './modules/taskmaster/index.js';
 import { commandsRoutes } from './modules/commands/index.js';
 import { settingsRoutes } from './modules/settings/index.js';
@@ -87,6 +89,10 @@ const systemRoutes = createSystemModule({
     isPlatform: IS_PLATFORM,
 });
 console.log('SERVER_PORT from env:', process.env.SERVER_PORT);
+// SEC-01：在建立任何路由或 WebSocket 之前解析部署模式；不合法組合（例如企業模式 + platform first-user）直接拒絕啟動。
+const DEPLOYMENT_MODE = resolveDeploymentMode(process.env);
+const IS_ENTERPRISE = DEPLOYMENT_MODE === 'enterprise';
+console.log('[INFO] Deployment mode:', DEPLOYMENT_MODE);
 
 process.on("unhandledRejection", (reason) => {
     console.error("[unhandledRejection]", reason);
@@ -114,6 +120,9 @@ const agentRoutes = createAgentModule({
 
 // Single WebSocket server that handles chat, shell, and plugin proxy paths.
 createWebSocketServer(server, {
+    // 企業模式沒有任何 legacy WS（chat/shell/plugin/notifications）；personal 模式每則訊息重查主體。
+    legacyWebSocketsEnabled: !IS_ENTERPRISE,
+    isPrincipalActive: (request) => isWebSocketUserActive(request.user),
     verifyClient: {
         isPlatform: IS_PLATFORM,
         authenticateWebSocket,
@@ -134,14 +143,23 @@ createWebSocketServer(server, {
     getPluginPort,
 });
 
-app.use((_req, res, next) => {
-    res.setHeader("Content-Security-Policy-Report-Only", "default-src 'self'; script-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; connect-src 'self' wss: ws:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self' blob:");
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("Referrer-Policy", "no-referrer");
-    res.setHeader("X-Frame-Options", "SAMEORIGIN");
-    next();
-});
-app.use(cors({ exposedHeaders: ['X-Refreshed-Token', 'X-Auth-Error'] }));
+// SEC-FIX-01：企業模式的第一個 middleware 是正規化路徑後的 legacy gate（早於 CORS 與 body parser）。
+const enterpriseRuntime = IS_ENTERPRISE ? createEnterpriseRuntime(process.env) : null;
+if (enterpriseRuntime) {
+    // 安全複查：全域安全標頭（CSP 以實際 dist/index.html 的內嵌片段 hash 放行）
+    app.use(createEnterpriseSecurityHeaders({ indexHtmlPath: path.join(APP_ROOT, 'dist', 'index.html') }));
+    app.use(enterpriseLegacyGate);
+} else {
+    // personal 模式：V3.2 的 report-only CSP 與基本安全標頭＋原 CloudCLI 的 CORS 行為；企業 /office 為同源，不開放跨來源。
+    app.use((_req, res, next) => {
+        res.setHeader("Content-Security-Policy-Report-Only", "default-src 'self'; script-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'self'; connect-src 'self' wss: ws:; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self' blob:");
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        res.setHeader("Referrer-Policy", "no-referrer");
+        res.setHeader("X-Frame-Options", "SAMEORIGIN");
+        next();
+    });
+    app.use(cors({ exposedHeaders: ['X-Refreshed-Token', 'X-Auth-Error'] }));
+}
 app.use(express.json({
     limit: '50mb',
     type: (req) => {
@@ -165,69 +183,79 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Optional API key validation (if configured)
-app.use('/api', validateApiKey);
+// SEC-01／SEC-FIX-01：企業模式只組裝 /api/enterprise/v1；之後的 fence 讓任何正規化後屬於 /api 的請求
+// （大小寫、百分比編碼、重複斜線等別名）都以 404 結束，不會落到靜態檔或 SPA fallback。
+if (enterpriseRuntime) {
+    app.use('/api/enterprise/v1', enterpriseRuntime.router);
+    app.use(enterpriseApiFence);
+}
 
-// Authentication routes (public)
-app.use('/api/auth', authRoutes);
+// SEC-FIX-01（ASTRA-001）：legacy REST 只在 personal 模式組裝。企業模式根本不掛載這些 router，
+// 不依賴字串前綴封鎖（Express 路由比對不分大小寫，前綴封鎖曾被 /API/... 繞過）。
+function mountLegacyApiRoutes() {
+    // Optional API key validation (if configured)
+    app.use('/api', validateApiKey);
 
-// File Tree API Routes (protected)
-app.use('/api/file-tree', authenticateToken, fileTreeRoutes);
+    // Authentication routes (public)
+    app.use('/api/auth', authRoutes);
 
-// Projects API Routes (protected)
-app.use('/api/projects', authenticateToken, projectModuleRoutes);
+    // File Tree API Routes (protected)
+    app.use('/api/file-tree', authenticateToken, fileTreeRoutes);
 
-// Chat attachment upload/serving (global ~/.cloudcli/assets store, protected)
-app.use('/api/assets', authenticateToken, assetsRoutes);
+    // Projects API Routes (protected)
+    app.use('/api/projects', authenticateToken, projectModuleRoutes);
 
-// Git API Routes (protected)
-app.use('/api/git', authenticateToken, gitRoutes);
+    // Chat attachment upload/serving (global ~/.cloudcli/assets store, protected)
+    app.use('/api/assets', authenticateToken, assetsRoutes);
 
-// Git worktree management (protected)
-app.use('/api/worktrees', authenticateToken, worktreesRoutes);
+    // Git API Routes (protected)
+    app.use('/api/git', authenticateToken, gitRoutes);
 
-// TaskMaster API Routes (protected)
-app.use('/api/taskmaster', authenticateToken, taskmasterRoutes);
+    // Git worktree management (protected)
+    app.use('/api/worktrees', authenticateToken, worktreesRoutes);
 
-// Commands API Routes (protected)
-app.use('/api/commands', authenticateToken, commandsRoutes);
+    // TaskMaster API Routes (protected)
+    app.use('/api/taskmaster', authenticateToken, taskmasterRoutes);
 
-// Settings API Routes (protected)
-app.use('/api/settings', authenticateToken, settingsRoutes);
+    // Commands API Routes (protected)
+    app.use('/api/commands', authenticateToken, commandsRoutes);
 
-app.use('/api/system', authenticateToken, systemRoutes);
+    // Settings API Routes (protected)
+    app.use('/api/settings', authenticateToken, settingsRoutes);
 
-app.use('/api/notifications', authenticateToken, notificationRoutes);
+    app.use('/api/system', authenticateToken, systemRoutes);
 
-// User API Routes (protected)
-app.use('/api/user', authenticateToken, userRoutes);
+    app.use('/api/notifications', authenticateToken, notificationRoutes);
 
-// Plugins API Routes (protected)
-app.use('/api/plugins', authenticateToken, pluginsRoutes);
+    // User API Routes (protected)
+    app.use('/api/user', authenticateToken, userRoutes);
 
-// Browser MCP bridge API (local token protected)
-app.use('/api/browser-use-mcp', browserUseMcpRoutes);
+    // Plugins API Routes (protected)
+    app.use('/api/plugins', authenticateToken, pluginsRoutes);
 
-// Browser API Routes (protected)
-app.use('/api/browser-use', authenticateToken, browserUseRoutes);
+    // Browser MCP bridge API (local token protected)
+    app.use('/api/browser-use-mcp', browserUseMcpRoutes);
 
-// Unified provider MCP routes (protected)
-app.use('/api/providers', authenticateToken, providerRoutes);
-// DHC CLI 10/19 團隊小助理
-app.use('/api/assistant', authenticateToken, assistantRoutes);
-app.use('/api/scheduled-messages', authenticateToken, scheduledMessagesRoutes);
-// DHC CLI: night mode — prompts held per session and run one at a time from 02:00.
-app.use('/api/night-queue', authenticateToken, nightQueueRoutes);
+    // Browser API Routes (protected)
+    app.use('/api/browser-use', authenticateToken, browserUseRoutes);
 
-// Agent API Routes (uses API key authentication)
-// DHC CLI: dhc.config.json (workspace root, personal/team mode, agents, domain), read once at startup.
-loadDhcConfig();
-app.use('/api/dhc', authenticateToken, dhcRoutes);
+    // Unified provider MCP routes (protected)
+    app.use('/api/providers', authenticateToken, providerRoutes);
+    // DHC CLI V3.2 團隊小助理（legacy；企業模式不掛載）
+    app.use('/api/assistant', authenticateToken, assistantRoutes);
+    app.use('/api/scheduled-messages', authenticateToken, scheduledMessagesRoutes);
+    // DHC CLI: night mode — prompts held per session and run one at a time from 02:00.
+    app.use('/api/night-queue', authenticateToken, nightQueueRoutes);
+    // DHC CLI: dhc.config.json (workspace root, personal/team mode, agents, domain), read once at startup.
+    loadDhcConfig();
+    app.use('/api/dhc', authenticateToken, dhcRoutes);
 
-// Agent API Routes (uses API key authentication)
-app.use('/api/agent', agentRoutes);
+    // Agent API Routes (uses API key authentication)
+    app.use('/api/agent', agentRoutes);
 
-app.use('/api/voice', authenticateToken, voiceRoutes);
+    app.use('/api/voice', authenticateToken, voiceRoutes);
+}
+if (!IS_ENTERPRISE) mountLegacyApiRoutes();
 
 // Serve public files (like api-docs.html)
 app.use(express.static(path.join(APP_ROOT, 'public')));
@@ -362,7 +390,7 @@ async function startServer() {
         await initializeDatabase();
 
         // DHC CLI: create the workspace root from workspace-template/ on first start (never overwrites).
-        await initializeWorkspace();
+        if (!IS_ENTERPRISE) await initializeWorkspace();
 
         // Configure Web Push (VAPID keys)
         configureWebPush();
@@ -397,6 +425,13 @@ async function startServer() {
             console.log(`${terminalTextStyles.tip('[TIP]')}  Run "cloudcli status" for full configuration details`);
             console.log('');
 
+            // 企業模式不啟動個人工作台的背景服務（session watcher、排程、夜間佇列、plugin 行程），
+            // 避免以單一主機帳號替所有員工代跑工作；企業工作改由 RUN 模組逐步重驗身分。
+            if (IS_ENTERPRISE) {
+                console.log('[INFO] Enterprise mode: legacy background dispatchers and plugin servers are disabled');
+                return;
+            }
+
             // Start watching the projects folder for changes
             try {
                 await initializeSessionsWatcher();
@@ -428,6 +463,11 @@ async function startServer() {
                 await stopAllPlugins();
             } catch (err) {
                 console.error('[Plugins] Error stopping plugins during shutdown:', getErrorMessage(err));
+            }
+            try {
+                await enterpriseRuntime?.close();
+            } catch (err) {
+                console.error('[Enterprise] Error closing database pool during shutdown:', getErrorMessage(err));
             }
             try {
                 await removeLocalServerMarker();

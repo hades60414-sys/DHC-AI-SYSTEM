@@ -1,0 +1,74 @@
+# DHC AI Office Enterprise 單客戶交付 QA（reusable；由 enterprise-image-build 在 build-<arch> 之後呼叫）。
+# 使用同一次執行 build-<arch> 產生的 image：載入 → preflight／init-secrets／up／bootstrap → 工作流（審批版號、引用、匯出）
+# → 不停機備份 → 刪除 image 後只從離線包安裝 → 竄改包／備份被拒 → 全新還原（全表指紋、blob）→ Chromium E2E（含 ACC-MATCH-v1）→ 效能條件。
+# PostgreSQL 與 app 都在同一個原生架構 runner 上執行。合成資料、mock 模型、無 secret。
+# 跨版本升級／回退需要舊版 image（不在公開 repo）：本 workflow 不執行，標 NOT_RUN。
+name: enterprise-delivery-smoke
+on:
+  workflow_call:
+    inputs:
+      arch: { required: true, type: string }
+      runner: { required: true, type: string }
+      source_sha: { required: true, type: string }
+permissions:
+  contents: read
+jobs:
+  delivery:
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 90
+    env:
+      ARCH: ${{ inputs.arch }}
+      SOURCE_SHA: ${{ inputs.source_sha }}
+    defaults:
+      run:
+        working-directory: web-ui
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web-ui/package-lock.json
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: enterprise-image-archive-${{ inputs.arch }}
+          path: image-in
+      - name: 驗證 image 封存 SHA 並載入（使用 build job 的實際 image）
+        run: |
+          mkdir -p ci-evidence
+          (cd ../image-in && sha256sum -c SHA256SUMS) | tee ci-evidence/image-sha-check.txt
+          docker load -i ../image-in/dhc-ai-office-$ARCH.tar.gz | tee ci-evidence/image-load.txt
+          rm -f ../image-in/dhc-ai-office-$ARCH.tar.gz
+          docker image inspect dhc-ai-office:ci-$ARCH --format '{{.Id}} {{.Os}}/{{.Architecture}} {{index .Config.Labels "org.opencontainers.image.revision"}}' | tee ci-evidence/image-loaded.txt
+          grep -q " linux/$ARCH $SOURCE_SHA$" ci-evidence/image-loaded.txt
+          { df -h; docker system df; } | tee ci-evidence/capacity-before.txt
+      - name: docker-compose shim
+        run: |
+          printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/local/bin/docker-compose >/dev/null
+          sudo chmod +x /usr/local/bin/docker-compose
+      - name: npm ci＋Chromium headless shell（E2E 驅動；不進 image）
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx playwright-core install --with-deps --only-shell chromium
+      - name: 完整交付驗證（原生 ${{ inputs.arch }}，app 與 PostgreSQL 同架構）
+        run: python3 -B scripts/enterprise/驗證AI_Office交付.py --skip-build --image dhc-ai-office:ci-$ARCH --evidence ci-evidence/delivery
+      - name: 容量（交付後）
+        if: always()
+        run: '{ df -h; docker system df; } | tee ci-evidence/capacity-after.txt'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: enterprise-delivery-${{ inputs.arch }}
+          path: |
+            web-ui/ci-evidence/
+            !web-ui/ci-evidence/**/*.tar
+            !web-ui/ci-evidence/**/*.tar.gz
+          retention-days: 7
+      - name: 清理本工作的容器與 volume
+        if: always()
+        run: |
+          docker ps -aq | xargs -r docker rm -f
+          docker volume ls -q | grep '^dhc-delivery-' | xargs -r docker volume rm || true

@@ -1,0 +1,177 @@
+{
+ "schema_version": 3,
+ "why": "DHC CLI V3.2（af4c55c）legacy 測試在隔離 HOME 測試環境下的既有失敗（未合併 V3.2 同樣失敗）。CI 只在出現此清單以外的失敗時才失敗；比對鍵＝測試名稱＠檔案。企業測試不得列入。",
+ "backend_tests": [
+  "11/02 存成 SOP gets the tool log of the answer before it; 試著問 lists shared-room questions only",
+  "a turn that ends in an error goes back to waiting, pauses the queue, and fails after three tries",
+  "close() 也沒用時仍會放行（不會永遠卡死），並記 log",
+  "release 後鎖自動清掉，不同 session 互不影響",
+  "前一個程序卡住不退出：逾時後呼叫 close()，並記一行 log"
+ ],
+ "frontend_test_files": [
+  "src/modules/i18n/tests/zhTwCoverage.test.ts"
+ ],
+ "lint_errors_file_rule": [
+  "server/modules/assistant/assistant.service.ts|boundaries(dependencies)",
+  "server/modules/voice/voice.service.ts|boundaries(dependencies)",
+  "src/modules/canvas/CanvasComposerButton.tsx|boundaries(dependencies)",
+  "src/modules/chat-room/ChatRoom.tsx|boundaries(dependencies)",
+  "src/modules/chat-room/ChatRoom.tsx|boundaries(no-unknown)",
+  "src/modules/chat-room/MyBots.tsx|boundaries(no-unknown)",
+  "src/modules/chat-room/StickyNotes.tsx|boundaries(no-unknown)",
+  "src/modules/chat-room/files.tsx|boundaries(dependencies)",
+  "src/modules/chat-room/refs.tsx|boundaries(no-unknown)",
+  "src/modules/chat-room/tests/assistant.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/chat-room/tests/helpers.test.tsx|boundaries(dependencies)",
+  "src/modules/chat-room/tests/helpers.test.tsx|react(globals)",
+  "src/modules/chat-room/tests/helpers.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/chat-room/tests/maus.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/chat-room/tests/office.test.ts|boundaries(no-unknown)",
+  "src/modules/chat-room/tests/r4.test.tsx|boundaries(dependencies)",
+  "src/modules/chat-room/tests/r4.test.tsx|react(globals)",
+  "src/modules/chat-room/tests/r4.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/chat-room/tests/v3fixes.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/chat/ChatInterface.tsx|boundaries(dependencies)",
+  "src/modules/chat/composer/ChatComposer.tsx|boundaries(dependencies)",
+  "src/modules/chat/composer/QueryHandoffBar.tsx|boundaries(dependencies)",
+  "src/modules/chat/hooks/useChatComposerState.ts|boundaries(no-unknown)",
+  "src/modules/chat/hooks/useChatRealtimeHandlers.ts|boundaries(dependencies)",
+  "src/modules/chat/tests/coWorkDraftScope.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/command-mode/CommandModeControl.tsx|typescript(consistent-type-definitions)",
+  "src/modules/command-mode/CommandModeViewer.tsx|typescript(consistent-type-definitions)",
+  "src/modules/command-mode/tests/voiceTurnAttachment.test.tsx|boundaries(dependencies)",
+  "src/modules/command-mode/tests/voiceTurnAttachment.test.tsx|eslint(no-unsafe-optional-chaining)",
+  "src/modules/plan-board/PlanBoard.tsx|boundaries(dependencies)",
+  "src/modules/plan-board/PlanBoard.tsx|boundaries(no-unknown)",
+  "src/modules/plan-board/PlanBoard.tsx|importx(no-unresolved)",
+  "src/modules/project-workspace/MobileRailToggle.tsx|boundaries(no-unknown)",
+  "src/modules/project-workspace/ProjectWishPool.tsx|boundaries(dependencies)",
+  "src/modules/project-workspace/ProjectWishPool.tsx|boundaries(no-unknown)",
+  "src/modules/project-workspace/WorkspaceMain.tsx|boundaries(dependencies)",
+  "src/modules/project-workspace/hooks/useProjectsState.ts|boundaries(dependencies)",
+  "src/modules/project-workspace/tests/archiveKeepsMembership.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/project-workspace/tests/mobileMenuFollowups.test.tsx|boundaries(dependencies)",
+  "src/modules/project-workspace/tests/mobileRailToggle.test.tsx|boundaries(no-unknown)",
+  "src/modules/project-workspace/utils/incognitoQuery.ts|boundaries(dependencies)",
+  "src/modules/quick-settings-panel/ModelAdviceSetting.tsx|boundaries(dependencies)",
+  "src/modules/quick-settings-panel/QuickSettingsPanelView.tsx|boundaries(no-unknown)",
+  "src/modules/sidebar/ScheduledTasksPanel.tsx|boundaries(dependencies)",
+  "src/modules/sidebar/Sidebar.tsx|boundaries(no-unknown)",
+  "src/modules/sidebar/SidebarHeader.tsx|eslint(no-restricted-imports)",
+  "src/modules/sidebar/SidebarSessionItem.tsx|boundaries(no-unknown)",
+  "src/modules/sidebar/tests/offloadSplit.test.tsx|eslint(no-restricted-imports)",
+  "src/modules/sidebar/tests/settingsProfileError.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/sidebar/tests/v3Followups.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/todo-calendar/TodoCalendar.tsx|boundaries(dependencies)",
+  "src/modules/todo-dock/TodoDock.tsx|boundaries(no-unknown)",
+  "src/modules/tool-library/ToolFrame.tsx|boundaries(dependencies)",
+  "src/modules/tool-library/ToolFrame.tsx|boundaries(no-unknown)",
+  "src/modules/tool-library/ToolLibrary.tsx|boundaries(no-unknown)",
+  "src/modules/tool-library/catalog.ts|boundaries(dependencies)",
+  "src/modules/tool-library/tests/usageStale.test.tsx|boundaries(dependencies)",
+  "src/modules/user-avatar/UserAvatar.tsx|boundaries(no-unknown)",
+  "src/modules/voice-call/VoiceCallButton.tsx|boundaries(dependencies)",
+  "src/modules/voice-call/VoiceCallPanel.tsx|boundaries(dependencies)",
+  "src/modules/voice-call/config.ts|boundaries(dependencies)",
+  "src/modules/voice-call/engines/types.ts|typescript(consistent-type-definitions)",
+  "src/modules/voice-call/engines/webSpeechStt.ts|boundaries(dependencies)",
+  "src/modules/voice-call/tests/composerVoiceTurn.test.tsx|boundaries(dependencies)",
+  "src/modules/voice-call/tests/voiceCallPanel.test.tsx|typescript(consistent-type-imports)",
+  "src/modules/voice-call/useVoiceCall.ts|typescript(consistent-type-definitions)",
+  "src/modules/wish-pool/WishPool.tsx|boundaries(no-unknown)",
+  "src/shared/brandText.test.ts|eslint(no-restricted-imports)",
+  "src/shared/piiGuard.test.ts|eslint(no-restricted-imports)",
+  "src/shared/tests/personTodos.test.ts|typescript(consistent-type-imports)"
+ ],
+ "backend_tests_detail": [
+  {
+   "test_name": "11/02 存成 SOP gets the tool log of the answer before it; 試著問 lists shared-room questions only",
+   "file": "server/modules/assistant/tests/assistant.test.ts",
+   "failure_signature": {
+    "code": "ERR_ASSERTION",
+    "error": "還沒記下他的習慣。"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  },
+  {
+   "test_name": "a turn that ends in an error goes back to waiting, pauses the queue, and fails after three tries",
+   "file": "server/modules/night-queue/tests/night-queue.test.ts",
+   "failure_signature": {
+    "code": "ERR_ASSERTION",
+    "error": "Expected values to be strictly equal:"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  },
+  {
+   "test_name": "前一個程序卡住不退出：逾時後呼叫 close()，並記一行 log",
+   "file": "server/modules/providers/tests/claude-process-lock.test.ts",
+   "failure_signature": {
+    "code": "ERR_TEST_FAILURE",
+    "error": "Promise resolution is still pending but the event loop has already resolved"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  },
+  {
+   "test_name": "close() 也沒用時仍會放行（不會永遠卡死），並記 log",
+   "file": "server/modules/providers/tests/claude-process-lock.test.ts",
+   "failure_signature": {
+    "code": "ERR_TEST_FAILURE",
+    "error": "Promise resolution is still pending but the event loop has already resolved"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  },
+  {
+   "test_name": "release 後鎖自動清掉，不同 session 互不影響",
+   "file": "server/modules/providers/tests/claude-process-lock.test.ts",
+   "failure_signature": {
+    "code": "ERR_TEST_FAILURE",
+    "error": "Promise resolution is still pending but the event loop has already resolved"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  }
+ ],
+ "frontend_test_files_detail": [
+  {
+   "file": "src/modules/i18n/tests/zhTwCoverage.test.ts",
+   "failure_signature": "No test suite found in file",
+   "baseline_commit": "af4c55c",
+   "owner": "DHC CLI V3.2 legacy",
+   "expires": "2026-12-31",
+   "remove_when": "檔案加上 test suite 或刪除"
+  }
+ ],
+ "lint_baseline": {
+  "baseline_commit": "af4c55c",
+  "owner": "DHC CLI V3.2 legacy",
+  "expires": "2026-12-31",
+  "pairs": 70
+ },
+ "backend_tap_totals_reference": {
+  "tests": 718,
+  "pass": 712,
+  "fail": 2,
+  "cancelled": 3,
+  "skipped": 1,
+  "todo": 0,
+  "note": "718＝712+2+3+1；3 個 cancelled 為 claude-process-lock（Promise resolution is still pending）"
+ },
+ "removed_from_baseline": {
+  "count": 6,
+  "reason": "對話搜尋 5 項與 provider routes 1 項其實是 npm ci --ignore-scripts 未下載 @vscode/ripgrep 執行檔（spawn rg ENOENT）造成；CI 已加 npm rebuild @vscode/ripgrep，這 6 項必須通過"
+ }
+}

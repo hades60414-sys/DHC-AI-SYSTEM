@@ -1,7 +1,7 @@
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
 
-import { forkSession as forkClaudeSession } from '@anthropic-ai/claude-agent-sdk';
+import { loadClaudeAgentSdk } from './claude-sdk.loader.js';
 
 import type { IProviderFork } from '@/shared/interfaces.js';
 import { AppError } from '@/shared/utils.js';
@@ -25,6 +25,7 @@ export class ClaudeForkProvider implements IProviderFork {
     // `dir` is the session's working directory, which the SDK encodes into the
     // `~/.claude/projects/<encoded>` folder name itself — passing that folder
     // makes it encode an already-encoded path and find nothing.
+    const { forkSession: forkClaudeSession } = await loadClaudeAgentSdk();
     const { sessionId } = await forkClaudeSession(input.providerSessionId, {
       dir: input.projectPath,
       upToMessageId: input.upToAnchorId,
