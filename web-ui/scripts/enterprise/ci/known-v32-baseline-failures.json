@@ -1,17 +1,11 @@
 {
- "schema_version": 1,
- "why": "DHC CLI V3.2（af4c55c）在隔離 HOME 測試環境下原本就失敗的項目；以未合併的 V3.2 基線實測（evidence/INTEGRATION_V4_V32）。CI 只在出現此清單以外的失敗時才失敗。企業測試不得列入。",
+ "schema_version": 3,
+ "why": "DHC CLI V3.2（af4c55c）legacy 測試在隔離 HOME 測試環境下的既有失敗（未合併 V3.2 同樣失敗）。CI 只在出現此清單以外的失敗時才失敗；比對鍵＝測試名稱＠檔案。企業測試不得列入。",
  "backend_tests": [
   "11/02 存成 SOP gets the tool log of the answer before it; 試著問 lists shared-room questions only",
-  "a message missing one of the words does not match",
   "a turn that ends in an error goes back to waiting, pauses the queue, and fails after three tries",
   "close() 也沒用時仍會放行（不會永遠卡死），並記 log",
-  "conversation search streams title matches before transcript results",
-  "projectIds limits both title and content results to those projects",
   "release 後鎖自動清掉，不同 session 互不影響",
-  "session titles match every word in any order",
-  "space-separated words match when each appears anywhere in the message, CJK included",
-  "the most recently active project is searched first",
   "前一個程序卡住不退出：逾時後呼叫 close()，並記一行 log"
  ],
  "frontend_test_files": [
@@ -88,5 +82,96 @@
   "src/shared/brandText.test.ts|eslint(no-restricted-imports):",
   "src/shared/piiGuard.test.ts|eslint(no-restricted-imports):",
   "src/shared/tests/personTodos.test.ts|typescript(consistent-type-imports):"
- ]
+ ],
+ "backend_tests_detail": [
+  {
+   "test_name": "11/02 存成 SOP gets the tool log of the answer before it; 試著問 lists shared-room questions only",
+   "file": "server/modules/assistant/tests/assistant.test.ts",
+   "failure_signature": {
+    "code": "ERR_ASSERTION",
+    "error": "還沒記下他的習慣。"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  },
+  {
+   "test_name": "a turn that ends in an error goes back to waiting, pauses the queue, and fails after three tries",
+   "file": "server/modules/night-queue/tests/night-queue.test.ts",
+   "failure_signature": {
+    "code": "ERR_ASSERTION",
+    "error": "Expected values to be strictly equal:"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  },
+  {
+   "test_name": "前一個程序卡住不退出：逾時後呼叫 close()，並記一行 log",
+   "file": "server/modules/providers/tests/claude-process-lock.test.ts",
+   "failure_signature": {
+    "code": "ERR_TEST_FAILURE",
+    "error": "Promise resolution is still pending but the event loop has already resolved"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  },
+  {
+   "test_name": "close() 也沒用時仍會放行（不會永遠卡死），並記 log",
+   "file": "server/modules/providers/tests/claude-process-lock.test.ts",
+   "failure_signature": {
+    "code": "ERR_TEST_FAILURE",
+    "error": "Promise resolution is still pending but the event loop has already resolved"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  },
+  {
+   "test_name": "release 後鎖自動清掉，不同 session 互不影響",
+   "file": "server/modules/providers/tests/claude-process-lock.test.ts",
+   "failure_signature": {
+    "code": "ERR_TEST_FAILURE",
+    "error": "Promise resolution is still pending but the event loop has already resolved"
+   },
+   "baseline_commit": "af4c55c0ea3cc3f5560369d38d8ebe565f99b4ff（DHC CLI V3.2，未合併 Enterprise）",
+   "owner": "DHC CLI V3.2 legacy 功能維護者（上游 web-ui）",
+   "remove_when": "上游或本專案修正該 legacy 測試後立即移除；最遲 2026-12-31 重新審視",
+   "expires": "2026-12-31"
+  }
+ ],
+ "frontend_test_files_detail": [
+  {
+   "file": "src/modules/i18n/tests/zhTwCoverage.test.ts",
+   "failure_signature": "No test suite found in file",
+   "baseline_commit": "af4c55c",
+   "owner": "DHC CLI V3.2 legacy",
+   "expires": "2026-12-31",
+   "remove_when": "檔案加上 test suite 或刪除"
+  }
+ ],
+ "lint_baseline": {
+  "baseline_commit": "af4c55c",
+  "owner": "DHC CLI V3.2 legacy",
+  "expires": "2026-12-31",
+  "pairs": 70
+ },
+ "backend_tap_totals_reference": {
+  "tests": 718,
+  "pass": 712,
+  "fail": 2,
+  "cancelled": 3,
+  "skipped": 1,
+  "todo": 0,
+  "note": "718＝712+2+3+1；3 個 cancelled 為 claude-process-lock（Promise resolution is still pending）"
+ },
+ "removed_from_baseline": {
+  "count": 6,
+  "reason": "對話搜尋 5 項與 provider routes 1 項其實是 npm ci --ignore-scripts 未下載 @vscode/ripgrep 執行檔（spawn rg ENOENT）造成；CI 已加 npm rebuild @vscode/ripgrep，這 6 項必須通過"
+ }
 }

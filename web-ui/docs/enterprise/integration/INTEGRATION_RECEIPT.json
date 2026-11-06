@@ -1,6 +1,6 @@
 {
  "schema_version": 1,
- "status": "LOCAL_VERIFIED_CI_NOT_SUBMITTED",
+ "status": "LOCAL_VERIFIED_READY_TO_PUSH",
  "target_repo": "hades60414-sys/DHC-AI-SYSTEM",
  "base": "main@68b5bea614c1c30c8deba66128894df2b0407bfb",
  "integration_branch": "integration/enterprise-rcfix-v4-20261106",
@@ -18,13 +18,16 @@
   },
   "backend": {
    "totals": {
-    "tests": "718",
-    "pass": "706",
-    "fail": "8",
-    "skipped": "1"
+    "tests": 718,
+    "pass": 712,
+    "fail": 2,
+    "cancelled": 3,
+    "skipped": 1,
+    "todo": 0
    },
    "new_failures": [],
-   "known_v32_baseline_failures_seen": 11
+   "known_v32_baseline_failures_seen": 5,
+   "note": "718＝712+2+3+1（上一版 706/8 是在未安裝 ripgrep 執行檔的環境下量測，已更正）"
   },
   "frontend": {
    "totals": {

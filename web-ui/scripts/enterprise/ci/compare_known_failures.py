@@ -16,11 +16,28 @@ BASELINE = json.loads((Path(__file__).parent / 'known-v32-baseline-failures.json
 
 
 def backend(text):
-    failures = {m.group(1) for m in re.finditer(r'(?m)^\s*not ok \d+ - (.+)$', text)}
-    totals = dict(re.findall(r'(?m)^# (tests|pass|fail|skipped) (\d+)$', text))
+    """失敗識別＝「測試名稱＠所在檔案」；名稱與檔案都相同才算已知（避免別檔同名新失敗被白名單蓋掉）。"""
+    lines = text.splitlines()
+    failures = set()
+    for index, line in enumerate(lines):
+        match = re.match(r'^\s*not ok \d+ - (.+)$', line)
+        if not match:
+            continue
+        location = None
+        for follow in lines[index + 1:index + 40]:
+            if re.match(r'^\s*(not )?ok \d+ - ', follow):
+                break
+            found = re.search(r"location: '([^']+)'", follow)
+            if found:
+                location = found.group(1)
+                break
+        file = location[location.find('server/'):].rsplit(':', 2)[0] if location and 'server/' in location else None
+        failures.add(f'{match.group(1)}@{file}')
+    totals = dict(re.findall(r'(?m)^# (tests|pass|fail|cancelled|skipped|todo) (\d+)$', text))
     if 'tests' not in totals:
         raise ValueError('找不到 TAP 合計（# tests）')
-    return failures, set(BASELINE['backend_tests']), totals
+    known = {f"{item['test_name']}@{item['file']}" for item in BASELINE['backend_tests_detail']}
+    return failures, known, totals
 
 
 def frontend(text):

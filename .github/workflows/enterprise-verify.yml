@@ -31,7 +31,8 @@ jobs:
       - name: npm ci（不執行 lifecycle scripts）＋原生模組重建
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
-          npm rebuild better-sqlite3 node-pty
+          # 原生模組與 ripgrep 執行檔（對話搜尋測試需要；--ignore-scripts 不會下載）
+          npm rebuild better-sqlite3 node-pty @vscode/ripgrep
       - name: typecheck
         run: npm run -s typecheck
       - name: lint（只擋新錯誤）
@@ -53,7 +54,7 @@ jobs:
         with:
           name: enterprise-verify-static-unit
           path: ci-out/
-          retention-days: 14
+          retention-days: 7
 
   postgres-integration:
     runs-on: ubuntu-24.04
@@ -89,7 +90,7 @@ jobs:
         with:
           name: enterprise-verify-postgres
           path: web-ui/ci-evidence/
-          retention-days: 14
+          retention-days: 7
       - name: 清理本工作的容器
         if: always()
         run: docker ps -aq | xargs -r docker rm -f

@@ -1,0 +1,85 @@
+{
+ "schema_version": 1,
+ "scope": "git diff origin/main（DAS main 68b5bea）..integration 分支，全部新增行與新增檔案",
+ "generated_at": "2026-11-06T20:21:01.459134+08:00",
+ "files_changed": 167,
+ "reachable_history": "DAS main 68b5bea ＋ 本分支 commit（作者 DAS Maintainers <maintainers@example.org>）；不含 DHC CLI 歷史",
+ "rules": {
+  "org_or_person_name": {
+   "count": 5,
+   "classification": "REVIEW"
+  },
+  "local_private_path": {
+   "count": 5,
+   "classification": "REVIEW"
+  },
+  "securities_internal_tas": {
+   "count": 0,
+   "classification": "none"
+  },
+  "aws_key": {
+   "count": 0,
+   "classification": "none"
+  },
+  "private_key": {
+   "count": 0,
+   "classification": "none"
+  },
+  "github_token": {
+   "count": 0,
+   "classification": "none"
+  },
+  "anthropic_or_openai_key": {
+   "count": 0,
+   "classification": "none"
+  },
+  "slack_token": {
+   "count": 0,
+   "classification": "none"
+  },
+  "jwt": {
+   "count": 0,
+   "classification": "none"
+  },
+  "session_token": {
+   "count": 0,
+   "classification": "none"
+  },
+  "tw_phone_or_id": {
+   "count": 0,
+   "classification": "none"
+  },
+  "non_reserved_email": {
+   "count": 2,
+   "classification": "false_positive: glob 套件 deprecated 訊息與 egress 測試的合成 URL（u:p@llm2.internal）"
+  },
+  "internal_reviewer_codename": {
+   "count": 3,
+   "classification": "accepted: 測試／工具註解提到內部審查代號"
+  }
+ },
+ "project_scanner": "web-ui/tools/scan-sensitive.mjs：102 命中，全部為 .example.invalid 合成 email、SSRF 測試私有 IP、sk-synthetic-should-not-leak；組織專用詞表 scan-sensitive.local.json 不存在（缺口，未覆蓋組織專用詞）",
+ "binaries": [
+  "web-ui/server/modules/enterprise-persistence/tests/fixtures/extraction/{image-only,multipage,text-cjk}.pdf（合成、15–22 KB、Producer 僅 macOS 版本）"
+ ],
+ "git_lfs_pointers": 0,
+ "symlinks": 0,
+ "env_files": [
+  "web-ui/deploy/customer-single/.env.example（僅預設值，無秘密）"
+ ],
+ "excluded_from_publication": [
+  "所有 QA evidence/",
+  "內部商務與規劃文件（docs/enterprise 除 openapi.yaml 與對帳合成 CSV）",
+  "內部打包工具 scripts/enterprise/rcfix（除 image_sbom.py）",
+  "CODEX_RUN_REPORT.md",
+  "README 內部連結段落",
+  "tracked __pycache__"
+ ],
+ "ci_artifact_whitelist": [
+  "ci-out/（lint、TAP、vitest JSON、比對結果）",
+  "ci-evidence/（PG 與交付驗證 JSON／TXT、E2E 合成匯出）",
+  "image 報告（inspect、SBOM、Trivy、build log）",
+  "image 封存（僅交付 QA 使用，保留 1 天）"
+ ],
+ "secrets_in_ci": "無：workflow 不使用任何 secret，permissions contents: read"
+}

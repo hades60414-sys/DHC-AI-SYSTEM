@@ -69,4 +69,6 @@
 未設定企業模式時行為與 V3.2 相同（legacy 路由、V3.2 新功能、CORS、report-only CSP）；企業模式只開 `/api/enterprise/v1` 與 `/office`。
 
 ## 測試與 CI
-見 `.github/workflows/enterprise-{verify,image-build,delivery-smoke}.yml` 與 `docs/enterprise/integration/INTEGRATION_RECEIPT.json`。V3.2 原本就失敗的 11 個 legacy 測試名稱、1 個 i18n 測試檔、70 組 lint（檔案,規則）列在 `scripts/enterprise/ci/known-v32-baseline-failures.json`；CI 只擋新失敗，企業測試不在清單內。
+見 `.github/workflows/enterprise-{verify,image-build,delivery-smoke}.yml` 與 `docs/enterprise/integration/INTEGRATION_RECEIPT.json`。V3.2 原本就失敗的 5 個 legacy 測試（名稱＠檔案、失敗特徵、基線 commit、owner、到期日）、1 個 i18n 測試檔、70 組 lint（檔案,規則）列在 `scripts/enterprise/ci/known-v32-baseline-failures.json`；CI 只擋新失敗，企業測試不在清單內。
+
+註：上一版白名單列 11 個；其中 6 個（對話搜尋）經查是 `npm ci --ignore-scripts` 沒下載 `@vscode/ripgrep` 執行檔造成，CI 已補 `npm rebuild @vscode/ripgrep`，這 6 項移出白名單、必須通過。
