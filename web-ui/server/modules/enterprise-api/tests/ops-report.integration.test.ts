@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, unlink, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import os from 'node:os';
@@ -37,6 +37,9 @@ describe('V5 OPS-REPORT-v1 營運週報（實際 PostgreSQL、完整 HTTP 路由
   const token: Record<string, string> = {};
   const memberId: Record<string, string> = {};
   const docs: Record<string, { documentId: string; versionNumber: number; sha256: string }> = {};
+  // V5.1：commit 前的測試時序注入點（預設不做事）。
+  let beforeCommit: () => Promise<void> = async () => undefined;
+  const servers: http.Server[] = [];
 
   async function call(method: string, route: string, who: string, json?: unknown) {
     const response = await fetch(base + route, { method, headers: { authorization: `Bearer ${token[who]}`, ...(json === undefined ? {} : { 'content-type': 'application/json' }) },
@@ -73,7 +76,8 @@ describe('V5 OPS-REPORT-v1 營運週報（實際 PostgreSQL、完整 HTTP 路由
     }
     blobRoot = path.join(await mkdtemp(path.join(os.tmpdir(), 'dhc-ops-api-')), 'blobs');
     const app = express();
-    app.use('/api/enterprise/v1', createEnterpriseRouter({ pool: runtime, blobStore: createLocalDocumentBlobStore(blobRoot), maxDocumentBytes: 1024 * 1024 }));
+    app.use('/api/enterprise/v1', createEnterpriseRouter({ pool: runtime, blobStore: createLocalDocumentBlobStore(blobRoot), maxDocumentBytes: 16 * 1024 * 1024,
+      testHooks: { beforeOpsReportCommit: () => beforeCommit() } }));
     server = http.createServer(app);
     await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
     base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -89,6 +93,7 @@ describe('V5 OPS-REPORT-v1 營運週報（實際 PostgreSQL、完整 HTTP 路由
   });
   after(async () => {
     await new Promise(resolve => server.close(resolve));
+    for (const extra of servers) await new Promise(resolve => extra.close(resolve));
     await Promise.all([admin.end(), migrator.end(), runtime.end()]);
     await rm(path.dirname(blobRoot), { recursive: true, force: true });
   });
@@ -220,6 +225,65 @@ describe('V5 OPS-REPORT-v1 營運週報（實際 PostgreSQL、完整 HTTP 路由
     const failed = await report('clerk', [doc]);
     assert.deepEqual([failed.status, failed.data.error?.code], [500, 'ENTERPRISE_BLOB_INTEGRITY']);
     assert.deepEqual(await counts(), before);
+  });
+
+  test('V5.1 RG-V5-01：合計超過 25 MiB → 413，依已存 byte_size 判斷（blob 已刪仍回 413，證明未讀 blob）、不寫入', async () => {
+    const wide = (prefix: string) => Buffer.from(Array.from({ length: 20_000 }, (_, i) =>
+      `SYNTHETIC,BASE,${prefix}${i},2026-W43,2026-10-19,2026-10-25,${prefix}S${i},${'名'.repeat(200)},1,1,1,0,1,O,S`).join('\n') + '\n');
+    const a = await upload('clerk', '大型來源A', Buffer.concat([Buffer.from(`${HEADER}\n`), wide('A')]));
+    const b = await upload('clerk', '大型來源B', Buffer.concat([Buffer.from(`${HEADER}\n`), wide('B')]));
+    for (const doc of [a, b]) await unlink(path.join(blobRoot, org.ops.toLowerCase(), doc.sha256.slice(0, 2), doc.sha256));
+    const before = await count('SELECT count(*)::int AS n FROM enterprise.ops_reports');
+    const response = await report('clerk', [a, b]);
+    assert.deepEqual([response.status, response.data.error?.code], [413, 'ENTERPRISE_OPS_REPORT_TOO_LARGE']);
+    assert.equal(await count('SELECT count(*)::int AS n FROM enterprise.ops_reports'), before);
+  });
+
+  test('V5.1 Batch D：計算期間不持有交易／成員鎖——在 commit 前停權可立即完成，commit 以新 session 狀態拒絕（401、無列、無稽核）', async () => {
+    const created = await call('POST', '/api/enterprise/v1/members', 'admin', { email: 'longrun@ops.example.invalid', password: PASSWORD, roles: ['employee'] });
+    assert.equal(created.status, 201);
+    await login('longrun', 'ops', 'longrun@ops.example.invalid');
+    const before = await count('SELECT count(*)::int AS n FROM enterprise.ops_reports');
+    const auditBefore = await count("SELECT count(*)::int AS n FROM enterprise.audit_events WHERE resource_type='ops_report'");
+    let disabledWithinMs = -1;
+    beforeCommit = async () => {
+      const started = Date.now();
+      // 若計算期間仍持有該成員列的 FOR SHARE 鎖，停權（更新成員列）會等待而逾時。
+      const disabled = await call('POST', `/api/enterprise/v1/members/${created.data.id ?? created.data.member?.id}/disable`, 'admin');
+      assert.equal(disabled.status, 200);
+      disabledWithinMs = Date.now() - started;
+    };
+    try {
+      const response = await report('longrun', [docs.ops], '2026-W39');
+      assert.equal(response.status, 401);
+    } finally {
+      beforeCommit = async () => undefined;
+    }
+    assert.ok(disabledWithinMs >= 0 && disabledWithinMs < 5_000, `停權耗時 ${disabledWithinMs}ms`);
+    assert.equal(await count('SELECT count(*)::int AS n FROM enterprise.ops_reports'), before);
+    assert.equal(await count("SELECT count(*)::int AS n FROM enterprise.audit_events WHERE resource_type='ops_report'"), auditBefore);
+  });
+
+  test('V5.1 RG-V5-01：計算併發閘門滿 → 429（不排隊無上限），釋放後可再建立', async () => {
+    let releaseFirst!: () => void;
+    const gateApp = express();
+    let blocking = true;
+    gateApp.use('/api/enterprise/v1', createEnterpriseRouter({ pool: runtime, blobStore: createLocalDocumentBlobStore(blobRoot), maxDocumentBytes: 1024 * 1024,
+      opsReportConcurrency: 1, opsReportQueue: 0, testHooks: { beforeOpsReportCommit: () => (blocking ? new Promise<void>(resolve => { releaseFirst = resolve; }) : Promise.resolve()) } }));
+    const gateServer = http.createServer(gateApp);
+    servers.push(gateServer);
+    await new Promise<void>(resolve => gateServer.listen(0, '127.0.0.1', resolve));
+    const gateBase = `http://127.0.0.1:${(gateServer.address() as AddressInfo).port}`;
+    const post = (week: string) => fetch(`${gateBase}/api/enterprise/v1/ops-reports`, { method: 'POST', headers: { authorization: `Bearer ${token.clerk}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ sources: [ref(docs.ops)], week, datasets: ['BASE'] }) });
+    const first = post('2026-W38');
+    while (!releaseFirst) await new Promise(resolve => setTimeout(resolve, 10));
+    const second = await post('2026-W37');
+    assert.deepEqual([second.status, ((await second.json()) as any).error?.code], [429, 'ENTERPRISE_RATE_LIMITED']);
+    blocking = false;
+    releaseFirst();
+    assert.equal((await first).status, 201);
+    assert.equal((await post('2026-W37')).status, 201);
   });
 
   test('訂閱到期：建立週報 402；讀取既有結果保留', async () => {

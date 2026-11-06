@@ -26,3 +26,4 @@ sequenceDiagram
     S->>P: COMMIT
     S-->>B: 2xx（X-Request-Id）
   end
+  Note over R,P: [NEW_IN_V51] OPS-REPORT 分兩個交易：prepare（驗證＋快速拒絕）→ 交易外計算（不持有成員 FOR SHARE 鎖）→ commit 重新開交易並再次重驗 session；計算期間被停權則 commit 回 401、不寫入

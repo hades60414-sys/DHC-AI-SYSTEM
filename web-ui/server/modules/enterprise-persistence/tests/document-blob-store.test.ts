@@ -27,6 +27,21 @@ describe('createLocalDocumentBlobStore（本機檔案系統 adapter）', () => {
     assert.equal((await stat(path.join(root, ORG_A))).mode & 0o777, 0o700);
   });
 
+  test('V5.1 verify：串流驗證存在與 hash，不回傳內容；遺失 NOT_FOUND、竄改 INTEGRITY、跨組織 NOT_FOUND', async () => {
+    const store = createLocalDocumentBlobStore(root);
+    const content = Buffer.alloc(3 * 1024 * 1024 + 17, 0x5a);
+    await store.put(ORG_A, sha(content), content);
+    assert.equal(await store.verify!(ORG_A, sha(content)), undefined);
+    await assert.rejects(store.verify!(ORG_B, sha(content)), /ENTERPRISE_BLOB_NOT_FOUND/);
+    await assert.rejects(store.verify!(ORG_A, 'f'.repeat(64)), /ENTERPRISE_BLOB_NOT_FOUND/);
+    await writeFile(path.join(root, ORG_A, sha(content).slice(0, 2), sha(content)), Buffer.from('tampered'));
+    await assert.rejects(store.verify!(ORG_A, sha(content)), /ENTERPRISE_BLOB_INTEGRITY/);
+    const memory = createMemoryDocumentBlobStore();
+    await memory.put(ORG_A, sha(content), content);
+    assert.equal(await memory.verify!(ORG_A, sha(content)), undefined);
+    await assert.rejects(memory.verify!(ORG_B, sha(content)), /ENTERPRISE_BLOB_NOT_FOUND/);
+  });
+
   test('同一內容重複 put 為冪等；不留下暫存檔', async () => {
     const store = createLocalDocumentBlobStore(root);
     const content = Buffer.from('冪等內容');

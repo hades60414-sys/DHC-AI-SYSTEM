@@ -1,0 +1,600 @@
+{
+ "schema": "dhc-supply-chain-ledger/v2",
+ "product_source_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+ "pr": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/pull/12",
+ "provenance": {
+  "amd64": {
+   "github_run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627",
+   "image_id": "sha256:154a986fd20941400e10c1595007119162ba0d76c29c6ef6302084d6161afabe",
+   "source_revision_label": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "runtime_base": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+   "architecture": "linux/amd64",
+   "image_size_mb": 839.2,
+   "image_archive_sha256sums": "d837b07d666f36523f2856b74109fe091aeb47a9ce3bcd9038d92281aa85992c  dhc-ai-office-amd64.tar.gz",
+   "report_artifact": "enterprise-image-report-amd64",
+   "report_files_sha256": {
+    "build-command.txt": "02624736898b8c5d3548f990267dda94bfbafadabd54faeeb683e885efe8f221",
+    "build.log": "d0248b7da88cdfdbfd4c93b06972b202ae7dffd1f74f04a1b0476c357a914c90",
+    "capacity-after.txt": "17b094f2cc671bf580b91e8cecdbe802a0a944d7375d6d7531480147e459763d",
+    "capacity-before.txt": "dd7ba16108dd9e629fd2b5790e31e0c25ec30cf8ac62e01c8e6bb36797583087",
+    "image-SHA256SUMS": "6d5075227efb972b931e5ab107ba22cdb8258d6c66617b30a523cc394f3800e5",
+    "image-inspect.json": "6c6ed9813d512326030057c20c1eec4989f105dbf46de6a9627f1f800fb358bd",
+    "image-summary.json": "5ac60bde02943ee07067cbb792379b74911af135453d7881688a7fe78178a530",
+    "runner-arch.txt": "aaf631698ae5160ceb04a97681a14887fdcab47cd6e0f163c87485b3b1340b62",
+    "sbom/INVENTORY.json": "557d0d765a99e5343f003f3bd2dddd599009450241935643e8930c23a1b60e2a",
+    "sbom/RECONCILIATION.json": "bbaba3affd8f14fd0fc3b5c11b7b6289cb9fbfde31f242905789eabd7e0e7926",
+    "sbom/sbom.cdx.json": "ba34b3a9297806f751d465f5081095fb70b67bf3c219b13bf02e4657e2909e07",
+    "smoke.txt": "c83b5b5e1f70d8f8520fa59590419cb9ae97bc5454d5fc08f3384926aac177c6",
+    "trivy-summary.json": "6126a04e13ea337a318e176287eba3af225e489a776611fc2dc4816b9a04f904",
+    "trivy.json": "ab4d135e713bc1e3c15f396b11e2f83cc7a246c21e498e79edc4fcffe49f33af"
+   },
+   "sbom_components": 1133,
+   "trivy_counts": {
+    "LOW": 83,
+    "HIGH": 34,
+    "MEDIUM": 102,
+    "CRITICAL": 1
+   }
+  },
+  "arm64": {
+   "github_run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627",
+   "image_id": "sha256:eda9b596dcc11ec681721b5054bffdfe9a21dd76660f685fc8c1c5bd6b18f880",
+   "source_revision_label": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "runtime_base": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+   "architecture": "linux/arm64",
+   "image_size_mb": 857.8,
+   "image_archive_sha256sums": "f7d4bc586f0798161b213b518293b6d65af33879d8a9ad530fd343afdcca6073  dhc-ai-office-arm64.tar.gz",
+   "report_artifact": "enterprise-image-report-arm64",
+   "report_files_sha256": {
+    "build-command.txt": "e503ae90e119bc49431252a46fb7ba9e36ecd24e82875534fb2379487aca6a35",
+    "build.log": "b95d79afc9de63af15e2fa5da9ed2bc060fd18a6549273a9fdab5af22302c443",
+    "capacity-after.txt": "2c747d273f8cc484813ca9c85c286b0e6c5c964168096627c54befefe17c5b9c",
+    "capacity-before.txt": "5d1bfb06747823c4ff4642c7e2d236941ea9639be693745ceb9a96069932774d",
+    "image-SHA256SUMS": "42bdd42c0befe5dab7bd8075687cf132e413652722a8b3fd39c03c9653ecf134",
+    "image-inspect.json": "804855d4e5adf2bfef330fca313faad50cb4a3261cfadf11702ef4538cd3c526",
+    "image-summary.json": "5cb3d666bcc69574c36167a4459ea84ee5bdc2b39729adb4ee637bfad1303c01",
+    "runner-arch.txt": "5121ae59314a84da7b4d9587374398f1afa2000b243b3e54f491adefaac54f92",
+    "sbom/INVENTORY.json": "463a3f59721b92ef4d08bc3dc96e252c5fa7a36db7497184a9663119677b29b2",
+    "sbom/RECONCILIATION.json": "508385e1a1aa04369c679779b2a86c5a255c98c1177c5278b38a6c2b4c7610c4",
+    "sbom/sbom.cdx.json": "bb4117e68ebc3b63837bab78d92fbe4eeaf6bc6a44f6899926a636c374bd91c9",
+    "smoke.txt": "e1da974182be8586dd40b349626c48b4fdec24d2942579105ab89b70d14b1f3a",
+    "trivy-summary.json": "6126a04e13ea337a318e176287eba3af225e489a776611fc2dc4816b9a04f904",
+    "trivy.json": "1e56f92d9ea8256ef1f0b5a4d90f2c5948c310d058c223e177f2f872d375fc82"
+   },
+   "sbom_components": 1133,
+   "trivy_counts": {
+    "LOW": 83,
+    "HIGH": 34,
+    "MEDIUM": 102,
+    "CRITICAL": 1
+   }
+  }
+ },
+ "binding_check": {
+  "amd64": true,
+  "arm64": true
+ },
+ "previous_ledger": {
+  "file": "docs/enterprise/supply-chain/SUPPLY_CHAIN_REMEDIATION_LEDGER.json",
+  "describes": "369837b（V5）",
+  "note": "舊台帳只描述 V5 的 image；本檔取代其「最新 image」敘述。"
+ },
+ "node_high_critical": {
+  "amd64": [],
+  "arm64": []
+ },
+ "os_high_critical": [
+  {
+   "package": "bsdutils",
+   "installed": "1:2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53613",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "bsdutils",
+   "installed": "1:2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53615",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "bsdutils",
+   "installed": "1:2.38.1-5+deb12u3",
+   "cve": "CVE-2026-78410",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "gzip",
+   "installed": "1.12-1",
+   "cve": "CVE-2026-41992",
+   "severity": "HIGH",
+   "status": "fix_deferred",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 fix_deferred，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libacl1",
+   "installed": "2.3.1-3",
+   "cve": "CVE-2026-54369",
+   "severity": "HIGH",
+   "status": "fix_deferred",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 fix_deferred，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libblkid1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53613",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libblkid1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53615",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libblkid1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-78410",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libmount1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53613",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libmount1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53615",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libmount1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-78410",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libsmartcols1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53613",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libsmartcols1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53615",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libsmartcols1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-78410",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libsystemd0",
+   "installed": "252.39-1~deb12u2",
+   "cve": "CVE-2026-16742",
+   "severity": "HIGH",
+   "status": "fix_deferred",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 fix_deferred，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libtinfo6",
+   "installed": "6.4-4",
+   "cve": "CVE-2025-69720",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libudev1",
+   "installed": "252.39-1~deb12u2",
+   "cve": "CVE-2026-16742",
+   "severity": "HIGH",
+   "status": "fix_deferred",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 fix_deferred，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libuuid1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53613",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libuuid1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53615",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "libuuid1",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-78410",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "mount",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53613",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "mount",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53615",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "mount",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-78410",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "ncurses-base",
+   "installed": "6.4-4",
+   "cve": "CVE-2025-69720",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "ncurses-bin",
+   "installed": "6.4-4",
+   "cve": "CVE-2025-69720",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "perl-base",
+   "installed": "5.36.0-7+deb12u4",
+   "cve": "CVE-2026-9538",
+   "severity": "HIGH",
+   "status": "fix_deferred",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 fix_deferred，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "util-linux",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53613",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "util-linux",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53615",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "util-linux",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-78410",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "util-linux-extra",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53613",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "util-linux-extra",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-53615",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "util-linux-extra",
+   "installed": "2.38.1-5+deb12u3",
+   "cve": "CVE-2026-78410",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "zlib1g",
+   "installed": "1:1.2.13.dfsg-1",
+   "cve": "CVE-2023-45853",
+   "severity": "CRITICAL",
+   "status": "will_not_fix",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NOT_AFFECTED",
+   "basis": "Debian security tracker：[bookworm] - zlib <ignored>（contrib/minizip not built and src:zlib not producing binary packages）；bookworm 的 minizip 為獨立來源套件且已修（1.1-8+deb12u1）；兩架構 SBOM 均無 minizip 元件。VEX：vulnerable_code_not_present。"
+  },
+  {
+   "package": "zlib1g",
+   "installed": "1:1.2.13.dfsg-1",
+   "cve": "CVE-2026-76844",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  },
+  {
+   "package": "zlib1g",
+   "installed": "1:1.2.13.dfsg-1",
+   "cve": "CVE-2026-85091",
+   "severity": "HIGH",
+   "status": "affected",
+   "fixed": null,
+   "architectures": [
+    "amd64",
+    "arm64"
+   ],
+   "disposition": "NO_FIX_AVAILABLE",
+   "basis": "Debian 狀態 affected，目前無修補；需具名 owner 接受（HUMAN_DECISION_QUEUE SC-OWNER）並隨 base digest 更新重掃。"
+  }
+ ],
+ "zlib_CVE_2023_45853": {
+  "disposition": "NOT_AFFECTED",
+  "debian_tracker": "https://security-tracker.debian.org/tracker/CVE-2023-45853",
+  "debian_note": "[bookworm] - zlib <ignored> (contrib/minizip not built and src:zlib not producing binary packages)",
+  "debian_minizip_bookworm": "1.1-8+deb12u1 fixed（獨立來源套件 minizip）",
+  "image_inventory": {
+   "amd64": [],
+   "arm64": []
+  },
+  "note": "Trivy 依 src:zlib 版本回報 will_not_fix；漏洞程式（contrib/minizip）不在任何已安裝 binary 內，不需再處理。"
+ },
+ "base_refresh": {
+  "runtime_base_before": "node:22-bookworm-slim@sha256:4b150b48…",
+  "runtime_base_after": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+  "v5_369837b_counts_per_arch": {
+   "CRITICAL": 1,
+   "HIGH": 36,
+   "MEDIUM": 102,
+   "LOW": 83,
+   "UNKNOWN": 1
+  }
+ }
+}

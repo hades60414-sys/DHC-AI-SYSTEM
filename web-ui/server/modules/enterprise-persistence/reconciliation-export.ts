@@ -45,11 +45,21 @@ function document(input: ReconciliationExportInput) {
   };
 }
 
-/** CSV 公式注入防護：（可含前導空白的）= + @、Tab／CR 開頭，或前導空白後的「-」、「-」後面不是數字，都前置單引號；純數字負差額（-5000）保持原值。所有欄位一律加引號。 */
+/**
+ * CSV 公式注入防護（V5.1 RG-V5-02）。可達路徑：ACC-MATCH 拒收結果的 errors[].rowId 是原始 CSV 儲存格（未通過 ID 驗證也會保留），
+ * 因此任何字串都可能抵達匯出。規則：
+ * - 純整數（金額、差額、行號；含負號，如 -5000）原樣保留——ACC-MATCH 的數值欄只有整數。
+ * - 其他值去除前導空白（含全形空白）後，以 = + - @（含全形 ＝ ＋ － ＠、U+2212 減號、U+FE63 小減號）開頭，或以 Tab／CR 開頭 → 前置單引號。
+ * 所有欄位一律加引號。單元測試只驗字串；試算表實際行為由 CI 的 LibreOffice 匯入測試驗證（Excel 無法在 CI 執行，記為 NOT_RUN）。
+ */
+const PLAIN_INTEGER = /^-?\d+$/;
+const FORMULA_START = /^[\s\u3000]*[=+\-@\uFF1D\uFF0B\uFF0D\uFF20\u2212\uFE63]|^[\t\r]/;
+export function neutralizeCsvCell(value: unknown) {
+  const text = value === null || value === undefined ? '' : String(value);
+  return !PLAIN_INTEGER.test(text) && FORMULA_START.test(text) ? `'${text}` : text;
+}
 function cell(value: unknown) {
-  let text = value === null || value === undefined ? '' : String(value);
-  if (/^[\s]*[=+@]/.test(text) || /^[\t\r]/.test(text) || /^\s*-(?!\d)/.test(text) || /^\s+-/.test(text)) text = `'${text}`;
-  return `"${text.replace(/"/g, '""')}"`;
+  return `"${neutralizeCsvCell(value).replace(/"/g, '""')}"`;
 }
 
 const sourceText = (item: ReconciliationCase) => item.sources.map(ref => `${ref.side}:L${ref.line}:${ref.rowId}`).join('|');

@@ -2,12 +2,13 @@ import { createHash } from 'node:crypto';
 
 import type { Pool, PoolClient } from 'pg';
 
-import type { EnterpriseDocumentBlobStore, EnterprisePageResource } from '@/shared/index.js';
+import type { EnterpriseDocumentBlobStore, EnterpriseOpsReportRow, EnterprisePageResource } from '@/shared/index.js';
 
 import { inspectDocumentContent } from './document-content.policy.js';
 import { chunkUnits, extractDocumentText, unsupportedExtractorName } from './document-extraction.js';
 import { createScopedEnterpriseRepository, findActiveEnterpriseMembership, findLiveEnterpriseSessionMember } from './enterprise.repository.js';
-import { OPS_REPORT_MAX_SOURCES, OPS_REPORT_RULE_VERSION, isoWeekRange, opsReportResultSha256, runOpsReportV1 } from './ops-report-v1.js';
+import { OPS_REPORT_MAX_SOURCES, OPS_REPORT_MAX_TOTAL_BYTES, OPS_REPORT_RULE_VERSION, isoWeekRange, opsReportResultSha256, type OpsReportResult } from './ops-report-v1.js';
+import type { OpsReportPlan } from './ops-report-runner.js';
 import { ACC_MATCH_RULE_VERSION, reconciliationResultSha256, runAccMatchV1, type ReconciliationResult } from './reconciliation-acc-match-v1.js';
 import { buildReconciliationExport, RECONCILIATION_EXPORT_FORMATS, type ReconciliationExportFormat, type ReconciliationExportSource } from './reconciliation-export.js';
 
@@ -277,13 +278,14 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
       return { reconciliation: row, reused };
     },
     /**
-     * V5 OPS-REPORT-v1：以 1–5 個文件版本、ISO 週別與明示案例集產生確定性週報。組織只來自 session（withOrganization）；
-     * 來源 bytes 由 storage 讀回並重驗 hash；同輸入（來源版本集合＋案例集＋週別）重送回原結果（reused），並行重送由唯一索引收斂。
-     * 撤權／停權：withOrganization 在交易開頭重驗 session epoch；寫入前再檢查商務權益。計算是純函式，不呼叫模型。
+     * V5.1 OPS-REPORT-v1 第一階段（短交易）：驗證請求、取版本 metadata、快速拒絕過大輸入（依已存 byte_size，不讀 blob）、
+     * 商務權益檢查、查既有成功結果。回傳 existing（重送）或 plan（交給交易外的計算）。組織只來自 session。
+     * 第二階段由 computeOpsReportFromStore 在交易外逐一讀 blob；第三階段 commitOpsReport 重新開交易（重驗 session）寫入。
+     * 這樣長時間計算期間不持有交易與成員列 FOR SHARE 鎖：停權／改角色立即生效，寫入時以新 session 狀態判斷（RG-V5-01／Batch D）。
      */
-    async createOpsReport(input: Record<string, unknown>) {
+    async prepareOpsReport(input: Record<string, unknown>): Promise<{ existing: EnterpriseOpsReportRow } | { plan: OpsReportPlan }> {
       checkActive();
-      const store = requireBlobStore();
+      requireBlobStore();
       const invalid = () => new Error('ENTERPRISE_INVALID_OPS_REPORT');
       if (input.ruleVersion !== undefined && input.ruleVersion !== OPS_REPORT_RULE_VERSION) throw invalid();
       if (typeof input.week !== 'string' || !isoWeekRange(input.week)) throw invalid();
@@ -306,23 +308,25 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
       }
       // 同一版本列兩次＝請求錯誤；來源依版本 id 排序，讓「同一組來源」不論請求順序都是同一個冪等鍵與同一份結果。
       if (new Set(loaded.map(version => version.id)).size !== loaded.length) throw invalid();
+      // 快速拒絕：合計 bytes 超過上限時不讀任何 blob（413）。引擎內仍會再檢查一次（縱深防禦）。
+      if (loaded.reduce((total, version) => total + version.byteSize, 0) > OPS_REPORT_MAX_TOTAL_BYTES) throw new Error('ENTERPRISE_OPS_REPORT_TOO_LARGE');
       loaded.sort((a, b) => (a.id < b.id ? -1 : 1));
       const sortedDatasets = [...(datasets as string[])].sort();
       const inputKey = createHash('sha256').update(JSON.stringify({ datasets: sortedDatasets, sources: loaded.map(version => [version.id, version.sha256]) })).digest('hex');
       await options.checkWrite?.(client, organizationId, 'ops_report.create');
-      const key = { ruleVersion: OPS_REPORT_RULE_VERSION, isoWeek: week, inputKey };
-      const existing = await repository.findCompletedOpsReport(key);
-      if (existing) return { opsReport: existing, reused: true };
-      const sources: Array<{ content: Buffer; versionId: string; sha256: string }> = [];
-      for (const version of loaded) {
-        const content = await store.get(storageOrganizationId, version.sha256);
-        if (createHash('sha256').update(content).digest('hex') !== version.sha256) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
-        sources.push({ content, versionId: version.id, sha256: version.sha256 });
-      }
-      const result = timed('ops_report', () => runOpsReportV1({ sources, week, datasets: sortedDatasets }));
+      const existing = await repository.findCompletedOpsReport({ ruleVersion: OPS_REPORT_RULE_VERSION, isoWeek: week, inputKey });
+      if (existing) return { existing };
+      return { plan: { organizationId: storageOrganizationId, week, periodStart, periodEnd, datasets: sortedDatasets, inputKey,
+        versions: loaded.map(version => ({ id: version.id, sha256: version.sha256, byteSize: version.byteSize })) } };
+    },
+    /** V5.1 第三階段（新交易）：重驗 session（withOrganization）與商務權益後寫入；並行重送由部分唯一索引收斂為 reused。 */
+    async commitOpsReport(plan: OpsReportPlan, result: OpsReportResult) {
       checkActive();
-      const { row, reused } = await repository.insertOpsReport({ ...key, periodStart, periodEnd, datasets: sortedDatasets, status: result.status, result,
-        resultSha256: opsReportResultSha256(result), sources: loaded.map(version => ({ documentVersionId: version.id, sha256: version.sha256 })) });
+      if (plan.organizationId !== storageOrganizationId) throw new Error('ENTERPRISE_SCOPE_DENIED');
+      await options.checkWrite?.(client, organizationId, 'ops_report.create');
+      const { row, reused } = await repository.insertOpsReport({ ruleVersion: OPS_REPORT_RULE_VERSION, isoWeek: plan.week, inputKey: plan.inputKey,
+        periodStart: plan.periodStart, periodEnd: plan.periodEnd, datasets: plan.datasets, status: result.status, result, resultSha256: opsReportResultSha256(result),
+        sources: plan.versions.map(version => ({ documentVersionId: version.id, sha256: version.sha256 })) });
       if (!reused) await repository.appendAudit(`ops_report.${result.status}`, 'ops_report', row.id);
       return { opsReport: row, reused };
     },
@@ -361,8 +365,9 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
         const version = await repository.getDocumentVersionById(versionId);
         if (!version || version.sha256 !== (side === 'ledger' ? row.ledgerSha256 : row.receiptsSha256)) throw new Error('ENTERPRISE_SOURCE_UNAVAILABLE');
         try {
-          const content = await store.get(storageOrganizationId, version.sha256);
-          if (createHash('sha256').update(content).digest('hex') !== version.sha256) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
+          // V5.1（V5-OCR-002）：優先串流驗證，不把來源整份讀入記憶體；adapter 未提供 verify 時才退回 get＋hash。
+          if (store.verify) await store.verify(storageOrganizationId, version.sha256);
+          else if (createHash('sha256').update(await store.get(storageOrganizationId, version.sha256)).digest('hex') !== version.sha256) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
         } catch (error) {
           const code = error instanceof Error ? error.message : '';
           if (code === 'ENTERPRISE_BLOB_NOT_FOUND' || code === 'ENTERPRISE_BLOB_INTEGRITY') throw new Error('ENTERPRISE_SOURCE_UNAVAILABLE');

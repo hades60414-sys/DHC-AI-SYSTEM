@@ -1,0 +1,236 @@
+{
+ "schema": "dhc-finding-matrix/v1",
+ "product_source_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+ "base_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+ "pr": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/pull/12",
+ "ci": {
+  "verify": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617",
+  "image_build": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627",
+  "all_success": true
+ },
+ "findings": [
+  {
+   "id": "RG-V5-01",
+   "title": "OPS-REPORT 合計資源上限",
+   "status": "FIXED",
+   "commits": [
+    "11359bb",
+    "6933d5e"
+   ],
+   "evidence": [
+    "docs/enterprise/v51/RESOURCE_BOUNDARY_REPORT.md",
+    "docs/enterprise/v51/evidence/RG-V5-01_RED_GREEN.md",
+    "server/modules/enterprise-persistence/tests/ops-report-limits.test.ts",
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts"
+   ],
+   "ci": {
+    "verify_run": "42247102617",
+    "probe": "PASS"
+   },
+   "open_items": [
+    "DEC-05 多來源合計列數業務契約"
+   ]
+  },
+  {
+   "id": "RG-V5-02",
+   "title": "CSV Formula Guard（拒收 rowId 可達）",
+   "status": "FIXED",
+   "commits": [
+    "49c4017",
+    "7679748"
+   ],
+   "evidence": [
+    "docs/enterprise/v51/CSV_SECURITY_REPORT.md",
+    "server/modules/enterprise-persistence/tests/reconciliation-export.test.ts"
+   ],
+   "ci": {
+    "verify_run": "42247102617",
+    "libreoffice": "PASS",
+    "excel": "NOT_RUN"
+   },
+   "open_items": [
+    "Excel 實測 NOT_RUN"
+   ]
+  },
+  {
+   "id": "RG-V5-03",
+   "title": "OpenCodeReview 最終覆蓋",
+   "status": "FIXED",
+   "commits": [],
+   "evidence": [
+    "docs/enterprise/v51/OCR_BUILDER_REVIEW.json"
+   ],
+   "ci": {},
+   "open_items": []
+  },
+  {
+   "id": "RG-V5-04",
+   "title": "UAT 證據可追溯",
+   "status": "FIXED",
+   "commits": [
+    "4e18881"
+   ],
+   "evidence": [
+    "docs/enterprise/uat/UAT_EVIDENCE_INDEX.json",
+    "scripts/enterprise/uat_evidence_index.py"
+   ],
+   "ci": {
+    "verify_run": "42247102617"
+   },
+   "metrics": {
+    "FILE_LEVEL": 37,
+    "LINKED_TEST": 19,
+    "EVIDENCE_MISSING": 10
+   },
+   "open_items": [
+    "OP-UAT-26、OP-UAT-36、ACC-UAT-11 宣稱有進度但無證據引用",
+    "SEC（sec01）不在 CI"
+   ]
+  },
+  {
+   "id": "RG-V5-05",
+   "title": "供應鏈 provenance",
+   "status": "FIXED",
+   "commits": [
+    "5a72637"
+   ],
+   "evidence": [
+    "docs/enterprise/v51/SUPPLY_CHAIN_FINAL_LEDGER.json"
+   ],
+   "ci": {
+    "image_run": "42247102627"
+   },
+   "open_items": [
+    "無修補 Debian OS HIGH 需具名 owner 接受"
+   ]
+  },
+  {
+   "id": "RG-V5-06",
+   "title": "remote-agent 命令執行安全",
+   "status": "BLOCKED_DECISION",
+   "commits": [],
+   "evidence": [
+    "docs/enterprise/v51/REMOTE_AGENT_THREAT_MODEL.md（公開摘要；完整版受控保存）"
+   ],
+   "ci": {},
+   "open_items": [
+    "SEC-01 owner 決策（Grill-Me）"
+   ]
+  },
+  {
+   "id": "RG-V5-07",
+   "title": "DeID Proxy 加固",
+   "status": "WORK_ORDER_ISSUED",
+   "commits": [],
+   "evidence": [
+    "docs/enterprise/v51/DEID_PROXY_HARDENING_PLAN.md"
+   ],
+   "ci": {},
+   "open_items": [
+    "SEC-02 owner 排程 DEID-01..08"
+   ]
+  },
+  {
+   "id": "BD-BLOB",
+   "title": "大型來源 blob 整份讀入（V5-OCR-002）",
+   "status": "FIXED",
+   "commits": [
+    "11359bb"
+   ],
+   "evidence": [
+    "server/modules/enterprise-persistence/document-blob-store.ts",
+    "server/modules/enterprise-persistence/tests/document-blob-store.test.ts"
+   ],
+   "ci": {
+    "verify_run": "42247102617"
+   },
+   "open_items": [
+    "ACC-MATCH 建立仍讀兩來源（V51-OCR-006）"
+   ]
+  },
+  {
+   "id": "BD-FLAKE",
+   "title": "agent.routes.test.ts 偶發序列化失敗（V5-OCR-008）",
+   "status": "FIXED",
+   "commits": [
+    "17f06a3"
+   ],
+   "evidence": [
+    "server/modules/agent/tests/agent.routes.test.ts"
+   ],
+   "ci": {
+    "verify_run": "42247102617"
+   },
+   "root_cause": "macOS 非同步 stdout pipe 上，路由 console.log 與 node:test 序列化訊息交錯",
+   "reproduction": "未靜音 4/160；靜音 0/240；修正後 0/120",
+   "open_items": []
+  },
+  {
+   "id": "BD-REJECTED",
+   "title": "被拒絕 OPS Report 重送與表成長",
+   "status": "BLOCKED_DECISION",
+   "commits": [],
+   "evidence": [],
+   "ci": {},
+   "open_items": [
+    "DEC-07 稽核保留政策（每次拒收是否都留列）"
+   ]
+  },
+  {
+   "id": "BD-UPGRADE",
+   "title": "跨版本升級與回退遠端 CI",
+   "status": "FIXED",
+   "commits": [
+    "5a72637",
+    "6933d5e"
+   ],
+   "evidence": [
+    "scripts/enterprise/ci/upgrade_rollback.py"
+   ],
+   "ci": {
+    "image_run": "42247102627",
+    "result": "PASS"
+   },
+   "open_items": [
+    "arm64 NOT_RUN"
+   ]
+  },
+  {
+   "id": "BD-REVOKE",
+   "title": "Session 撤權與長時間報表運算",
+   "status": "FIXED",
+   "commits": [
+    "11359bb"
+   ],
+   "evidence": [
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts"
+   ],
+   "ci": {
+    "verify_run": "42247102617"
+   },
+   "open_items": []
+  },
+  {
+   "id": "BD-PERF",
+   "title": "API 端到端報表／匯出效能",
+   "status": "MEASURED",
+   "commits": [
+    "5a72637"
+   ],
+   "evidence": [
+    "docs/enterprise/v51/PERFORMANCE_REPORT.md"
+   ],
+   "ci": {
+    "image_run": "42247102627"
+   },
+   "open_items": [
+    "負載與 SLO NOT_RUN"
+   ]
+  }
+ ],
+ "rollback": {
+  "how": "V5.1 是 stacked Draft PR；不合併即不影響 V5（877525f）。回退＝關閉 PR #12 或 git revert 該範圍；資料庫無新 migration（0013／0014 為 V5）。",
+  "reverify": "gh workflow run enterprise-verify / enterprise-image-build（或重推同一 head）；本機：npm test＋ops-resource-probe＋uat_evidence_index.py --check"
+ },
+ "not_a_substitute": "Builder 自評，不是 Astra 或獨立審查結論。"
+}

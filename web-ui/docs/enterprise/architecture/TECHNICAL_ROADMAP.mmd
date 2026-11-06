@@ -2,6 +2,7 @@
 flowchart LR
   classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A
   classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
+  classDef newv51 fill:#e9e6f6,stroke:#5a4a9a,color:#2A2A2A
   classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
   classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2
   subgraph S0["CURRENT"]
@@ -21,19 +22,30 @@ flowchart LR
     QA_01["QA-01<br/>CI 基線比對器 v2（fail closed）＋5 個 legacy 失敗修復"]:::newv5
     SC_01["SC-01<br/>企業 runtime 移除 npm；lodash-es／nanoid 覆寫；台帳"]:::newv5
   end
-  subgraph S2["PLANNED"]
+  subgraph S2["NEW_IN_V51"]
+    RG_01["RG-01<br/>OPS-REPORT 資源邊界：合計列數／bytes／單行上限、結果大小有界、交易外計算、併發閘門"]:::newv51
+    RG_02["RG-02<br/>CSV 公式注入（拒收結果 rowId 可達）防護＋LibreOffice 實測"]:::newv51
+    RG_03["RG-03<br/>blob 串流完整性驗證（匯出不再整份讀入）"]:::newv51
+    RG_04["RG-04<br/>66 項 UAT 機械化證據索引（LINKED_TEST／FILE_LEVEL／EVIDENCE_MISSING）"]:::newv51
+    UPG_01["UPG-01<br/>V4→V5.1 升級與回退在 GitHub Actions 原生 amd64 執行"]:::newv51
+    SC_02["SC-02<br/>更新 runtime／build base digest（node:22-bookworm[-slim] 2026-11-05）並重跑雙架構交付與 Trivy"]:::newv51
+  end
+  subgraph S3["PLANNED"]
     OPS_03["OPS-03<br/>週報敘述生成（模型只寫文字）"]:::planned
     OPS_04["OPS-04<br/>週報送審／簽認／正式匯出（沿用草稿審批鏈）"]:::planned
     OBS_02["OBS-02<br/>OpenTelemetry 追蹤、告警與 SLO（需實測流量基線）"]:::planned
-    SC_02["SC-02<br/>更新 RUNTIME_BASE digest（apt 2.6.2 等 OS 修補）並重跑雙架構交付"]:::planned
-    PERF_01["PERF-01<br/>CI 效能量測：API p50／p95、5 萬列對帳、匯出耗時、記憶體"]:::planned
+    PERF_01["PERF-01<br/>CI 效能：端到端報表／匯出 p50／p95 已量（NEW_IN_V51）；多用戶負載與 soak 仍未做"]:::planned
     UAT_01["UAT-01<br/>66 項 UAT 實際執行（目前 PASS 0）"]:::planned
+    PERF_02["PERF-02<br/>多用戶併發負載、長時間 soak、arm64 升級回退"]:::planned
   end
-  subgraph S3["BLOCKED_DECISION"]
+  subgraph S4["BLOCKED_DECISION"]
     DEC_01["DEC-01<br/>條款比對功能（BLOCKED_PRODUCT_DECISION）"]:::blocked
     DEC_02["DEC-02<br/>RD-002／RD-003 契約、IP／著作權、價格與 SOW"]:::blocked
     DEC_03["DEC-03<br/>正式映像發布（GHCR）與客戶正式部署"]:::blocked
     DEC_04["DEC-04<br/>ACC-MATCH 擴充規則（多對一、分期、退款、跨月）"]:::blocked
+    SEC_01["SEC-01<br/>remote-agent cmd-run 預設暴露給模型、字面禁止清單可繞過（需模組 owner 決策）"]:::blocked
+    SEC_02["SEC-02<br/>deid-proxy／codex-deid 大小限制、逾時、背壓、斷線與路徑政策（owner 工單）"]:::blocked
+    DEC_05["DEC-05<br/>OPS-REPORT 多來源合計列數的業務契約（目前工程上限 5 萬）"]:::blocked
   end
-  S0 --> S1 --> S2
-  S3 -.->|"人類決策後才排入"| S2
+  S0 --> S1 --> S2 --> S3
+  S4 -.->|"人類決策後才排入"| S3

@@ -1,0 +1,50 @@
+{
+ "node": "v22.23.4",
+ "arch": "arm64",
+ "results": [
+  {
+   "name": "single_50k",
+   "input_bytes": 4216855,
+   "status": "completed",
+   "rows": 50000,
+   "ms": 1149,
+   "max_rss_mb": 230
+  },
+  {
+   "name": "five_x_50k",
+   "input_bytes": 21084275,
+   "status": "completed",
+   "rows": 250000,
+   "ms": 65001,
+   "max_rss_mb": 504
+  },
+  {
+   "name": "five_x_25MiB",
+   "input_bytes": 69659275,
+   "status": "completed",
+   "rows": 245000,
+   "ms": 77839,
+   "max_rss_mb": 1865
+  },
+  {
+   "name": "one_huge_line_25MiB",
+   "input_bytes": 26214506,
+   "status": "rejected",
+   "codes": [
+    "COLUMN_COUNT"
+   ],
+   "ms": 1351,
+   "max_rss_mb": 1016
+  },
+  {
+   "name": "long_field_1MiB",
+   "input_bytes": 1048828,
+   "status": "rejected",
+   "codes": [
+    "TOO_LONG_據點名稱"
+   ],
+   "ms": 38,
+   "max_rss_mb": 124
+  }
+ ]
+}

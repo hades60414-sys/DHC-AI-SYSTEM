@@ -68,6 +68,25 @@ describe('ACC-MATCH-v1 結構化匯出（確定性、可重算 hash、不改寫�
     assert.equal(rows.find(row => row[header.indexOf('案件ID')] === 'ACC-CASE-004')![header.indexOf('差額_最小單位')], '-5000');
   });
 
+  test('V5.1 RG-V5-02 可達路徑：合法拒收的 ACC-MATCH 結果會把原始「資料列ID」放進 errors[].rowId → CSV 匯出必須中和公式（含全形），純數字負值保持', () => {
+    const payloads = ['-1+1', '-2*3', '＝1+1', '＋SUM(A1)', '－1+2', '＠SUM(A1)', '=HYPERLINK("http://x")', ' +1', '\u22121+1'];
+    const ledgerText = LEDGER.toString('utf8').trim().split('\n');
+    const hostileLedger = Buffer.from([ledgerText[0], ...payloads.map((payload, i) => ledgerText[1].replace(/^[^,]*/, `"${payload.replace(/"/g, '""')}"`).replace(',I001,', `,X${i},`))].join('\n') + '\n');
+    const rejected = runAccMatchV1({ ledger: { content: hostileLedger, versionId: 'v-l', sha256: 'a'.repeat(64) }, receipts: { content: RECEIPTS, versionId: 'v-r', sha256: 'b'.repeat(64) },
+      periodStart: '2026-10-01', periodEnd: '2026-10-28' });
+    assert.equal(rejected.status, 'rejected');
+    if (rejected.status !== 'rejected') return;
+    const reached = new Set(rejected.errors.map(error => error.rowId));
+    for (const payload of payloads) assert.ok(reached.has(payload), `payload 沒有抵達匯出：${payload}`);
+    const [header, ...rows] = parseCsv(buildReconciliationExport(input(rejected), 'csv').content.toString('utf8'));
+    const cells = rows.map(row => row[header.indexOf('資料列ID')]);
+    for (const payload of payloads) assert.ok(cells.includes(`'${payload}`), `未中和：${JSON.stringify(payload)} → ${JSON.stringify(cells.filter(cell => cell.includes(payload.trim().slice(1))))}`);
+    // 合法數值不得被改：完成結果的負差額、拒收結果的行號
+    const [okHeader, ...okRows] = parseCsv(buildReconciliationExport(input(), 'csv').content.toString('utf8'));
+    assert.equal(okRows.find(row => row[okHeader.indexOf('案件ID')] === 'ACC-CASE-004')![okHeader.indexOf('差額_最小單位')], '-5000');
+    assert.ok(rows.every(row => /^\d*$/.test(row[header.indexOf('行號')])));
+  });
+
   test('未支援清單與來源已改版：UNSUPPORTED 案件逐筆列出；superseded 時 JSON 與 Markdown 都明確標示', () => {
     assert.equal(result.status, 'completed');
     if (result.status !== 'completed') return;
