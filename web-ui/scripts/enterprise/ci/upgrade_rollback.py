@@ -166,7 +166,8 @@ try:
                    headers={'idempotency-key': 'upgrade-run-0002'}, expect=202)[1]['run']
     check('升級後新 Run 可完成', wait_run(port, staff, new_run['id'])['status'] == 'succeeded')
     status_code, exported = call(port, 'GET', f"/api/enterprise/v1/reconciliations/{old_recon['id']}/export?format=json", staff)
-    check('升級後舊版對帳可匯出（V5.1）且結果 hash 不變', status_code == 200 and json.loads(exported)['reconciliation']['resultSha256'] == old_recon['resultSha256'], status_code)
+    exported_doc = exported if isinstance(exported, dict) else json.loads(exported)  # call() 已把 application/json 解析成 dict
+    check('升級後舊版對帳可匯出（V5.1）且結果 hash 不變', status_code == 200 and exported_doc['reconciliation']['resultSha256'] == old_recon['resultSha256'], status_code)
     ops_doc = call(port, 'POST', '/api/enterprise/v1/documents', staff, raw=(FIXTURE / '營運週報' / '合成營運明細.csv').read_bytes(), headers={'Content-Type': 'text/csv', 'x-dhc-title': 'ops', 'x-dhc-filename': 'ops.csv'}, expect=201)[1]
     ops = call(port, 'POST', '/api/enterprise/v1/ops-reports', staff, body={'sources': [{'documentId': doc_id(ops_doc), 'versionNumber': 1}], 'week': '2026-W43', 'datasets': ['BASE']}, expect=201)[1]['opsReport']
     claim = next(item for item in ops['result']['claims'] if item['claimId'] == 'OP-CLM-01')

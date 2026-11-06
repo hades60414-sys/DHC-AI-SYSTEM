@@ -274,6 +274,8 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
     res.on('close', () => { if (!res.writableFinished) abort.abort(); });
     const release = await opsReportGate.acquire();
     try {
+      // 在佇列中等待期間用戶端已斷線 → 不再計算（V5.1 OCR）
+      if (abort.signal.aborted) throw new Error('ENTERPRISE_REQUEST_ABORTED');
       const body = (req.body ?? {}) as Record<string, unknown>;
       const prepared = await inScope<Awaited<ReturnType<ScopedService['prepareOpsReport']>>>(res, service => service.prepareOpsReport(body));
       if ('existing' in prepared) {
