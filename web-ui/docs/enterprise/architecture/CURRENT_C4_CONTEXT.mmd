@@ -1,0 +1,25 @@
+%% C4 Level 1（系統情境）。標記：CURRENT＝已在程式中、NEW_IN_V5＝本輪新增、PLANNED＝尚未實作、BLOCKED_DECISION＝待人類決策。
+flowchart LR
+  classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A
+  classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
+  classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
+  classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2
+
+  staff["組織成員<br/>org_admin／approver／employee／auditor<br/>[CURRENT]"]:::current
+  operator["客戶端維運者<br/>dhc-office.py 安裝／備份／還原／升級<br/>[CURRENT]"]:::current
+  system["DHC AI Office<br/>單客戶隔離部署（Express＋PostgreSQL）<br/>[CURRENT]"]:::current
+  models["外部模型供應商（BYOK）<br/>CLOUD_ALLOWED／LOCAL_ONLY＋egress 政策<br/>[CURRENT]"]:::current
+  monitor["客戶監控系統<br/>擷取 /api/enterprise/v1/metrics（需 token）<br/>[NEW_IN_V5 端點／PLANNED 告警]"]:::newv5
+  github["GitHub Actions（公開 repo）<br/>verify／原生 amd64＋arm64 image build<br/>[CURRENT]"]:::current
+  registry["映像發布（GHCR 等）<br/>[BLOCKED_DECISION：正式發布 Gate]"]:::blocked
+  billing["真實金流／收款<br/>[BLOCKED_DECISION：不啟用]"]:::blocked
+  clause["條款比對功能<br/>[BLOCKED_DECISION：BLOCKED_PRODUCT_DECISION]"]:::blocked
+
+  staff -->|"HTTPS（反向代理）＋Bearer session"| system
+  operator -->|"docker compose／dhc-office.py"| system
+  system -->|"受 egress 政策限制的模型請求"| models
+  monitor -.->|"Prometheus 文字格式"| system
+  github -->|"建置與測試（不部署）"| system
+  github -.-> registry
+  system -.-> billing
+  system -.-> clause

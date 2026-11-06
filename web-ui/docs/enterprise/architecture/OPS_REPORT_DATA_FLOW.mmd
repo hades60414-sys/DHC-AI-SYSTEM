@@ -1,0 +1,19 @@
+%% OPS-REPORT-v1 營運週報資料流（NEW_IN_V5）。
+flowchart LR
+  classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A
+  classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
+  classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
+
+  src["1–5 個營運明細文件版本<br/>＋ISO 週別＋明示案例集"]:::newv5
+  key["冪等鍵 input_key<br/>＝SHA-256(排序後版本 id＋hash、案例集)"]:::newv5
+  load["讀 blob＋重驗 hash"]:::current
+  engine["runOpsReportV1（純函式）<br/>BigInt、ROUND_HALF_UP 至百分之一<br/>空值 UNKNOWN、同站多列 CONFLICT<br/>守恆／準時數異常只列不改"]:::newv5
+  claims["14 項主張<br/>value＋scale、分子分母、來源列"]:::newv5
+  store[("ops_reports＋ops_report_sources<br/>completed 唯一、只新增、FORCE RLS")]:::newv5
+  audit[("audit_events<br/>ops_report.completed／rejected")]:::newv5
+  llm["模型撰寫敘述<br/>[PLANNED]"]:::planned
+  guard["validateOpsNarrative<br/>數字必須出自引擎、百分點≠%<br/>[NEW_IN_V5]"]:::newv5
+  approve["送審／簽認／正式匯出<br/>[PLANNED]"]:::planned
+
+  src --> key --> load --> engine --> claims --> store --> audit
+  claims -.-> llm -.-> guard -.-> approve

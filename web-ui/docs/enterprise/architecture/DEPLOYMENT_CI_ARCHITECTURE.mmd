@@ -1,0 +1,36 @@
+%% CI 與部署架構。來源：.github/workflows/enterprise-*.yml、deploy/ai-office/dhc-office.py。
+flowchart TB
+  classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A
+  classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
+  classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
+  classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2
+
+  pr["Pull Request（main 或 integration/enterprise-rcfix-v4-20261106）<br/>permissions: contents read、無 secrets<br/>[CURRENT＋stacked PR 觸發 NEW_IN_V5]"]:::newv5
+  subgraph verify["enterprise-verify（ubuntu-24.04）"]
+    su["static-and-unit：比對器單元測試→typecheck→oxlint JSON→後端 TAP→前端 vitest→基線比對（fail closed）<br/>[CURRENT／比對器 v2 NEW_IN_V5]"]:::newv5
+    pg["postgres-integration：PostgreSQL 16 固定 digest、全部 *.integration.test.ts 序列執行<br/>[CURRENT]"]:::current
+  end
+  subgraph image["enterprise-image-build"]
+    a64["build-amd64（ubuntu-24.04 原生）"]:::current
+    r64["build-arm64（ubuntu-24.04-arm 原生）"]:::current
+    scan["SBOM＋Trivy（digest 釘選）＋image summary<br/>[CURRENT]"]:::current
+    dl["enterprise-delivery-smoke（reusable，各架構載入實際 image）<br/>install／migration／health／E2E<br/>[CURRENT]"]:::current
+  end
+  art[("Actions artifacts（短期保留）<br/>TAP／JSON／SBOM／Trivy／image tar")]:::current
+  ghcr["正式映像發布<br/>[BLOCKED_DECISION]"]:::blocked
+  perf["效能量測（p50／p95、5 萬列、記憶體）<br/>[PLANNED：見 PERFORMANCE_REPORT，未量測項標 NOT_RUN]"]:::planned
+  cust["客戶主機：dhc-office.py install-image／bootstrap／backup／restore／status／down<br/>[CURRENT]"]:::current
+
+  pr --> su
+  pr --> pg
+  pr --> a64 --> scan
+  pr --> r64 --> scan
+  a64 --> dl
+  r64 --> dl
+  su --> art
+  pg --> art
+  scan --> art
+  dl --> art
+  art -.-> ghcr
+  art -.-> perf
+  art -.->|"人工核准後交付 image tar"| cust

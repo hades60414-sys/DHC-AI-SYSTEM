@@ -1,0 +1,23 @@
+%% ACC-MATCH-v1 對帳與匯出資料流。
+flowchart LR
+  classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A
+  classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
+  classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2
+
+  l["內部帳 CSV<br/>文件版本＋SHA-256"]:::current
+  r["收款明細 CSV<br/>文件版本＋SHA-256"]:::current
+  load["讀 blob＋重驗 hash<br/>（不符→500 BLOB_INTEGRITY，不寫入）"]:::current
+  engine["runAccMatchV1（純函式）<br/>嚴格 CSV、整數最小單位、一對一規則<br/>其他情形→UNSUPPORTED"]:::current
+  store[("reconciliations<br/>completed 唯一（部分唯一索引）<br/>rejected 亦留紀錄")]:::current
+  audit[("audit_events<br/>reconciliation.completed／rejected")]:::current
+  exp["GET …/export?format=json|csv|markdown<br/>重驗兩個來源 blob（遺失→409）<br/>標示來源是否已有新版本"]:::newv5
+  build["buildReconciliationExport（純函式）<br/>只取已存結果，不重新分類"]:::newv5
+  xstore[("reconciliation_exports<br/>格式、SHA-256、大小、superseded、匯出者")]:::newv5
+  xaudit[("audit_events<br/>reconciliation.exported_*")]:::newv5
+  rules["新增會計規則（多對一、分期、退款…）<br/>[BLOCKED_DECISION]"]:::blocked
+
+  l --> load
+  r --> load --> engine --> store --> audit
+  store --> exp --> build --> xstore
+  exp --> xaudit
+  engine -.-> rules

@@ -1,0 +1,28 @@
+%% 認證與 RLS（CURRENT；BUILDER-V4-NEW-004 session epoch 重驗）。
+sequenceDiagram
+  autonumber
+  participant B as 瀏覽器
+  participant R as enterprise.routes（requireAuth）
+  participant I as identity.authenticate
+  participant S as withOrganization（service）
+  participant P as PostgreSQL（FORCE RLS）
+  B->>R: Authorization: Bearer dhcs1.<org>.<session>.<secret>
+  R->>I: 驗證 token 格式與 secret hash
+  I->>P: 讀 session／成員／角色（bootstrap 查詢）
+  P-->>I: principal（organizationId, memberId, permissions, sessionId）
+  I-->>R: principal 或 401 ENTERPRISE_AUTH_REQUIRED
+  R->>R: requirePermission（403 ENTERPRISE_FORBIDDEN）
+  R->>S: inScope(principal.organizationId, operation)
+  S->>P: BEGIN
+  S->>P: set_config('dhc.organization_id', org, true)
+  S->>P: findLiveEnterpriseSessionMember … FOR SHARE OF m（未撤銷、未過期、epoch 相同、成員／帳號／組織 active）
+  alt session 已失效（停權／改角色／登出）
+    P-->>S: 0 列
+    S->>P: ROLLBACK
+    S-->>B: 401 ENTERPRISE_AUTH_REQUIRED
+  else 有效
+    S->>P: 業務查詢（RLS 只回本組織列；寫入 WITH CHECK）
+    S->>P: 商務寫入前 checkEnterpriseEntitlement（同交易；到期 402）
+    S->>P: COMMIT
+    S-->>B: 2xx（X-Request-Id）
+  end
