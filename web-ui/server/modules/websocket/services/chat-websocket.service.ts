@@ -82,6 +82,8 @@ export type ProviderRuntimeGateway = {
 type ChatWebSocketDependencies = {
   /** Central dispatcher for every provider SDK/CLI runtime. */
   runtime: ProviderRuntimeGateway;
+  /** SEC-01：每則訊息前重查連線主體；回 false 時以 4401 關閉，不執行該訊息。 */
+  isPrincipalActive?: () => boolean;
 };
 
 /**
@@ -703,6 +705,10 @@ export function handleChatConnection(
   const userId = readRequestUserId(request);
 
   ws.on('message', async (rawMessage) => {
+    if (dependencies.isPrincipalActive && !dependencies.isPrincipalActive()) {
+      ws.close(4401, 'principal revoked');
+      return;
+    }
     try {
       const parsed = parseIncomingJsonObject(rawMessage);
       if (!parsed) {

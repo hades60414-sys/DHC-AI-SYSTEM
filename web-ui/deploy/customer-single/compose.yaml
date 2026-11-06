@@ -1,0 +1,79 @@
+# CloudCLI UI (https://github.com/siteboon/claudecodeui) 的 DHC 衍生版本。
+# 本機單客戶骨架；E02a 內部資料層，企業 Auth/RBAC 仍未完成，不得對外開放。
+services:
+  app:
+    image: ${DHC_IMAGE:-dhc-enterprise:local}
+    build:
+      context: ../..
+      dockerfile: deploy/customer-single/Dockerfile
+      args:
+        DHC_SOURCE_SHA: ${DHC_SOURCE_SHA:-unrecorded}
+    init: true
+    user: node
+    env_file:
+      - ${DHC_SECRET_DIR:-./.secrets}/app.env
+    environment:
+      HOST: 0.0.0.0
+      SERVER_PORT: "3001"
+      DATABASE_PATH: /home/node/.cloudcli/auth.db
+      VITE_IS_PLATFORM: "false"
+      ENTERPRISE_DB_HOST: db
+      ENTERPRISE_DB_PORT: "5432"
+      ENTERPRISE_DB_NAME: ${DHC_DATABASE_NAME:-dhc_enterprise}
+      ENTERPRISE_DB_USER: dhc_app
+    networks: [default, enterprise-db]
+    ports:
+      - "127.0.0.1:${DHC_HTTP_PORT:-3001}:3001"
+    volumes:
+      - dhc-state:/home/node
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=256m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 20s
+    restart: "no"
+  db:
+    image: postgres:16-bookworm@sha256:d81f7b51697014367236d07ec58b54153fc28f828b72bf247fe5c7487520bcb0
+    env_file:
+      - ${DHC_SECRET_DIR:-./.secrets}/bootstrap.env
+    environment:
+      POSTGRES_USER: dhc_bootstrap
+      POSTGRES_DB: ${DHC_DATABASE_NAME:-dhc_enterprise}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - enterprise-pg:/var/lib/postgresql/data
+      - ./postgres-init.sh:/docker-entrypoint-initdb.d/10-enterprise.sh:ro
+    networks: [enterprise-db]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U dhc_bootstrap -d "$${POSTGRES_DB}"']
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: "no"
+  migrate:
+    profiles: [tools]
+    image: ${DHC_IMAGE:-dhc-enterprise:local}
+    user: node
+    env_file:
+      - ${DHC_SECRET_DIR:-./.secrets}/migrate.env
+    environment:
+      ENTERPRISE_DB_HOST: db
+      ENTERPRISE_DB_PORT: "5432"
+      ENTERPRISE_DB_NAME: ${DHC_DATABASE_NAME:-dhc_enterprise}
+      ENTERPRISE_DB_USER: dhc_migrator
+    networks: [enterprise-db]
+    depends_on:
+      db: {condition: service_healthy}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    command: [node, dist-server/server/modules/enterprise-persistence/migrate.cli.js, up]
+volumes:
+  dhc-state:
+  enterprise-pg:
+networks:
+  enterprise-db:
+    internal: true

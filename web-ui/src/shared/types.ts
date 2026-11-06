@@ -1601,3 +1601,88 @@ type TaskStatus =
 
 /** A TaskMaster task's priority; high, medium and low are the known values and the string fallback tolerates anything else TaskMaster emits. */
 type TaskPriority = 'high' | 'medium' | 'low' | string;
+
+// ---------------------------
+
+//----------------- DHC AI OFFICE（企業模式）API 資料 ------------
+
+/** Office 登入回傳的不透明 session；只存 sessionStorage，關閉分頁即失效。 */
+export type OfficeSession = { token: string; expiresAt: string };
+
+/** `/identity/me` 回傳的目前成員；permissions 由伺服器推導，前端只用來決定顯示哪些分頁。 */
+export type OfficeIdentity = { organizationId: string; memberId: string; email: string; roles: string[]; permissions: string[]; expiresAt: string };
+
+/** 檢索結果與草稿引用共用的來源定位；excerptSha256 讓使用者回到原文驗證。 */
+export type OfficeCitation = {
+  documentId: string; versionNumber: number; title: string; filename: string; chunkId: string; location: Record<string, unknown>; excerptSha256: string;
+};
+
+/** `/documents/search` 的單筆命中。 */
+export type OfficeSearchHit = { excerpt: string; score: number; citation: OfficeCitation };
+
+/** 草稿生成 Run；status 含 quarantined（ASTRA-004：執行期間權限變更，結果隔離未發布）。 */
+export type OfficeRun = {
+  id: string; status: string; errorCode: string | null; draftId: string | null; attempts: number; createdAt: string; input: { query: string };
+  requestedByMemberId?: string;
+};
+
+/** 伺服器在讀取時重驗的引用狀態（ASTRA-007）；只有 VALID 能送審、核准、匯出。 */
+export type OfficeCitationCheck = {
+  citationStatus: 'VALID' | 'INVALID' | 'UNCITED';
+  citationReport: { cited: number[]; invalid: Array<{ index: number; reason: string }>; unused: number[] };
+};
+
+/** `/drafts/:id` 的草稿、目前修訂（含引用狀態）與審批紀錄。 */
+export type OfficeDraftDetail = {
+  draft: { id: string; title: string; status: string; currentRevision: number; authorMemberId: string };
+  revision: ({ revision: number; body: string; source: string; citations: Array<OfficeCitation & { index: number }> } & OfficeCitationCheck) | null;
+  approvals: Array<{ id: string; revision: number; revisionSha256: string | null; status: string; decisionComment: string | null; decidedAt: string | null }>;
+};
+
+/** ACC-MATCH-v1 對帳的一個案件（W6-B）；金額皆為最小單位整數字串，null＝缺資料或不適用（不是 0）。 */
+export type OfficeReconciliationCase = {
+  caseId: string; documentId: string; category: string; label: string; reasons: string[]; ledgerRowIds: string[]; receiptRowIds: string[];
+  ledgerCurrency: string | null; ledgerTotalMinor: string | null; receiptCurrency: string | null; receiptTotalMinor: string | null;
+  differenceMinor: string | null; includedInExactMatchTotal: boolean; isolated: boolean;
+  sources: Array<{ side: 'ledger' | 'receipts'; versionId: string; sha256: string; line: number; rowId: string }>;
+};
+
+/** `/reconciliations/:id` 的對帳結果列；result 依 status 為完成結果或拒收錯誤清單。 */
+export type OfficeReconciliation = {
+  id: string; ruleVersion: string; status: 'completed' | 'rejected'; periodStart: string; periodEnd: string; resultSha256: string; createdAt: string;
+  ledgerSha256: string; receiptsSha256: string;
+  result?: {
+    counts?: Record<string, number>; cases?: OfficeReconciliationCase[];
+    totals?: Array<{ currency: string; ledgerSourceMinor: string; receiptSourceMinor: string; isolatedLedgerMinor: string; isolatedReceiptMinor: string; exactMatchMinor: string }>;
+    errors?: Array<{ side: string; line: number | null; rowId: string | null; code: string }>;
+  };
+};
+
+/** `/approvals/:id`：審批綁定的修訂（不是草稿目前修訂）與內容 hash。 */
+export type OfficeApprovalDetail = {
+  approval: { id: string; draftId: string; revision: number; revisionSha256: string; status: string; requestedByMemberId: string; createdAt: string };
+  draft: { id: string; title: string; status: string; currentRevision: number };
+  revision: NonNullable<OfficeDraftDetail['revision']>;
+  contentSha256: string;
+};
+
+/** 文件清單列。 */
+export type OfficeDocumentRow = { id: string; title: string; classification: string; createdAt: string };
+
+/** 文件版本列。 */
+export type OfficeVersionRow = { versionNumber: number; filename: string; mediaType: string; byteSize: number; sha256: string; createdAt: string };
+
+/** 上傳後的擷取結果；PDF 無文字層時 status=unsupported、errorCode=ENTERPRISE_EXTRACTION_NO_TEXT_LAYER。 */
+export type OfficeExtraction = { status: string; errorCode: string | null; chunkCount: number } | null;
+
+/** 成員列。 */
+export type OfficeMember = { id: string; email: string; status: string; roles: string[] };
+
+/** 站內通知（外送被拒、Run 隔離等硬邊界事件）；不含 prompt 或文件內容。 */
+export type OfficeNotification = {
+  id: string; kind: string; severity: 'info' | 'warning' | 'critical'; subjectType: string; subjectId: string | null; code: string | null;
+  message: string; createdAt: string; readAt: string | null; audience: 'role' | 'direct';
+};
+
+/** 管理員檢視的 Run 隔離內容（DEC-RUN-01）。 */
+export type OfficeQuarantine = { runId: string; draftId: string; reasonCode: string; status: 'held' | 'released' | 'discarded'; body: string | null; requestedByMemberId: string };

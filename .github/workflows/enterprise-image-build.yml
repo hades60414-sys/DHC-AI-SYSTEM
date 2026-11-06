@@ -1,0 +1,89 @@
+# DHC AI Office Enterprise image：兩個架構各用原生 GitHub-hosted runner 建置（不跑 QEMU 大型建置）。
+# 只在 runner 本機 load，不推送任何 registry（GHCR 散布需另經公開散布 Gate 與使用者核准）。
+# 產出：image inspect、build log、SBOM（兩個獨立枚舉器對帳）、Trivy JSON；不上傳 image tar。
+name: enterprise-image-build
+on:
+  pull_request:
+    branches: [main]
+    paths: ['web-ui/**', '.github/workflows/enterprise-*.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm   # GitHub-hosted 原生 ARM64（公開 repo）；不可用時本 job 失敗＝arm64 NOT_RUN，不以 QEMU 冒充
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    env:
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      RUNTIME_BASE: node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da
+      TRIVY_IMAGE: aquasec/trivy:0.57.1@sha256:5c59e08f980b5d4d503329773480fcea2c9bdad7e381d846fbf9f2ecb8050f6b
+    defaults:
+      run:
+        working-directory: web-ui
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      - name: 確認 runner 架構與原生建置
+        run: |
+          uname -m | tee ../runner-arch.txt
+          case "${{ matrix.arch }}:$(uname -m)" in amd64:x86_64|arm64:aarch64) echo native;; *) echo "runner 架構不符，拒絕以模擬冒充"; exit 1;; esac
+      - name: buildx build（enterprise profile、固定 runtime base、source label）
+        run: |
+          mkdir -p ../ci-out
+          docker buildx build --progress=plain --platform linux/${{ matrix.arch }} \
+            -f deploy/customer-single/Dockerfile \
+            --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE="$RUNTIME_BASE" --build-arg DHC_SOURCE_SHA="$SOURCE_SHA" \
+            --cache-from type=gha,scope=enterprise-${{ matrix.arch }} --cache-to type=gha,mode=max,scope=enterprise-${{ matrix.arch }} \
+            -t dhc-ai-office:ci-${{ matrix.arch }} --load . 2>&1 | tee ../ci-out/build.log
+      - name: image inspect（ID、架構、source revision、profile）
+        run: |
+          docker image inspect dhc-ai-office:ci-${{ matrix.arch }} > ../ci-out/image-inspect.json
+          python3 - <<'PY'
+          import json, os
+          meta = json.load(open('../ci-out/image-inspect.json'))[0]
+          labels = meta['Config'].get('Labels') or {}
+          summary = {'image_id': meta['Id'], 'architecture': f"{meta['Os']}/{meta['Architecture']}", 'repo_digests': meta.get('RepoDigests'),
+                     'source_revision': labels.get('org.opencontainers.image.revision'), 'profile': labels.get('com.dhc.image.profile'),
+                     'license': labels.get('org.opencontainers.image.licenses'), 'oci_manifest_digest': None, 'note': '未推送 registry，沒有 registry manifest digest'}
+          json.dump(summary, open('../ci-out/image-summary.json', 'w'), indent=1)
+          print(json.dumps(summary, indent=1))
+          assert summary['source_revision'] == os.environ['SOURCE_SHA'], 'source label 與 PR head 不符'
+          assert summary['profile'] == 'enterprise'
+          assert summary['architecture'] == 'linux/${{ matrix.arch }}'
+          PY
+      - name: 執行期 smoke（原生模組、pdfjs、無網路）
+        run: |
+          docker run --rm --network none --entrypoint node dhc-ai-office:ci-${{ matrix.arch }} -e "console.log(process.arch, process.version); require('better-sqlite3'); require('node-pty'); import('pdfjs-dist/legacy/build/pdf.mjs').then(() => console.log('pdfjs ok'))" | tee ../ci-out/smoke.txt
+      - name: SBOM（實際 image；npm 走訪 vs find、dpkg-query vs dpkg status 雙枚舉器）
+        run: python3 -B scripts/enterprise/rcfix/image_sbom.py dhc-ai-office:ci-${{ matrix.arch }} ../ci-out/sbom
+      - name: Trivy（vuln；結果上傳，不以閾值阻擋——處置見交接文件）
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" image --scanners vuln --format json --quiet dhc-ai-office:ci-${{ matrix.arch }} > ../ci-out/trivy.json
+          python3 - <<'PY'
+          import json, collections
+          d = json.load(open('../ci-out/trivy.json')); out = {}
+          for r in d.get('Results', []):
+              c = collections.Counter(v['Severity'] for v in r.get('Vulnerabilities') or [])
+              out[r.get('Class')] = {s: c.get(s, 0) for s in ['CRITICAL', 'HIGH']}
+          json.dump(out, open('../ci-out/trivy-summary.json', 'w'), indent=1); print(out)
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: enterprise-image-${{ matrix.arch }}
+          path: ci-out/
+          retention-days: 14

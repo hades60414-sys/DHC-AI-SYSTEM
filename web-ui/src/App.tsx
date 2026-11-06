@@ -13,6 +13,7 @@ import { ProjectWorkspaceRoute } from '@/modules/project-workspace';
 import { i18n } from '@/modules/i18n';
 import { SettingsProfileGate } from '@/modules/sidebar';
 import PiiBlockNotice from '@/shared/PiiBlockNotice';
+import { OfficeApp } from '@/modules/office';
 
 const DEPLOYMENT_ASSET_DIRECTORIES = new Set(['assets', 'static', 'icons', 'images']);
 
@@ -112,6 +113,14 @@ function detectRouterBasename() {
 /** Rendered by main.tsx; mounts the shared providers, the auth gate and the project workspace routes. */
 export default function App() {
   const routerBasename = detectRouterBasename();
+  // DHC AI Office（企業模式）獨立於原工作台：不載入 legacy Auth、WebSocket、Plugins，只呼叫 /api/enterprise/v1。
+  if (typeof window !== 'undefined' && window.location.pathname.slice(routerBasename.length).startsWith('/office')) {
+    return (
+      <ThemeProvider>
+        <OfficeApp />
+      </ThemeProvider>
+    );
+  }
 
   return (
     <I18nextProvider i18n={i18n}>

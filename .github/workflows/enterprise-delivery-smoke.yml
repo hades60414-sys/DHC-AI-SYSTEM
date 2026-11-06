@@ -1,0 +1,64 @@
+# DHC AI Office Enterprise 單客戶交付流程（每個架構在原生 runner）：
+# 建 image → preflight／init-secrets／up／bootstrap → 完整工作流（含審批版號、引用、匯出）→ 不停機備份 → 刪除 image 後只從離線包安裝
+# → 竄改包／竄改備份被拒 → 全新專案還原（全表指紋、blob）→ 真瀏覽器 E2E（含 ACC-MATCH-v1 對帳）→ 效能條件。
+# 只用合成資料與 mock 模型；不推送 image；不使用 secret。
+name: enterprise-delivery-smoke
+on:
+  pull_request:
+    branches: [main]
+    paths: ['web-ui/**', '.github/workflows/enterprise-*.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  delivery:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: web-ui
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web-ui/package-lock.json
+      - name: docker-compose shim
+        run: |
+          printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/local/bin/docker-compose >/dev/null
+          sudo chmod +x /usr/local/bin/docker-compose
+      - name: npm ci＋Chromium（E2E 驅動用；不進 image）
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx playwright-core install --with-deps --only-shell chromium
+      - name: 完整交付驗證（原生 ${{ matrix.arch }}）
+        run: python3 -B scripts/enterprise/驗證AI_Office交付.py --evidence ci-evidence/delivery-${{ matrix.arch }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: enterprise-delivery-${{ matrix.arch }}
+          path: |
+            web-ui/ci-evidence/
+            !web-ui/ci-evidence/**/*.tar
+            !web-ui/ci-evidence/**/*.tar.gz
+          retention-days: 14
+      - name: 清理本工作的容器與 volume
+        if: always()
+        run: |
+          docker ps -aq | xargs -r docker rm -f
+          docker volume ls -q | grep '^dhc-delivery-' | xargs -r docker volume rm

@@ -52,6 +52,8 @@ test('a stale socket close cannot detach the socket that replaced it', () => {
   const pty = createFakePty();
   const dependencies = {
     resolveProviderSessionId: () => null,
+    // SEC-01：PTY 預設限制在 WORKSPACES_ROOT；這些案例測其他行為，明確允許 repo 目錄。
+    isProjectPathAllowed: () => true,
     spawnPty: () => pty as never,
   };
   const initMessage = JSON.stringify({
@@ -89,6 +91,8 @@ test('shell output detects and normalizes a wrapped authentication URL', () => {
   const socket = createFakeSocket();
   const dependencies = {
     resolveProviderSessionId: () => null,
+    // SEC-01：PTY 預設限制在 WORKSPACES_ROOT；這些案例測其他行為，明確允許 repo 目錄。
+    isProjectPathAllowed: () => true,
     spawnPty: () => pty as never,
   };
 
@@ -124,6 +128,8 @@ test('bypassPermissions launches claude with --dangerously-skip-permissions', ()
   const spawnedCommands: string[] = [];
   const dependencies = {
     resolveProviderSessionId: () => null,
+    // SEC-01：PTY 預設限制在 WORKSPACES_ROOT；這些案例測其他行為，明確允許 repo 目錄。
+    isProjectPathAllowed: () => true,
     spawnPty: (_shell: string, args: string | string[]) => {
       spawnedCommands.push(Array.isArray(args) ? args[args.length - 1] : args);
       return createFakePty() as never;
@@ -164,6 +170,8 @@ test('bypassPermissions carries through to resumed claude sessions', () => {
   const spawnedCommands: string[] = [];
   const dependencies = {
     resolveProviderSessionId: () => 'resumed-session-id',
+    // SEC-01：同上，明確允許 repo 目錄。
+    isProjectPathAllowed: () => true,
     spawnPty: (_shell: string, args: string | string[]) => {
       spawnedCommands.push(Array.isArray(args) ? args[args.length - 1] : args);
       return createFakePty() as never;
@@ -198,6 +206,8 @@ test('a missing project directory is reported as an error frame and starts no pt
   let spawnCount = 0;
   const dependencies = {
     resolveProviderSessionId: () => null,
+    // SEC-01：PTY 預設限制在 WORKSPACES_ROOT；這些案例測其他行為，明確允許 repo 目錄。
+    isProjectPathAllowed: () => true,
     spawnPty: () => {
       spawnCount += 1;
       return createFakePty() as never;

@@ -76,7 +76,8 @@ export function createAgentRouter(dependencies: AgentRouterDependencies): expres
     }
 
     // Self-hosted mode: Validate API key from header or query parameter
-    const apiKey = req.headers['x-api-key'] || req.query.apiKey;
+    // SEC-01：API key 只接受 header；URL query 會落入 log、歷史與 Referer。
+    const apiKey = req.headers['x-api-key'];
 
     if (!apiKey) {
       return res.status(401).json({ error: 'API key required' });

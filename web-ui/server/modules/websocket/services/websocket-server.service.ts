@@ -11,6 +11,10 @@ import type { AuthenticatedWebSocketRequest } from '@/shared/types.js';
 
 type WebSocketServerDependencies = {
   verifyClient: Parameters<typeof verifyWebSocketClient>[1];
+  /** SEC-01：企業模式回 false，所有 legacy WS 路徑在 upgrade 階段就拒絕（fail closed）。 */
+  legacyWebSocketsEnabled?: boolean;
+  /** SEC-01：已建立連線每則訊息前重查主體是否仍有效（personal 模式停權後終止 PTY／chat）。 */
+  isPrincipalActive?: (request: AuthenticatedWebSocketRequest) => boolean;
   chat: Parameters<typeof handleChatConnection>[2];
   shell: Parameters<typeof handleShellConnection>[1];
   getPluginPort: Parameters<typeof handlePluginWsProxy>[2];
@@ -88,7 +92,7 @@ export function createWebSocketServer(
     server,
     verifyClient: ((
       info: Parameters<VerifyClientCallbackSync<AuthenticatedWebSocketRequest>>[0]
-    ) => verifyWebSocketClient(info, dependencies.verifyClient)),
+    ) => dependencies.legacyWebSocketsEnabled !== false && verifyWebSocketClient(info, dependencies.verifyClient)),
   });
 
   wss.on('connection', (ws, request) => {
@@ -97,14 +101,17 @@ export function createWebSocketServer(
     const incomingRequest = request as AuthenticatedWebSocketRequest;
     const url = incomingRequest.url ?? '/';
     const pathname = new URL(url, 'http://localhost').pathname;
+    const isPrincipalActive = dependencies.isPrincipalActive
+      ? () => dependencies.isPrincipalActive!(incomingRequest)
+      : undefined;
 
     if (pathname === '/shell') {
-      handleShellConnection(ws, dependencies.shell);
+      handleShellConnection(ws, { ...dependencies.shell, isPrincipalActive });
       return;
     }
 
     if (pathname === '/ws') {
-      handleChatConnection(ws, incomingRequest, dependencies.chat);
+      handleChatConnection(ws, incomingRequest, { ...dependencies.chat, isPrincipalActive });
       return;
     }
 

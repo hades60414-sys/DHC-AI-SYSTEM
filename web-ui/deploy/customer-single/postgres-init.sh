@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# 僅在新的獨立 PG volume 初始化時執行；不要開啟 shell/psql echo。
+psql --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" --set ON_ERROR_STOP=1 <<'SQL'
+\getenv app_password ENTERPRISE_APP_PASSWORD
+\getenv migrator_password ENTERPRISE_MIGRATOR_PASSWORD
+\getenv database_name POSTGRES_DB
+CREATE ROLE dhc_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD :'app_password';
+CREATE ROLE dhc_migrator LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD :'migrator_password';
+REVOKE ALL ON DATABASE :"database_name" FROM PUBLIC;
+GRANT CONNECT ON DATABASE :"database_name" TO dhc_app, dhc_migrator;
+REVOKE CONNECT ON DATABASE postgres, template1 FROM PUBLIC;
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+CREATE SCHEMA enterprise AUTHORIZATION dhc_migrator;
+REVOKE ALL ON SCHEMA enterprise FROM PUBLIC;
+GRANT USAGE ON SCHEMA enterprise TO dhc_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE dhc_migrator REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
+SQL

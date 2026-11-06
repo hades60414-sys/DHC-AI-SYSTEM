@@ -1,0 +1,147 @@
+openapi: 3.0.3
+info:
+  title: DHC AI Office Enterprise API
+  version: 0.1.0-rc.1
+  description: >-
+    企業模式 API（/api/enterprise/v1）。組織由 session 決定；跨組織資源回 404。
+    與 docs/enterprise/API_CONTRACT.md 對應；行為以整合測試為準。
+servers:
+  - url: /api/enterprise/v1
+security:
+  - bearer: []
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, description: "dhcs1.<orgId>.<sessionId>.<secret>；不得放在 URL" }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, pattern: '^ENTERPRISE_[A-Z_]+$' }
+            message: { type: string }
+    Citation:
+      type: object
+      properties:
+        documentId: { type: string, format: uuid }
+        documentVersionId: { type: string, format: uuid }
+        versionNumber: { type: integer }
+        title: { type: string }
+        filename: { type: string }
+        chunkId: { type: string, format: uuid }
+        chunkIndex: { type: integer }
+        location: { type: object }
+        excerptSha256: { type: string }
+    Run:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [queued, running, succeeded, failed, cancelled] }
+        errorCode: { type: string, nullable: true }
+        draftId: { type: string, format: uuid, nullable: true }
+        attempts: { type: integer }
+  responses:
+    Error: { description: 錯誤, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+paths:
+  /health/ready:
+    get: { security: [], summary: 就緒檢查, responses: { '200': { description: ready } } }
+  /auth/login:
+    post:
+      security: []
+      summary: 登入（失敗限流）
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [organizationSlug, email, password], properties: { organizationSlug: { type: string }, email: { type: string }, password: { type: string } } } } } }
+      responses: { '200': { description: token }, '401': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/Error' } }
+  /auth/logout:
+    post: { summary: 登出（撤銷 session）, responses: { '204': { description: ok } } }
+  /identity/me:
+    get: { summary: 目前主體與權限, responses: { '200': { description: identity }, '401': { $ref: '#/components/responses/Error' } } }
+  /members:
+    get: { summary: 成員清單（members.read）, responses: { '200': { description: items } } }
+    post: { summary: 新增成員（members.manage；席位上限）, responses: { '201': { description: member }, '403': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Error' } } }
+  /members/{id}/disable:
+    post: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 停權並撤銷所有 session, responses: { '200': { description: ok }, '409': { $ref: '#/components/responses/Error' } } }
+  /members/{id}/enable:
+    post: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 恢復, responses: { '200': { description: ok } } }
+  /members/{id}/roles:
+    put: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 改角色（舊 session 失效）, responses: { '200': { description: ok } } }
+  /documents:
+    get: { parameters: [{ $ref: '#/components/parameters/Limit' }, { $ref: '#/components/parameters/Cursor' }], summary: 文件分頁, responses: { '200': { description: page } } }
+    post:
+      summary: 上傳文件（body 為檔案 bytes）
+      parameters:
+        - { name: X-DHC-Title, in: header, required: true, schema: { type: string } }
+        - { name: X-DHC-Filename, in: header, required: true, schema: { type: string } }
+        - { name: X-DHC-Classification, in: header, schema: { type: string } }
+        - { name: X-DHC-Content-SHA256, in: header, schema: { type: string } }
+      requestBody: { required: true, content: { application/octet-stream: { schema: { type: string, format: binary } } } }
+      responses: { '201': { description: document+version+extraction }, '402': { $ref: '#/components/responses/Error' }, '413': { $ref: '#/components/responses/Error' }, '415': { $ref: '#/components/responses/Error' } }
+  /documents/search:
+    get:
+      summary: 檢索（AND；預設最新版）
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string } }
+        - { name: history, in: query, schema: { type: boolean } }
+      responses: { '200': { description: hits with citations } }
+  /documents/{id}:
+    get: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 文件與版本, responses: { '200': { description: detail }, '404': { $ref: '#/components/responses/Error' } } }
+  /documents/{id}/versions:
+    get: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 版本清單, responses: { '200': { description: items } } }
+    post:
+      parameters: [{ $ref: '#/components/parameters/Id' }, { name: If-Match, in: header, required: true, schema: { type: string } }]
+      summary: 新版本（樂觀鎖）
+      responses: { '201': { description: version }, '409': { $ref: '#/components/responses/Error' }, '428': { $ref: '#/components/responses/Error' } }
+  /documents/{id}/versions/{n}/content:
+    get:
+      parameters: [{ $ref: '#/components/parameters/Id' }, { name: n, in: path, required: true, schema: { type: integer } }]
+      summary: 下載原檔（attachment、nosniff、X-DHC-Content-SHA256）
+      responses: { '200': { description: file } }
+  /documents/{id}/versions/{n}/ingestions:
+    post:
+      parameters: [{ $ref: '#/components/parameters/Id' }, { name: n, in: path, required: true, schema: { type: integer } }]
+      summary: 擷取（冪等；失敗可重試）
+      responses: { '200': { description: reused }, '201': { description: created } }
+  /citations/{id}:
+    get: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 引用原文與 hash 驗證, responses: { '200': { description: citation } } }
+  /audit-events:
+    get: { parameters: [{ $ref: '#/components/parameters/Limit' }, { $ref: '#/components/parameters/Cursor' }], summary: 稽核（audit.read）, responses: { '200': { description: page } } }
+  /models/providers:
+    get: { summary: 模型清單（不含金鑰）, responses: { '200': { description: items } } }
+    put: { summary: 新增/更新 provider（models.manage；BYOK 加密）, responses: { '200': { description: provider }, '403': { $ref: '#/components/responses/Error' } } }
+  /usage:
+    get: { summary: 本月模型用量與預算, responses: { '200': { description: items } } }
+  /subscription:
+    get: { summary: 方案、席位、用量（唯讀）, responses: { '200': { description: subscription } } }
+  /runs/draft-generation:
+    post:
+      parameters: [{ name: Idempotency-Key, in: header, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_.:-]{8,128}$' } }]
+      summary: 建立 AI 草稿 Run
+      responses: { '200': { description: reused }, '202': { description: queued }, '402': { $ref: '#/components/responses/Error' }, '429': { $ref: '#/components/responses/Error' } }
+  /runs:
+    get: { summary: Run 清單, responses: { '200': { description: items } } }
+  /runs/{id}:
+    get: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: Run 狀態, responses: { '200': { description: run, content: { application/json: { schema: { $ref: '#/components/schemas/Run' } } } } } }
+  /runs/{id}/cancel:
+    post: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 取消, responses: { '200': { description: run }, '409': { $ref: '#/components/responses/Error' } } }
+  /drafts:
+    get: { summary: 草稿清單, responses: { '200': { description: items } } }
+  /drafts/{id}:
+    get: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 草稿、目前修訂、審批紀錄, responses: { '200': { description: draft } } }
+    put: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 人工修改（expectedRevision）, responses: { '200': { description: revision }, '409': { $ref: '#/components/responses/Error' } } }
+  /drafts/{id}/submit:
+    post: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 送審, responses: { '201': { description: approval } } }
+  /drafts/{id}/export:
+    get:
+      parameters: [{ $ref: '#/components/parameters/Id' }, { name: format, in: query, required: true, schema: { type: string, enum: [docx, markdown] } }]
+      summary: 匯出（僅核准）
+      responses: { '200': { description: file }, '409': { $ref: '#/components/responses/Error' } }
+  /approvals:
+    get: { summary: 待審清單（approvals.decide）, responses: { '200': { description: items } } }
+  /approvals/{id}/decision:
+    post: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 核准/退回（不得自審）, responses: { '200': { description: decision }, '403': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Error' } } }

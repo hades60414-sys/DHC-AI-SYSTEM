@@ -1,0 +1,10 @@
+DROP POLICY worker_org_enumeration ON enterprise.organizations;
+DROP TABLE enterprise.draft_exports;
+DROP TABLE enterprise.approvals;
+DROP TABLE enterprise.model_usage;
+DROP TABLE enterprise.runs;
+DROP TABLE enterprise.draft_revisions;
+DROP TABLE enterprise.drafts;
+DROP TABLE enterprise.model_providers;
+ALTER TABLE enterprise.audit_events DROP CONSTRAINT audit_events_resource_type_check;
+ALTER TABLE enterprise.audit_events ADD CONSTRAINT audit_events_resource_type_check CHECK (resource_type IN ('task', 'document', 'member', 'session'));

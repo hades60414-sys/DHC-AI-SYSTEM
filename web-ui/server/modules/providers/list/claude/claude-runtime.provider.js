@@ -17,7 +17,7 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { query } from '@anthropic-ai/claude-agent-sdk';
+import { loadClaudeAgentSdk } from './claude-sdk.loader.js';
 
 import {
   appendFilesInputTag,
@@ -1129,6 +1129,7 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
       return { behavior: 'deny', message: decision.message ?? 'User denied tool use' };
     };
 
+    const { query } = await loadClaudeAgentSdk();
     // DHC CLI 2026-10-27: remember the CLI's pid so 停止 can end what it leaves behind (claude-stop-sweep.js).
     const cliProcess = {};
     sdkOptions.spawnClaudeCodeProcess = spawnTrackedCli(cliProcess);

@@ -22,6 +22,9 @@ out/
 .env.test.local
 .env.production.local
 
+# 本機 Enterprise DB 密碼；由產生腳本建立，不放進 Git 或 image。
+/deploy/customer-single/.secrets/
+
 # IDE and editor files
 .vscode/
 .idea/

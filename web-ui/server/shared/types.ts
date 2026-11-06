@@ -1366,3 +1366,97 @@ export type CliApplication = {
 export type SandboxCommandService = {
   execute(argumentsList: string[]): Promise<number>;
 };
+
+// ---------------------------
+//----------------- ENTERPRISE PERSISTENCE ROWS ------------
+/**
+ * enterprise-persistence service / repository 共用的固定分頁資源集合。
+ * service 用於綁定 Cursor kind / sort；repository 僅由內部固定 wrapper 選取 SQL 表與時間欄位。
+ * 不接受 request / Cursor 自行指定 SQL identifiers，也不是資源授權或完整 RBAC。
+ */
+export type EnterprisePageResource = 'tasks' | 'documents' | 'audit_events';
+/** Enterprise repository/service 的任務投影；organizationId 由已核對 scope 綁定，日期使用 pg 預設 timestamptz parser。 */
+export type EnterpriseTaskRow = {
+  id: string; organizationId: string; ownerMemberId: string; title: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+  createdAt: Date; updatedAt: Date;
+};
+/** Enterprise repository/service 的文件 metadata；不含檔案本體、Provider session 或儲存憑證。 */
+export type EnterpriseDocumentRow = {
+  id: string; organizationId: string; ownerMemberId: string; title: string;
+  classification: string; createdAt: Date; updatedAt: Date;
+};
+/** Enterprise repository/service 的追加式稽核投影；只存 actor、動作與資源識別，不存密碼或文件內容。 */
+export type EnterpriseAuditEventRow = {
+  id: string; organizationId: string; actorMemberId: string; action: string;
+  resourceType: 'task' | 'document' | 'member' | 'session'; resourceId: string; occurredAt: Date;
+};
+/**
+ * Enterprise 文件版本投影（E05-DOC-01）。versionNumber 自 1 起、同文件內遞增且唯一；
+ * sha256/byteSize/mediaType 來自伺服器端內容檢查，不採信呼叫端宣告。不含檔案本體或儲存路徑。
+ */
+/**
+ * W6-B：一筆 ACC-MATCH-v1 對帳結果列。由 enterprise-persistence 寫入（只新增），enterprise-api 回傳給 Office。
+ * result 為伺服器計算的完整結果（completed：counts／totals／cases；rejected：errors），resultSha256 為其 JSON 的 SHA-256。
+ * ledgerSha256／receiptsSha256 固定輸入檔案版本內容；periodStart／periodEnd 為 YYYY-MM-DD（Asia/Taipei 口徑）。
+ */
+export type EnterpriseReconciliationRow = {
+  id: string; ruleVersion: string; ledgerVersionId: string; receiptsVersionId: string; ledgerSha256: string; receiptsSha256: string;
+  periodStart: string; periodEnd: string; status: 'completed' | 'rejected'; resultSha256: string; createdByMemberId: string; createdAt: Date; result: unknown;
+};
+
+export type EnterpriseDocumentVersionRow = {
+  id: string; organizationId: string; documentId: string; versionNumber: number;
+  filename: string; mediaType: string; byteSize: number; sha256: string;
+  createdByMemberId: string; createdAt: Date;
+};
+/**
+ * 文件內容儲存 adapter 契約（E05-DOC-01）。enterprise-persistence service 與各 adapter（本機檔案系統、測試用記憶體）共用。
+ * - organizationId 必須是小寫 UUID，storageKey 必須是內容的小寫 SHA-256 hex；任何其他格式丟 ENTERPRISE_BLOB_INVALID_REF。
+ * - put：內容 hash 與 storageKey 不符丟 ENTERPRISE_BLOB_INTEGRITY；同 key 重複 put 為冪等。
+ * - get：不同組織之間不可見（ENTERPRISE_BLOB_NOT_FOUND）；讀回內容會重算 hash，不符丟 ENTERPRISE_BLOB_INTEGRITY。
+ * adapter 只做儲存與完整性；授權由呼叫它的 scoped service 在已核對的組織交易內決定，adapter 不可單獨對外暴露。
+ */
+export type EnterpriseDocumentBlobStore = {
+  put(organizationId: string, storageKey: string, content: Buffer): Promise<void>;
+  get(organizationId: string, storageKey: string): Promise<Buffer>;
+};
+/**
+ * 企業模式的伺服器端權限代碼（IAM-01 候選契約）。enterprise-persistence 的角色對照表與 enterprise-api 路由守門共用。
+ * 權限只能由伺服器依已驗證 session 的成員角色推導，不可由用戶端宣告。
+ */
+export type EnterprisePermission =
+  | 'documents.read' | 'documents.write' | 'members.read' | 'members.manage' | 'audit.read'
+  | 'tasks.read' | 'tasks.write' | 'approvals.decide' | 'models.manage' | 'billing.read' | 'billing.manage';
+/**
+ * 已驗證的企業請求主體（IAM-01）。由 enterprise-persistence 的 session 驗證產生，enterprise-api 掛在 request 上使用。
+ * organizationId 來自已驗證 session，不可由 header/body/query 覆寫；permissions 由 roles 在伺服器端推導。
+ */
+export type EnterprisePrincipal = {
+  organizationId: string; userAccountId: string; memberId: string; sessionId: string;
+  email: string; roles: string[]; permissions: EnterprisePermission[]; expiresAt: Date;
+};
+/** 企業成員管理投影（IAM-01）；不含密碼雜湊或 session token。 */
+export type EnterpriseMemberRow = {
+  id: string; organizationId: string; userAccountId: string; email: string;
+  status: 'active' | 'disabled'; roles: string[]; createdAt: Date; updatedAt: Date;
+};
+// ---------------------------
+//----------------- ENTERPRISE MODEL GATEWAY 與文件擷取 ------------
+/**
+ * 企業模型 provider 的執行期設定（不含明文金鑰；BYOK 只以密文存在 DB）。model-gateway 呼叫供應商、
+ * enterprise-workflow 讀 DB 轉換、egress／gateway 測試共用。deployment 決定外送網段政策（ASTRA-002）；
+ * redirectAllowlist 為管理員核准可跟隨的 307／308 目標（host:port，空＝一律拒絕 redirect，仍受網段政策約束）。
+ * 價格為 micro-USD／百萬 token 的整數，計價時以呼叫當下的快照為準（ASTRA-008）。
+ */
+export type ModelProviderConfig = {
+  id: string; kind: 'mock' | 'openai_compatible' | 'anthropic'; baseUrl: string | null; model: string;
+  deployment: 'LOCAL_ONLY' | 'CLOUD_ALLOWED'; inputPriceMicrosPerMtok: number; outputPriceMicrosPerMtok: number;
+  redirectAllowlist?: string[];
+};
+/**
+ * 文件擷取產生的可引用文字單位。location 為結構化位置（如 {kind:'page',page,line}、{kind:'row',sheet,row}），
+ * 會寫進 chunk 的位置範圍並回傳給引用。由隔離子行程產生後以 JSON 傳回主行程（document-extraction 與 extraction-sandbox 共用）。
+ */
+export type EnterpriseTextUnit = { text: string; location: Record<string, string | number> };
+// ---------------------------

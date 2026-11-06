@@ -223,3 +223,12 @@ export const getPageTitle = (
   const displayName = selectedProject?.displayName?.trim();
   return displayName ? `${displayName} - ${DEFAULT_PAGE_TITLE}` : DEFAULT_PAGE_TITLE;
 };
+
+// ---------------------------
+
+//----------------- DHC AI OFFICE 顯示 ------------
+
+/** 以 zh-TW 24 小時制顯示伺服器時間字串；空值顯示「—」。Office 各頁共用。 */
+export function formatOfficeTime(value: string | null | undefined) {
+  return value ? new Date(value).toLocaleString('zh-TW', { hour12: false }) : '—';
+}

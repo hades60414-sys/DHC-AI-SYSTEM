@@ -4,6 +4,7 @@ import {
   storeAuthToken,
 } from '@/shared/authToken';
 import { IS_PLATFORM } from '@/shared/utils';
+import type { OfficeDocumentRow, OfficeExtraction, OfficeIdentity, OfficeReconciliation, OfficeSearchHit, OfficeSession } from '@/shared/types';
 import { readVoiceConfig, voiceConfigHeaders } from '@/shared/voiceConfig';
 
 // Headers are a plain record rather than the full `HeadersInit` union so the
@@ -674,3 +675,191 @@ export function synthesizeVoice(text: string, signal: AbortSignal): Promise<Resp
 
   return api.voice.tts(text, { headers: voiceConfigHeaders(), signal });
 }
+
+// ---------------------------
+
+//----------------- DHC AI OFFICE（企業模式，/api/enterprise/v1）------------
+// 與上方原工作台 API 完全分開：不使用 legacy JWT／authenticatedFetch；token 只放 sessionStorage 並以 Authorization header 傳送。
+
+const OFFICE_API_BASE = '/api/enterprise/v1';
+const OFFICE_SESSION_KEY = 'dhc-office-session';
+
+const MESSAGES: Record<string, string> = {
+  ENTERPRISE_INVALID_CREDENTIALS: '組織代碼、Email 或密碼不正確',
+  ENTERPRISE_RATE_LIMITED: '嘗試次數過多，請 15 分鐘後再試',
+  ENTERPRISE_AUTH_REQUIRED: '登入已失效，請重新登入',
+  ENTERPRISE_FORBIDDEN: '您的角色沒有此操作權限',
+  ENTERPRISE_VERSION_CONFLICT: '內容已被更新，請重新整理後再試',
+  ENTERPRISE_DOCUMENT_TYPE_NOT_ALLOWED: '不支援此檔案類型（可上傳 PDF、DOCX、XLSX、PNG、JPEG、TXT、MD、CSV）',
+  ENTERPRISE_DOCUMENT_TYPE_MISMATCH: '檔案內容與副檔名不符',
+  ENTERPRISE_DOCUMENT_TOO_LARGE: '檔案超過大小上限',
+  ENTERPRISE_SUBSCRIPTION_INACTIVE: '訂閱未生效或已到期，目前只能查看與匯出',
+  ENTERPRISE_SEAT_LIMIT: '已達方案席位上限',
+  ENTERPRISE_RUN_LIMIT: '已達本月 AI 工作次數上限',
+  ENTERPRISE_STORAGE_LIMIT: '已達方案儲存空間上限',
+  ENTERPRISE_SELF_APPROVAL_FORBIDDEN: '不能核准自己送出的草稿',
+  ENTERPRISE_DRAFT_LOCKED: '草稿已送審或核准，無法修改',
+  ENTERPRISE_DRAFT_NOT_APPROVED: '草稿尚未核准，無法匯出',
+  ENTERPRISE_LAST_ADMIN: '不能停用或移除最後一位管理員',
+  ENTERPRISE_MEMBER_EXISTS: '此 Email 已是成員',
+  ENTERPRISE_WEAK_PASSWORD: '密碼需 12–256 個字元',
+  ENTERPRISE_EGRESS_DENIED: '資料分級或目的地不符合外送政策，已攔截',
+  ENTERPRISE_EGRESS_REDIRECT_DENIED: '模型服務要求轉址到未核准的位置，已拒絕',
+  ENTERPRISE_CITATION_INVALID: '引用無效或來源已變更，請修正引用後再送審／核准／匯出',
+  ENTERPRISE_PRINCIPAL_REVOKED: '申請者目前沒有執行權限，不能放行',
+  ENTERPRISE_RUN_NOT_QUARANTINED: '此結果已處理過',
+  ENTERPRISE_USAGE_ALREADY_RECONCILED: '此筆用量已對帳',
+  ENTERPRISE_INVALID_QUERY: '請輸入 1–8 個查詢詞',
+};
+
+/** Office API 錯誤：帶後端代碼與 HTTP 狀態；message 已轉成繁體中文提示。 */
+export class OfficeApiError extends Error {
+  constructor(readonly code: string, readonly status: number, message: string) {
+    super(message);
+  }
+}
+
+/** 讀取目前 Office session；過期即清除。 */
+export function readOfficeSession(): OfficeSession | null {
+  try {
+    const raw = sessionStorage.getItem(OFFICE_SESSION_KEY);
+    const session = raw ? (JSON.parse(raw) as OfficeSession) : null;
+    if (!session || new Date(session.expiresAt).getTime() <= Date.now()) {
+      sessionStorage.removeItem(OFFICE_SESSION_KEY);
+      return null;
+    }
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+/** 寫入或清除 Office session（登入／登出）。 */
+export function writeOfficeSession(session: OfficeSession | null) {
+  if (session) sessionStorage.setItem(OFFICE_SESSION_KEY, JSON.stringify(session));
+  else sessionStorage.removeItem(OFFICE_SESSION_KEY);
+}
+
+type OfficeRequestOptions = { method?: string; json?: unknown; body?: Blob | ArrayBuffer; headers?: Record<string, string>; raw?: boolean };
+
+/** 呼叫企業 API；401 清除 session 並發出 `dhc-office-logout` 讓 OfficeApp 回到登入頁。 */
+export async function officeRequest<T>(path: string, options: OfficeRequestOptions = {}): Promise<T> {
+  const headers: Record<string, string> = { ...(options.headers ?? {}) };
+  const session = readOfficeSession();
+  if (session) headers.authorization = `Bearer ${session.token}`;
+  let body: BodyInit | undefined = options.body as BodyInit | undefined;
+  if (options.json !== undefined) {
+    headers['content-type'] = 'application/json';
+    body = JSON.stringify(options.json);
+  }
+  let response: Response;
+  try {
+    response = await fetch(`${OFFICE_API_BASE}${path}`, { method: options.method ?? 'GET', headers, body });
+  } catch {
+    throw new OfficeApiError('OFFLINE', 0, '無法連線到伺服器，請檢查網路後重試');
+  }
+  if (!response.ok) {
+    let code = 'ENTERPRISE_INTERNAL';
+    let message = '伺服器發生錯誤';
+    try {
+      const payload = (await response.json()) as { error?: { code?: string; message?: string } };
+      code = payload.error?.code ?? code;
+      message = MESSAGES[code] ?? payload.error?.message ?? message;
+    } catch {
+      // 非 JSON 錯誤保留預設訊息
+    }
+    if (response.status === 401 && path !== '/auth/login') {
+      writeOfficeSession(null);
+      window.dispatchEvent(new Event('dhc-office-logout'));
+    }
+    throw new OfficeApiError(code, response.status, message);
+  }
+  if (options.raw) return response as unknown as T;
+  if (response.status === 204) return undefined as T;
+  return (await response.json()) as T;
+}
+
+/** 以 Blob 下載匯出檔／原始檔，檔名取自 Content-Disposition。 */
+export async function officeDownload(path: string, fallbackName: string) {
+  const response = await officeRequest<Response>(path, { raw: true });
+  const disposition = response.headers.get('content-disposition') ?? '';
+  const match = /filename\*=UTF-8''([^;]+)/.exec(disposition);
+  const filename = match ? decodeURIComponent(match[1]) : fallbackName;
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+  return { filename, sha256: response.headers.get('x-dhc-content-sha256') };
+}
+
+
+/** Office 讀取用端點（供 useOfficeQuery 等以路徑為 key 的讀取）；所有 Office 路徑只在這裡定義。 */
+export const officeEndpoints = {
+  identity: '/identity/me',
+  members: '/members',
+  documents: (limit = 50) => `/documents?limit=${limit}`,
+  document: (documentId: string) => `/documents/${documentId}`,
+  documentVersions: (documentId: string) => `/documents/${documentId}/versions`,
+  versionContent: (documentId: string, versionNumber: number) => `/documents/${documentId}/versions/${versionNumber}/content`,
+  search: (query: string, includeHistory: boolean) => `/documents/search?q=${encodeURIComponent(query)}${includeHistory ? '&history=true' : ''}`,
+  citation: (chunkId: string) => `/citations/${chunkId}`,
+  providers: '/models/providers',
+  usage: '/usage',
+  subscription: '/subscription',
+  auditEvents: (cursor: string | null, limit = 50) => `/audit-events?limit=${limit}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`,
+  runs: '/runs',
+  quarantine: (runId: string) => `/runs/${runId}/quarantine`,
+  drafts: '/drafts',
+  draft: (draftId: string) => `/drafts/${draftId}`,
+  draftExport: (draftId: string, format: 'docx' | 'markdown') => `/drafts/${draftId}/export?format=${format}`,
+  approvals: '/approvals',
+  approval: (approvalId: string) => `/approvals/${approvalId}`,
+  reconciliations: '/reconciliations',
+  reconciliation: (reconciliationId: string) => `/reconciliations/${reconciliationId}`,
+  notifications: '/notifications',
+} as const;
+
+/** Office 寫入操作（每個端點一個函式）；元件不得自行組 method／path。 */
+export const officeApi = {
+  login: (input: { organizationSlug: string; email: string; password: string }) => officeRequest<OfficeSession>('/auth/login', { method: 'POST', json: input }),
+  logout: () => officeRequest('/auth/logout', { method: 'POST' }),
+  identity: () => officeRequest<OfficeIdentity>(officeEndpoints.identity),
+  createMember: (input: { email: string; password: string; roles: string[] }) => officeRequest('/members', { method: 'POST', json: input }),
+  disableMember: (memberId: string) => officeRequest(`/members/${memberId}/disable`, { method: 'POST' }),
+  enableMember: (memberId: string) => officeRequest(`/members/${memberId}/enable`, { method: 'POST' }),
+  /** 上傳新文件；mediaType 由呼叫端依副檔名判定（伺服器仍以內容簽章再驗一次）。 */
+  uploadDocument: (input: { body: ArrayBuffer; filename: string; mediaType: string; title: string; classification: string }) =>
+    officeRequest<{ extraction?: OfficeExtraction; document?: OfficeDocumentRow }>('/documents', {
+      method: 'POST', body: input.body,
+      headers: { 'content-type': input.mediaType, 'x-dhc-filename': encodeURIComponent(input.filename), 'x-dhc-title': encodeURIComponent(input.title), 'x-dhc-classification': input.classification },
+    }),
+  /** 上傳新版本；expectedLatestVersion 以 If-Match 做樂觀鎖。 */
+  uploadVersion: (documentId: string, input: { body: ArrayBuffer; filename: string; mediaType: string; expectedLatestVersion: number }) =>
+    officeRequest<{ extraction?: OfficeExtraction; document?: OfficeDocumentRow }>(officeEndpoints.documentVersions(documentId), {
+      method: 'POST', body: input.body,
+      headers: { 'content-type': input.mediaType, 'x-dhc-filename': encodeURIComponent(input.filename), 'if-match': `"${input.expectedLatestVersion}"` },
+    }),
+  search: (query: string, includeHistory: boolean) => officeRequest<{ items: OfficeSearchHit[] }>(officeEndpoints.search(query, includeHistory)),
+  verifyCitation: (chunkId: string) => officeRequest<{ verified: boolean }>(officeEndpoints.citation(chunkId)),
+  saveProvider: (input: Record<string, unknown>) => officeRequest('/models/providers', { method: 'PUT', json: input }),
+  startDraftRun: (input: { title: string; query: string; providerKey: string }) => officeRequest('/runs/draft-generation', {
+    method: 'POST', json: input, headers: { 'idempotency-key': `ui-${crypto.randomUUID()}` },
+  }),
+  cancelRun: (runId: string) => officeRequest(`/runs/${runId}/cancel`, { method: 'POST' }),
+  releaseQuarantine: (runId: string) => officeRequest(`/runs/${runId}/quarantine/release`, { method: 'POST' }),
+  discardQuarantine: (runId: string) => officeRequest(`/runs/${runId}/quarantine/discard`, { method: 'POST' }),
+  reviseDraft: (draftId: string, input: { expectedRevision: number; body: string }) => officeRequest(officeEndpoints.draft(draftId), { method: 'PUT', json: input }),
+  /** 送審：帶作者眼前的修訂版號；伺服器版號已變則 409（ASTRA-V3-NEW-001）。 */
+  submitDraft: (draftId: string, expectedRevision: number) => officeRequest(`/drafts/${draftId}/submit`, { method: 'POST', json: { expectedRevision } }),
+  /** 審批：expectedRevision／expectedSha256 必須是審核者畫面上那一版，否則 409。 */
+  decideApproval: (approvalId: string, input: { decision: 'approve' | 'reject'; comment?: string; expectedRevision: number; expectedSha256: string }) =>
+    officeRequest(`/approvals/${approvalId}/decision`, { method: 'POST', json: input }),
+  exportDraft: (draftId: string, format: 'docx' | 'markdown') => officeDownload(officeEndpoints.draftExport(draftId, format), format === 'docx' ? 'draft.docx' : 'draft.md'),
+  downloadVersion: (documentId: string, versionNumber: number, filename: string) => officeDownload(officeEndpoints.versionContent(documentId, versionNumber), filename),
+  /** W6-B：以 ACC-MATCH-v1 對兩個文件版本對帳；同輸入重送回原結果（reused）。 */
+  createReconciliation: (input: { ledger: { documentId: string; versionNumber: number }; receipts: { documentId: string; versionNumber: number }; periodStart: string; periodEnd: string }) =>
+    officeRequest<{ reconciliation: OfficeReconciliation; reused: boolean }>('/reconciliations', { method: 'POST', json: input }),
+  markNotificationRead: (notificationId: string) => officeRequest(`/notifications/${notificationId}/read`, { method: 'POST' }),
+};
