@@ -141,6 +141,18 @@ describe('W6-B ACC-MATCH-v1 對帳（實際 PostgreSQL、完整 HTTP 路由）',
     assert.equal((await admin.query('SELECT count(*)::int AS n FROM enterprise.reconciliations')).rows[0].n, before);
   });
 
+  test('V5.2 ASTRA-ROLL-006：不存在日期與反向期間在查 DB 前 400（不再 500）、不寫入；閏日合法', async () => {
+    const before = (await admin.query('SELECT count(*)::int AS n FROM enterprise.reconciliations')).rows[0].n;
+    for (const period of [{ periodStart: '2026-02-30', periodEnd: '2026-03-31' }, { periodStart: '2026-10-01', periodEnd: '2026-13-01' }, { periodStart: '2026-10-28', periodEnd: '2026-10-01' }, { periodStart: '2027-02-29', periodEnd: '2027-03-01' }]) {
+      const response = await reconcile('clerk', docs.ledger, docs.receipts, period);
+      assert.deepEqual([response.status, response.data.error?.code], [400, 'ENTERPRISE_INVALID_RECONCILIATION'], JSON.stringify(period));
+    }
+    assert.equal((await admin.query('SELECT count(*)::int AS n FROM enterprise.reconciliations')).rows[0].n, before);
+    const leap = await reconcile('clerk', docs.ledger, docs.receipts, { periodStart: '2028-02-29', periodEnd: '2028-03-01' });
+    assert.equal(leap.status, 201, '閏日是合法期間（fixture 日期在期間外 → 拒收結果，但不是 400／500）');
+    assert.equal(leap.data.reconciliation.status, 'rejected');
+  });
+
   test('ACC-UAT-13（API 部分）：另一組織讀不到、也不能拿本組織的文件版本對帳', async () => {
     const list = (await call('GET', '/api/enterprise/v1/reconciliations', 'other')).data.items;
     assert.deepEqual(list, []);
