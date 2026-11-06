@@ -1,0 +1,102 @@
+{
+ "schema_version": 1,
+ "tool": "open-code-review v1.13.5",
+ "mode": "delegation（OCR 只做檔案篩選與規則；審查由 Builder 主機代理；未把原始碼送往任何外部 provider）",
+ "range": {
+  "from": "68b5bea614c1c30c8deba66128894df2b0407bfb",
+  "to": "5614f9d"
+ },
+ "summary": {
+  "reviewable_files": 114,
+  "excluded_by_ocr_rules": 49,
+  "deep_reviewed_integration_delta": 16,
+  "unchanged_vs_v4_product_1c660de": 98,
+  "unchanged_note": "與 V4 產品 SHA 1c660de 位元組相同的檔案已於 V4 Builder OCR（24/24）與 V3 OCR 審過，本輪標記 reviewed-unchanged，不重複深審",
+  "coverage_rate": 1.0,
+  "critical": 0,
+  "high": 0
+ },
+ "integration_delta_files": [
+  ".github/workflows/enterprise-delivery-smoke.yml",
+  ".github/workflows/enterprise-image-build.yml",
+  ".github/workflows/enterprise-verify.yml",
+  "web-ui/scripts/enterprise/ci/compare_known_failures.py",
+  "web-ui/scripts/enterprise/ci/known-v32-baseline-failures.json",
+  "web-ui/scripts/enterprise/基線啟動測試.py",
+  "web-ui/server/index.ts",
+  "web-ui/server/modules/providers/list/claude/claude-runtime.provider.js",
+  "web-ui/server/modules/websocket/services/chat-websocket.service.ts",
+  "web-ui/server/modules/websocket/services/shell-websocket.service.ts",
+  "web-ui/server/shared/types.ts",
+  "web-ui/src/App.tsx",
+  "web-ui/src/shared/api.ts",
+  "web-ui/src/shared/types.ts",
+  "web-ui/src/shared/utils.ts",
+  "web-ui/tests/enterprise/容器驗收.py"
+ ],
+ "findings": [
+  {
+   "id": "OCR-INT-01",
+   "path": "web-ui/server/index.ts",
+   "severity": "info",
+   "category": "security",
+   "content": "合併後函式外只剩 /api/enterprise/v1；V3.2 新增 /api/assistant 位於 mountLegacyApiRoutes() 內；企業模式安全標頭與 legacy gate 仍是第一層 middleware。",
+   "disposition": "VERIFIED_NO_ISSUE"
+  },
+  {
+   "id": "OCR-INT-02",
+   "path": "web-ui/server/modules/websocket/services/*.ts",
+   "severity": "info",
+   "category": "security",
+   "content": "V3.2 對 chat／shell WS handler 的變更位於 verifyClient 閘門之後；legacyWebSocketsEnabled=!IS_ENTERPRISE 在升級握手層拒絕所有路徑。",
+   "disposition": "VERIFIED_NO_ISSUE"
+  },
+  {
+   "id": "OCR-INT-03",
+   "path": "web-ui/scripts/enterprise/ci/known-v32-baseline-failures.json",
+   "severity": "medium",
+   "category": "test",
+   "content": "基線清單以測試名稱比對；若某個已在清單內的 legacy 測試日後因其他原因失敗，會被視為已知。企業測試不在清單內不受影響。",
+   "disposition": "VALID_NOT_BLOCKER",
+   "reason": "清單只含 V3.2 legacy 測試，附未合併 V3.2 的實測證據；建議上游修好後縮減清單。"
+  },
+  {
+   "id": "OCR-INT-04",
+   "path": ".github/workflows/enterprise-image-build.yml",
+   "severity": "medium",
+   "category": "security",
+   "content": "Trivy 結果只上傳、不以嚴重度閾值阻擋 CI。",
+   "disposition": "VALID_NOT_BLOCKER",
+   "reason": "既有 OS critical（zlib will_not_fix）與 npm high 需 owner 處置；直接設閾值會讓 CI 永遠紅。處置見交接文件。"
+  },
+  {
+   "id": "OCR-INT-05",
+   "path": ".github/workflows/enterprise-*.yml",
+   "severity": "low",
+   "category": "other",
+   "content": "ubuntu-24.04-arm（GitHub-hosted 原生 ARM64）在本 repo 是否可用未實測。",
+   "disposition": "DEFERRED_WITH_OWNER",
+   "reason": "需實際觸發 workflow；不可用時 arm64 job 失敗並標 NOT_RUN，workflow 內有架構檢查不允許以模擬冒充。"
+  },
+  {
+   "id": "OCR-INT-06",
+   "path": ".github/workflows/enterprise-*.yml",
+   "severity": "low",
+   "category": "maintainability",
+   "content": "清理步驟 docker ps -aq | xargs docker rm -f 會移除 runner 上全部容器。",
+   "disposition": "VALID_NOT_BLOCKER",
+   "reason": "GitHub-hosted runner 每個 job 都是全新且用完即丟；若改用 self-hosted runner 必須改成只刪本 job 的 compose project。"
+  },
+  {
+   "id": "OCR-INT-07",
+   "path": "web-ui/scripts/enterprise/基線啟動測試.py; web-ui/tests/enterprise/容器驗收.py",
+   "severity": "medium",
+   "category": "security",
+   "content": "原本寫死本機瀏覽器路徑（含本機使用者名稱）。",
+   "disposition": "FIXED",
+   "fix": "改讀 DHC_CHROMIUM_PATH，未設定用 Playwright 預設 Chromium（本整合 commit）"
+  }
+ ],
+ "not_an_independent_audit": true,
+ "generated_at": "2026-11-06T17:38:50.411270+08:00"
+}
