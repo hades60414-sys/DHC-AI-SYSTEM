@@ -58,7 +58,7 @@ def main():
             time.sleep(0.2)
         samples['run_to_completion'].append((time.perf_counter() - started) * 1000)
     results = {name: summary(values) for name, values in samples.items() if values}
-    json.dump({'base': base, 'note': '單一用戶端序列請求；QA VM 2 vCPU／4 GiB；mock 模型', 'results': results}, open(output, 'w'), ensure_ascii=False, indent=1)
+    json.dump({'base': base, 'note': '單一用戶端序列請求；執行環境見 runner／主機紀錄（本探針不偵測硬體）；mock 模型', 'results': results}, open(output, 'w'), ensure_ascii=False, indent=1)
     print(json.dumps(results, ensure_ascii=False))
 
 
