@@ -29,10 +29,12 @@ def displayed(name):
         shutil.copy(src / name, Path(work) / 'in.csv')
         result = subprocess.run([soffice, f'-env:UserInstallation=file://{profile}', '--headless', f'--infilter={IMPORT}', '--convert-to', EXPORT, '--outdir', str(Path(work) / 'o'),
                                  str(Path(work) / 'in.csv')], capture_output=True, text=True, timeout=180)
-        produced = Path(work) / 'o' / 'in.csv'
-        if not produced.exists():
-            raise RuntimeError(f'LibreOffice 轉換失敗：{result.stderr[-500:]}')
-        return [row for row in csv.reader(produced.read_text(encoding='utf-8-sig').splitlines())]
+        # 匯出全部工作表（-1）時 LibreOffice 會在檔名加上工作表名（例如 in-Sheet1.csv），所以取輸出目錄中的 CSV。
+        produced = sorted((Path(work) / 'o').glob('*.csv')) if (Path(work) / 'o').exists() else []
+        if len(produced) != 1:
+            listing = [p.name for p in (Path(work) / 'o').iterdir()] if (Path(work) / 'o').exists() else []
+            raise RuntimeError(f'LibreOffice 轉換失敗（輸出 {listing}）：stdout={result.stdout[-300:]} stderr={result.stderr[-300:]}')
+        return [row for row in csv.reader(produced[0].read_text(encoding='utf-8-sig').splitlines())]
 
 
 control = displayed('control.csv')
