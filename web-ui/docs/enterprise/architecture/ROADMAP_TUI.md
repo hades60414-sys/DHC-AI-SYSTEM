@@ -1,13 +1,13 @@
 # 後端路線圖（TUI 檢視）
 
-> 由 `scripts/enterprise/render_roadmap.py` 依 `roadmap.json` 產生；CURRENT／NEW_IN_V5／NEW_IN_V51 項目的 evidence 路徑皆經存在性檢查。
+> 由 `scripts/enterprise/render_roadmap.py` 依 `roadmap.json` 產生；CURRENT／NEW_IN_V5／NEW_IN_V51／NEW_IN_V52 項目的 evidence 路徑皆經存在性檢查。
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │ DHC AI Office 後端路線圖（由 roadmap.json 產生，勿手改）                       │
 │                                                                                │
-│ 完成度 [████████████████████████░░░░░░░░░░░░░░░░] 19/32                        │
-│ ■ CURRENT 7  ◆ NEW_IN_V5 6  ◇ NEW_IN_V51 6  □ PLANNED 6  ✕ BLOCKED_DECISION 7  │
+│ 完成度 [██████████████████████████░░░░░░░░░░░░░░] 24/37                        │
+│ ■ CURRENT 7  ◆ V5 6  ◇ V5.1 6  ◈ V5.2 5  □ PLANNED 6  ✕ BLOCKED 7              │
 ├────────────────────────────────────────────────────────────────────────────────┤
 │ ▸ 身分與隔離                                                                   │
 │   ■ ID-01   企業身分、RBAC、session epoch 撤權、legacy 路由隔離                │
@@ -16,6 +16,7 @@
 │ ▸ 文件與草稿                                                                   │
 │   ■ DOC-01  文件版本、SHA-256、擷取沙箱、引用、草稿審批與匯出                  │
 │   ◇ RG-03   blob 串流完整性驗證（匯出不再整份讀入）                            │
+│   ◈ V52-OFFICE ROLL-002：Office 詳細資料綁定目前資源、ready 才可寫入／審批     │
 │                                                                                │
 │ ▸ Run 與模型                                                                   │
 │   ■ RUN-01  Run 冪等、取消、隔離、BYOK、egress 政策、用量帳本                  │
@@ -32,6 +33,7 @@
 │   ◇ RG-02   CSV 公式注入（拒收結果 rowId 可達）防護＋LibreOffice 實測          │
 │   □ OPS-03  週報敘述生成（模型只寫文字）                                       │
 │   □ OPS-04  週報送審／簽認／正式匯出（沿用草稿審批鏈）                         │
+│   ◈ V52-DATA ROLL-003／004／005／006／011：分側隔離合計、RFC4180 嚴格 CSV、幣… │
 │                                                                                │
 │ ▸ 可靠性與可觀測性                                                             │
 │   ◆ OBS-01  低基數 metrics、結構化日誌、request id、/metrics token             │
@@ -41,6 +43,9 @@
 │   ◆ QA-01   CI 基線比對器 v2（fail closed）＋5 個 legacy 失敗修復              │
 │   ■ CI-01   原生 amd64／arm64 image build、SBOM、Trivy、交付冒煙               │
 │   ◇ UPG-01  V4→V5.1 升級與回退在 GitHub Actions 原生 amd64 執行                │
+│   ◈ V52-CI  ROLL-001／008／009：bash pipefail、gate.sh 三段退出碼、runner exi… │
+│   ◈ V52-DEPLOY ROLL-007／RG-007：離線 image reference 一致、OCI source 指實際… │
+│   ◈ V52-REPO RG-003：全 repository 覆蓋契約與靜態語法 job                      │
 │   □ PERF-01 CI 效能：端到端報表／匯出 p50／p95 已量（NEW_IN_V51）；多用戶負載… │
 │   □ PERF-02 多用戶併發負載、長時間 soak、arm64 升級回退                        │
 │                                                                                │
@@ -58,7 +63,7 @@
 │   ✕ DEC-03  正式映像發布（GHCR）與客戶正式部署                                 │
 │   ✕ DEC-04  ACC-MATCH 擴充規則（多對一、分期、退款、跨月）                     │
 │   ✕ SEC-01  remote-agent cmd-run 預設暴露給模型、字面禁止清單可繞過（需模組 o… │
-│   ✕ SEC-02  deid-proxy／codex-deid 大小限制、逾時、背壓、斷線與路徑政策（owne… │
+│   ✕ SEC-02  deid-proxy／codex-deid：大小／逾時／背壓／斷線／路徑（RG-002）＋K… │
 │   ✕ DEC-05  OPS-REPORT 多來源合計列數的業務契約（目前工程上限 5 萬）           │
 └────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -87,6 +92,11 @@
 | OPS-04 | 確定性計算 | 週報送審／簽認／正式匯出（沿用草稿審批鏈） | PLANNED | — |
 | OBS-02 | 可靠性與可觀測性 | OpenTelemetry 追蹤、告警與 SLO（需實測流量基線） | PLANNED | — |
 | SC-02 | 供應鏈 | 更新 runtime／build base digest（node:22-bookworm[-slim] 2026-11-05）並重跑雙架構交付與 Trivy | NEW_IN_V51 | `deploy/customer-single/Dockerfile`<br/>`docs/enterprise/supply-chain/SUPPLY_CHAIN_REMEDIATION_LEDGER.json` |
+| V52-CI | 品質與 CI | ROLL-001／008／009：bash pipefail、gate.sh 三段退出碼、runner exit、skip／todo 清單、負向閘門測試 | NEW_IN_V52 | `scripts/enterprise/ci/gate.sh`<br/>`scripts/enterprise/ci/test_gate.py` |
+| V52-OFFICE | 文件與草稿 | ROLL-002：Office 詳細資料綁定目前資源、ready 才可寫入／審批 | NEW_IN_V52 | `src/modules/office/hooks/useOfficeQuery.ts`<br/>`src/modules/office/tests/OfficeApp.test.tsx` |
+| V52-DATA | 確定性計算 | ROLL-003／004／005／006／011：分側隔離合計、RFC4180 嚴格 CSV、幣別自有鍵、期間先驗、最小週別 | NEW_IN_V52 | `server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts` |
+| V52-DEPLOY | 品質與 CI | ROLL-007／RG-007：離線 image reference 一致、OCI source 指實際建置 repo | NEW_IN_V52 | `deploy/ai-office/test_dhc_office_images.py`<br/>`deploy/customer-single/Dockerfile` |
+| V52-REPO | 品質與 CI | RG-003：全 repository 覆蓋契約與靜態語法 job | NEW_IN_V52 | `scripts/enterprise/ci/check_repo_coverage.py` |
 | PERF-01 | 品質與 CI | CI 效能：端到端報表／匯出 p50／p95 已量（NEW_IN_V51）；多用戶負載與 soak 仍未做 | PLANNED | — |
 | UAT-01 | 驗收 | 66 項 UAT 實際執行（目前 PASS 0） | PLANNED | — |
 | DEC-01 | 待人類決策 | 條款比對功能（BLOCKED_PRODUCT_DECISION） | BLOCKED_DECISION | — |
@@ -95,5 +105,5 @@
 | DEC-04 | 待人類決策 | ACC-MATCH 擴充規則（多對一、分期、退款、跨月） | BLOCKED_DECISION | — |
 | PERF-02 | 品質與 CI | 多用戶併發負載、長時間 soak、arm64 升級回退 | PLANNED | — |
 | SEC-01 | 待人類決策 | remote-agent cmd-run 預設暴露給模型、字面禁止清單可繞過（需模組 owner 決策） | BLOCKED_DECISION | — |
-| SEC-02 | 待人類決策 | deid-proxy／codex-deid 大小限制、逾時、背壓、斷線與路徑政策（owner 工單） | BLOCKED_DECISION | — |
+| SEC-02 | 待人類決策 | deid-proxy／codex-deid：大小／逾時／背壓／斷線／路徑（RG-002）＋KEEP 規則穿透 arguments（ROLL-012）＋未知 block 原樣外送（ROLL-013）（owner 工單） | BLOCKED_DECISION | — |
 | DEC-05 | 待人類決策 | OPS-REPORT 多來源合計列數的業務契約（目前工程上限 5 萬） | BLOCKED_DECISION | — |

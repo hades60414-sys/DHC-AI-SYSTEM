@@ -19,6 +19,7 @@ sequenceDiagram
   API->>DB: runs（queued）
   Note over API,M: worker 取出 → 引用檢索 → 模型（分級與 egress 檢查）→ 草稿修訂＋引用
   E->>API: 人工修改（expectedRevision）→ 送審
+  Note over E,A: [NEW_IN_V52] 前端只顯示屬於目前選取 id 且已 ready 的草稿／approval；儲存與決定用資料自身 id＋版號＋hash
   A->>API: 核准／退回（不得自審）
   API->>DB: approvals（綁定修訂與 revision hash）
   E->>API: GET /drafts/:id/export?format=docx|markdown

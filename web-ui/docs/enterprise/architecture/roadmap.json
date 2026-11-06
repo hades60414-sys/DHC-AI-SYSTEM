@@ -209,6 +209,54 @@
    ]
   },
   {
+   "id": "V52-CI",
+   "track": "品質與 CI",
+   "title": "ROLL-001／008／009：bash pipefail、gate.sh 三段退出碼、runner exit、skip／todo 清單、負向閘門測試",
+   "status": "NEW_IN_V52",
+   "evidence": [
+    "scripts/enterprise/ci/gate.sh",
+    "scripts/enterprise/ci/test_gate.py"
+   ]
+  },
+  {
+   "id": "V52-OFFICE",
+   "track": "文件與草稿",
+   "title": "ROLL-002：Office 詳細資料綁定目前資源、ready 才可寫入／審批",
+   "status": "NEW_IN_V52",
+   "evidence": [
+    "src/modules/office/hooks/useOfficeQuery.ts",
+    "src/modules/office/tests/OfficeApp.test.tsx"
+   ]
+  },
+  {
+   "id": "V52-DATA",
+   "track": "確定性計算",
+   "title": "ROLL-003／004／005／006／011：分側隔離合計、RFC4180 嚴格 CSV、幣別自有鍵、期間先驗、最小週別",
+   "status": "NEW_IN_V52",
+   "evidence": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts"
+   ]
+  },
+  {
+   "id": "V52-DEPLOY",
+   "track": "品質與 CI",
+   "title": "ROLL-007／RG-007：離線 image reference 一致、OCI source 指實際建置 repo",
+   "status": "NEW_IN_V52",
+   "evidence": [
+    "deploy/ai-office/test_dhc_office_images.py",
+    "deploy/customer-single/Dockerfile"
+   ]
+  },
+  {
+   "id": "V52-REPO",
+   "track": "品質與 CI",
+   "title": "RG-003：全 repository 覆蓋契約與靜態語法 job",
+   "status": "NEW_IN_V52",
+   "evidence": [
+    "scripts/enterprise/ci/check_repo_coverage.py"
+   ]
+  },
+  {
    "id": "PERF-01",
    "track": "品質與 CI",
    "title": "CI 效能：端到端報表／匯出 p50／p95 已量（NEW_IN_V51）；多用戶負載與 soak 仍未做",
@@ -267,7 +315,7 @@
   {
    "id": "SEC-02",
    "track": "待人類決策",
-   "title": "deid-proxy／codex-deid 大小限制、逾時、背壓、斷線與路徑政策（owner 工單）",
+   "title": "deid-proxy／codex-deid：大小／逾時／背壓／斷線／路徑（RG-002）＋KEEP 規則穿透 arguments（ROLL-012）＋未知 block 原樣外送（ROLL-013）（owner 工單）",
    "status": "BLOCKED_DECISION",
    "evidence": []
   },

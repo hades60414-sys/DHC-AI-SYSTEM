@@ -1,0 +1,579 @@
+{
+ "schema": "dhc-supply-chain-ledger/v2",
+ "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+ "github_run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319770",
+ "run_attempt": 1,
+ "binding_check": {
+  "amd64": true,
+  "arm64": true
+ },
+ "images": {
+  "amd64": {
+   "image_id": "sha256:00d56aaa2e0193b32c9930aed76e13966e4c2e80330e46b0660eaa7adce56782",
+   "source_revision": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "source_repository": "https://github.com/hades60414-sys/DHC-AI-SYSTEM",
+   "upstream": "https://github.com/hades60414-sys/dhc-cli（DHC CLI V3.2 上游，AGPL-3.0）",
+   "runtime_base": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+   "architecture": "linux/amd64",
+   "image_archive_sha256": "f8ad9b8a5016a6fc353a12b27aeff7dcb0b0e701241855a1627cf80191f1dc8e",
+   "trivy_counts": {
+    "LOW": 83,
+    "HIGH": 34,
+    "MEDIUM": 102,
+    "CRITICAL": 1
+   },
+   "os_high_critical": [
+    [
+     "bsdutils",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "bsdutils",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "bsdutils",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "gzip",
+     "CVE-2026-41992",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "libacl1",
+     "CVE-2026-54369",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "libblkid1",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libblkid1",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libblkid1",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libmount1",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libmount1",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libmount1",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libsmartcols1",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libsmartcols1",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libsmartcols1",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libsystemd0",
+     "CVE-2026-16742",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "libtinfo6",
+     "CVE-2025-69720",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libudev1",
+     "CVE-2026-16742",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "libuuid1",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libuuid1",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libuuid1",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "mount",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "mount",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "mount",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "ncurses-base",
+     "CVE-2025-69720",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "ncurses-bin",
+     "CVE-2025-69720",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "perl-base",
+     "CVE-2026-9538",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "util-linux",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux-extra",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux-extra",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux-extra",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "zlib1g",
+     "CVE-2023-45853",
+     "CRITICAL",
+     "will_not_fix",
+     null
+    ],
+    [
+     "zlib1g",
+     "CVE-2026-76844",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "zlib1g",
+     "CVE-2026-85091",
+     "HIGH",
+     "affected",
+     null
+    ]
+   ],
+   "node_high_critical": [],
+   "sbom_components": 1133,
+   "minizip_in_sbom": [],
+   "report_files_sha256": {
+    "build-command.txt": "d834025603547adf163e86b6778dff218f2d0173aa598a31dfbfe846dd919b37",
+    "build.log": "ba815625d0d2750a45b878db54b6a4a45c08863a4f9e70fa9371dd6ceb6b4a05",
+    "capacity-after.txt": "5563d932a047734771f6ee5b06c59491413dd4bcee8e423343bf36d1c88c5ad8",
+    "capacity-before.txt": "199e9e4b32eb052e055f3cac1b35f0c777381c435e669f4027b55fd32cc11939",
+    "image-SHA256SUMS": "1e05875a55b0d6362f6bfb9e293c0394173724d807b6d06e9dc57144ab393e6a",
+    "image-inspect.json": "0fab90574e92d6b5e6e6623dfeddead92a663d28aab7de14894eb54a86f5a1e9",
+    "image-summary.json": "1f3a7ca9b46286cc9c001346ca6b0fe442294e1fcbe2a6b588d2f346f17ebc7f",
+    "runner-arch.txt": "aaf631698ae5160ceb04a97681a14887fdcab47cd6e0f163c87485b3b1340b62",
+    "sbom/INVENTORY.json": "557d0d765a99e5343f003f3bd2dddd599009450241935643e8930c23a1b60e2a",
+    "sbom/RECONCILIATION.json": "60d3b0eddbb0f038a68ad98842241e6601e96d2827d03db09912165dbfbce581",
+    "sbom/sbom.cdx.json": "f6445bd75ad0b702a9dd602f4611a0ad32362239c29d3f1a058b5f44a6d9368d",
+    "smoke.txt": "c83b5b5e1f70d8f8520fa59590419cb9ae97bc5454d5fc08f3384926aac177c6",
+    "trivy-summary.json": "6126a04e13ea337a318e176287eba3af225e489a776611fc2dc4816b9a04f904",
+    "trivy.json": "b61d2d4abd783102684b12e7b93a549901ad8c35b9d26ad6af26ce93f2ae2cf2"
+   }
+  },
+  "arm64": {
+   "image_id": "sha256:b955436e1c04b0a907c8c644d4892c9a4baa5890f27d74b23ec898e81c1bc082",
+   "source_revision": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "source_repository": "https://github.com/hades60414-sys/DHC-AI-SYSTEM",
+   "upstream": "https://github.com/hades60414-sys/dhc-cli（DHC CLI V3.2 上游，AGPL-3.0）",
+   "runtime_base": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+   "architecture": "linux/arm64",
+   "image_archive_sha256": "8d771e62c76e89eb43c8c7495d84a15db3c37cc89fd328ea1254381a37298ce7",
+   "trivy_counts": {
+    "LOW": 83,
+    "HIGH": 34,
+    "MEDIUM": 102,
+    "CRITICAL": 1
+   },
+   "os_high_critical": [
+    [
+     "bsdutils",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "bsdutils",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "bsdutils",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "gzip",
+     "CVE-2026-41992",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "libacl1",
+     "CVE-2026-54369",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "libblkid1",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libblkid1",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libblkid1",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libmount1",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libmount1",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libmount1",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libsmartcols1",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libsmartcols1",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libsmartcols1",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libsystemd0",
+     "CVE-2026-16742",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "libtinfo6",
+     "CVE-2025-69720",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libudev1",
+     "CVE-2026-16742",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "libuuid1",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libuuid1",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "libuuid1",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "mount",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "mount",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "mount",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "ncurses-base",
+     "CVE-2025-69720",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "ncurses-bin",
+     "CVE-2025-69720",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "perl-base",
+     "CVE-2026-9538",
+     "HIGH",
+     "fix_deferred",
+     null
+    ],
+    [
+     "util-linux",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux-extra",
+     "CVE-2026-53613",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux-extra",
+     "CVE-2026-53615",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "util-linux-extra",
+     "CVE-2026-78410",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "zlib1g",
+     "CVE-2023-45853",
+     "CRITICAL",
+     "will_not_fix",
+     null
+    ],
+    [
+     "zlib1g",
+     "CVE-2026-76844",
+     "HIGH",
+     "affected",
+     null
+    ],
+    [
+     "zlib1g",
+     "CVE-2026-85091",
+     "HIGH",
+     "affected",
+     null
+    ]
+   ],
+   "node_high_critical": [],
+   "sbom_components": 1133,
+   "minizip_in_sbom": [],
+   "report_files_sha256": {
+    "build-command.txt": "1daafff9c4e3fe1f5cb48e7e5d08f3d303198669f589d4b277ccf333e6513c43",
+    "build.log": "4e6a66e4da74497e1a37b316a8fee17bc8a03063533b1ef21f5b8e3569a0709a",
+    "capacity-after.txt": "268521b2d2e46bc44d675281be8dd8c2dd1a2499ee53b26b1458ca864c2168fc",
+    "capacity-before.txt": "c5f3c692f42bd9bc299f10edaa2e236711f104fe9694794d0bf9bbff1baefdab",
+    "image-SHA256SUMS": "a795a5834ee06f34e425cdfa081960c016c3a66f55746759e5ccb5403c9bffe6",
+    "image-inspect.json": "199b34f1a4921b453f0f2497b3bba05e6c54d94067d19aff9e1b9c37ecd4514f",
+    "image-summary.json": "37561b98075717775c56b485d1664e16e382ac8c87694de72bcdb755f47e728f",
+    "runner-arch.txt": "5121ae59314a84da7b4d9587374398f1afa2000b243b3e54f491adefaac54f92",
+    "sbom/INVENTORY.json": "463a3f59721b92ef4d08bc3dc96e252c5fa7a36db7497184a9663119677b29b2",
+    "sbom/RECONCILIATION.json": "247dd9fdfb571d3bb3ed415ca3a501eb33e95b744845f03fd6d2387c6b4458b9",
+    "sbom/sbom.cdx.json": "9a9c0bb91b5d57ab08ebafaf92ee6cbcb076f303d800ffb539f63beb598f3fe8",
+    "smoke.txt": "e1da974182be8586dd40b349626c48b4fdec24d2942579105ab89b70d14b1f3a",
+    "trivy-summary.json": "6126a04e13ea337a318e176287eba3af225e489a776611fc2dc4816b9a04f904",
+    "trivy.json": "66685cbd9f350352835e1bc5cbe7e1106a17d1f4a4d940b6eb2c83842bfade86"
+   }
+  }
+ },
+ "os_high_disposition": {
+  "zlib1g CVE-2023-45853": "NOT_AFFECTED（Debian tracker：[bookworm] - zlib <ignored>，contrib/minizip not built；SBOM 無 minizip）",
+  "others": "NO_FIX_AVAILABLE（Debian affected／fix_deferred）；需具名 owner 接受（SC-OWNER）"
+ },
+ "supersedes": "docs/enterprise/v51/SUPPLY_CHAIN_FINAL_LEDGER.json（6933d5e image）"
+}
