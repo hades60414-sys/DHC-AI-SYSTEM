@@ -2,28 +2,281 @@
  "schema": "dhc-roadmap/v1",
  "note": "唯一來源：ROADMAP_TUI.md 與 TECHNICAL_ROADMAP.mmd 由 scripts/enterprise/render_roadmap.py 產生；evidence 路徑必須存在於 repo，否則標 MISSING_EVIDENCE。",
  "items": [
-  {"id": "ID-01", "track": "身分與隔離", "title": "企業身分、RBAC、session epoch 撤權、legacy 路由隔離", "status": "CURRENT", "evidence": ["server/modules/enterprise-persistence/enterprise-identity.service.ts", "server/modules/enterprise-api/tests/session-inflight.integration.test.ts"]},
-  {"id": "ID-02", "track": "身分與隔離", "title": "PostgreSQL FORCE RLS（31 張表）＋每請求交易", "status": "CURRENT", "evidence": ["server/modules/enterprise-persistence/tests/enterprise.integration.test.ts"]},
-  {"id": "DOC-01", "track": "文件與草稿", "title": "文件版本、SHA-256、擷取沙箱、引用、草稿審批與匯出", "status": "CURRENT", "evidence": ["server/modules/enterprise-persistence/document-extraction.ts", "server/modules/enterprise-persistence/citation-integrity.ts"]},
-  {"id": "RUN-01", "track": "Run 與模型", "title": "Run 冪等、取消、隔離、BYOK、egress 政策、用量帳本", "status": "CURRENT", "evidence": ["server/modules/enterprise-persistence/model-gateway.ts", "server/modules/enterprise-persistence/egress-policy.ts"]},
-  {"id": "BIZ-01", "track": "商務權益", "title": "套餐、配額、到期唯讀（商務寫入政策）", "status": "CURRENT", "evidence": ["server/modules/enterprise-persistence/enterprise-entitlements.ts"]},
-  {"id": "ACC-01", "track": "確定性計算", "title": "ACC-MATCH-v1 一對一確定性對帳", "status": "CURRENT", "evidence": ["server/modules/enterprise-persistence/reconciliation-acc-match-v1.ts"]},
-  {"id": "ACC-02", "track": "確定性計算", "title": "ACC-MATCH-v1 結構化匯出（json／csv／markdown）＋匯出紀錄（0014）", "status": "NEW_IN_V5", "evidence": ["server/modules/enterprise-persistence/reconciliation-export.ts", "server/modules/enterprise-api/tests/reconciliation-export.integration.test.ts", "db/enterprise/migrations/0014_reconciliation_exports.up.sql"]},
-  {"id": "OPS-01", "track": "確定性計算", "title": "OPS-REPORT-v1 營運週報引擎＋API（0013）", "status": "NEW_IN_V5", "evidence": ["server/modules/enterprise-persistence/ops-report-v1.ts", "server/modules/enterprise-api/tests/ops-report.integration.test.ts", "db/enterprise/migrations/0013_ops_reports.up.sql"]},
-  {"id": "OPS-02", "track": "確定性計算", "title": "模型敘述數字守門（validateOpsNarrative）", "status": "NEW_IN_V5", "evidence": ["server/modules/enterprise-persistence/tests/ops-report-v1.test.ts"]},
-  {"id": "OBS-01", "track": "可靠性與可觀測性", "title": "低基數 metrics、結構化日誌、request id、/metrics token", "status": "NEW_IN_V5", "evidence": ["server/modules/enterprise-api/enterprise-observability.ts", "docs/enterprise/operations/OBSERVABILITY.md"]},
-  {"id": "QA-01", "track": "品質與 CI", "title": "CI 基線比對器 v2（fail closed）＋5 個 legacy 失敗修復", "status": "NEW_IN_V5", "evidence": ["scripts/enterprise/ci/compare_known_failures.py", "scripts/enterprise/ci/test_compare_known_failures.py"]},
-  {"id": "SC-01", "track": "供應鏈", "title": "企業 runtime 移除 npm；lodash-es／nanoid 覆寫；台帳", "status": "NEW_IN_V5", "evidence": ["docs/enterprise/supply-chain/SUPPLY_CHAIN_REMEDIATION_LEDGER.json"]},
-  {"id": "CI-01", "track": "品質與 CI", "title": "原生 amd64／arm64 image build、SBOM、Trivy、交付冒煙", "status": "CURRENT", "evidence": ["deploy/customer-single/Dockerfile"]},
-  {"id": "OPS-03", "track": "確定性計算", "title": "週報敘述生成（模型只寫文字）", "status": "PLANNED", "evidence": []},
-  {"id": "OPS-04", "track": "確定性計算", "title": "週報送審／簽認／正式匯出（沿用草稿審批鏈）", "status": "PLANNED", "evidence": []},
-  {"id": "OBS-02", "track": "可靠性與可觀測性", "title": "OpenTelemetry 追蹤、告警與 SLO（需實測流量基線）", "status": "PLANNED", "evidence": []},
-  {"id": "SC-02", "track": "供應鏈", "title": "更新 RUNTIME_BASE digest（apt 2.6.2 等 OS 修補）並重跑雙架構交付", "status": "PLANNED", "evidence": []},
-  {"id": "PERF-01", "track": "品質與 CI", "title": "CI 效能量測：API p50／p95、5 萬列對帳、匯出耗時、記憶體", "status": "PLANNED", "evidence": []},
-  {"id": "UAT-01", "track": "驗收", "title": "66 項 UAT 實際執行（目前 PASS 0）", "status": "PLANNED", "evidence": []},
-  {"id": "DEC-01", "track": "待人類決策", "title": "條款比對功能（BLOCKED_PRODUCT_DECISION）", "status": "BLOCKED_DECISION", "evidence": []},
-  {"id": "DEC-02", "track": "待人類決策", "title": "RD-002／RD-003 契約、IP／著作權、價格與 SOW", "status": "BLOCKED_DECISION", "evidence": []},
-  {"id": "DEC-03", "track": "待人類決策", "title": "正式映像發布（GHCR）與客戶正式部署", "status": "BLOCKED_DECISION", "evidence": []},
-  {"id": "DEC-04", "track": "待人類決策", "title": "ACC-MATCH 擴充規則（多對一、分期、退款、跨月）", "status": "BLOCKED_DECISION", "evidence": []}
+  {
+   "id": "ID-01",
+   "track": "身分與隔離",
+   "title": "企業身分、RBAC、session epoch 撤權、legacy 路由隔離",
+   "status": "CURRENT",
+   "evidence": [
+    "server/modules/enterprise-persistence/enterprise-identity.service.ts",
+    "server/modules/enterprise-api/tests/session-inflight.integration.test.ts"
+   ]
+  },
+  {
+   "id": "ID-02",
+   "track": "身分與隔離",
+   "title": "PostgreSQL FORCE RLS（31 張表）＋每請求交易",
+   "status": "CURRENT",
+   "evidence": [
+    "server/modules/enterprise-persistence/tests/enterprise.integration.test.ts"
+   ]
+  },
+  {
+   "id": "DOC-01",
+   "track": "文件與草稿",
+   "title": "文件版本、SHA-256、擷取沙箱、引用、草稿審批與匯出",
+   "status": "CURRENT",
+   "evidence": [
+    "server/modules/enterprise-persistence/document-extraction.ts",
+    "server/modules/enterprise-persistence/citation-integrity.ts"
+   ]
+  },
+  {
+   "id": "RUN-01",
+   "track": "Run 與模型",
+   "title": "Run 冪等、取消、隔離、BYOK、egress 政策、用量帳本",
+   "status": "CURRENT",
+   "evidence": [
+    "server/modules/enterprise-persistence/model-gateway.ts",
+    "server/modules/enterprise-persistence/egress-policy.ts"
+   ]
+  },
+  {
+   "id": "BIZ-01",
+   "track": "商務權益",
+   "title": "套餐、配額、到期唯讀（商務寫入政策）",
+   "status": "CURRENT",
+   "evidence": [
+    "server/modules/enterprise-persistence/enterprise-entitlements.ts"
+   ]
+  },
+  {
+   "id": "ACC-01",
+   "track": "確定性計算",
+   "title": "ACC-MATCH-v1 一對一確定性對帳",
+   "status": "CURRENT",
+   "evidence": [
+    "server/modules/enterprise-persistence/reconciliation-acc-match-v1.ts"
+   ]
+  },
+  {
+   "id": "ACC-02",
+   "track": "確定性計算",
+   "title": "ACC-MATCH-v1 結構化匯出（json／csv／markdown）＋匯出紀錄（0014）",
+   "status": "NEW_IN_V5",
+   "evidence": [
+    "server/modules/enterprise-persistence/reconciliation-export.ts",
+    "server/modules/enterprise-api/tests/reconciliation-export.integration.test.ts",
+    "db/enterprise/migrations/0014_reconciliation_exports.up.sql"
+   ]
+  },
+  {
+   "id": "OPS-01",
+   "track": "確定性計算",
+   "title": "OPS-REPORT-v1 營運週報引擎＋API（0013）",
+   "status": "NEW_IN_V5",
+   "evidence": [
+    "server/modules/enterprise-persistence/ops-report-v1.ts",
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+    "db/enterprise/migrations/0013_ops_reports.up.sql"
+   ]
+  },
+  {
+   "id": "OPS-02",
+   "track": "確定性計算",
+   "title": "模型敘述數字守門（validateOpsNarrative）",
+   "status": "NEW_IN_V5",
+   "evidence": [
+    "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts"
+   ]
+  },
+  {
+   "id": "OBS-01",
+   "track": "可靠性與可觀測性",
+   "title": "低基數 metrics、結構化日誌、request id、/metrics token",
+   "status": "NEW_IN_V5",
+   "evidence": [
+    "server/modules/enterprise-api/enterprise-observability.ts",
+    "docs/enterprise/operations/OBSERVABILITY.md"
+   ]
+  },
+  {
+   "id": "QA-01",
+   "track": "品質與 CI",
+   "title": "CI 基線比對器 v2（fail closed）＋5 個 legacy 失敗修復",
+   "status": "NEW_IN_V5",
+   "evidence": [
+    "scripts/enterprise/ci/compare_known_failures.py",
+    "scripts/enterprise/ci/test_compare_known_failures.py"
+   ]
+  },
+  {
+   "id": "SC-01",
+   "track": "供應鏈",
+   "title": "企業 runtime 移除 npm；lodash-es／nanoid 覆寫；台帳",
+   "status": "NEW_IN_V5",
+   "evidence": [
+    "docs/enterprise/supply-chain/SUPPLY_CHAIN_REMEDIATION_LEDGER.json"
+   ]
+  },
+  {
+   "id": "CI-01",
+   "track": "品質與 CI",
+   "title": "原生 amd64／arm64 image build、SBOM、Trivy、交付冒煙",
+   "status": "CURRENT",
+   "evidence": [
+    "deploy/customer-single/Dockerfile"
+   ]
+  },
+  {
+   "id": "RG-01",
+   "track": "確定性計算",
+   "title": "OPS-REPORT 資源邊界：合計列數／bytes／單行上限、結果大小有界、交易外計算、併發閘門",
+   "status": "NEW_IN_V51",
+   "evidence": [
+    "server/modules/enterprise-persistence/ops-report-runner.ts",
+    "server/modules/enterprise-persistence/tests/ops-report-limits.test.ts",
+    "scripts/enterprise/ci/ops-resource-probe.ts"
+   ]
+  },
+  {
+   "id": "RG-02",
+   "track": "確定性計算",
+   "title": "CSV 公式注入（拒收結果 rowId 可達）防護＋LibreOffice 實測",
+   "status": "NEW_IN_V51",
+   "evidence": [
+    "server/modules/enterprise-persistence/reconciliation-export.ts",
+    "scripts/enterprise/ci/check_spreadsheet_import.py"
+   ]
+  },
+  {
+   "id": "RG-03",
+   "track": "文件與草稿",
+   "title": "blob 串流完整性驗證（匯出不再整份讀入）",
+   "status": "NEW_IN_V51",
+   "evidence": [
+    "server/modules/enterprise-persistence/document-blob-store.ts"
+   ]
+  },
+  {
+   "id": "RG-04",
+   "track": "驗收",
+   "title": "66 項 UAT 機械化證據索引（LINKED_TEST／FILE_LEVEL／EVIDENCE_MISSING）",
+   "status": "NEW_IN_V51",
+   "evidence": [
+    "scripts/enterprise/uat_evidence_index.py",
+    "docs/enterprise/uat/UAT_EVIDENCE_INDEX.json"
+   ]
+  },
+  {
+   "id": "UPG-01",
+   "track": "品質與 CI",
+   "title": "V4→V5.1 升級與回退在 GitHub Actions 原生 amd64 執行",
+   "status": "NEW_IN_V51",
+   "evidence": [
+    "scripts/enterprise/ci/upgrade_rollback.py"
+   ]
+  },
+  {
+   "id": "OPS-03",
+   "track": "確定性計算",
+   "title": "週報敘述生成（模型只寫文字）",
+   "status": "PLANNED",
+   "evidence": []
+  },
+  {
+   "id": "OPS-04",
+   "track": "確定性計算",
+   "title": "週報送審／簽認／正式匯出（沿用草稿審批鏈）",
+   "status": "PLANNED",
+   "evidence": []
+  },
+  {
+   "id": "OBS-02",
+   "track": "可靠性與可觀測性",
+   "title": "OpenTelemetry 追蹤、告警與 SLO（需實測流量基線）",
+   "status": "PLANNED",
+   "evidence": []
+  },
+  {
+   "id": "SC-02",
+   "track": "供應鏈",
+   "title": "更新 runtime／build base digest（node:22-bookworm[-slim] 2026-11-05）並重跑雙架構交付與 Trivy",
+   "status": "NEW_IN_V51",
+   "evidence": [
+    "deploy/customer-single/Dockerfile",
+    "docs/enterprise/supply-chain/SUPPLY_CHAIN_REMEDIATION_LEDGER.json"
+   ]
+  },
+  {
+   "id": "PERF-01",
+   "track": "品質與 CI",
+   "title": "CI 效能：端到端報表／匯出 p50／p95 已量（NEW_IN_V51）；多用戶負載與 soak 仍未做",
+   "status": "PLANNED",
+   "evidence": []
+  },
+  {
+   "id": "UAT-01",
+   "track": "驗收",
+   "title": "66 項 UAT 實際執行（目前 PASS 0）",
+   "status": "PLANNED",
+   "evidence": []
+  },
+  {
+   "id": "DEC-01",
+   "track": "待人類決策",
+   "title": "條款比對功能（BLOCKED_PRODUCT_DECISION）",
+   "status": "BLOCKED_DECISION",
+   "evidence": []
+  },
+  {
+   "id": "DEC-02",
+   "track": "待人類決策",
+   "title": "RD-002／RD-003 契約、IP／著作權、價格與 SOW",
+   "status": "BLOCKED_DECISION",
+   "evidence": []
+  },
+  {
+   "id": "DEC-03",
+   "track": "待人類決策",
+   "title": "正式映像發布（GHCR）與客戶正式部署",
+   "status": "BLOCKED_DECISION",
+   "evidence": []
+  },
+  {
+   "id": "DEC-04",
+   "track": "待人類決策",
+   "title": "ACC-MATCH 擴充規則（多對一、分期、退款、跨月）",
+   "status": "BLOCKED_DECISION",
+   "evidence": []
+  },
+  {
+   "id": "PERF-02",
+   "track": "品質與 CI",
+   "title": "多用戶併發負載、長時間 soak、arm64 升級回退",
+   "status": "PLANNED",
+   "evidence": []
+  },
+  {
+   "id": "SEC-01",
+   "track": "待人類決策",
+   "title": "remote-agent cmd-run 預設暴露給模型、字面禁止清單可繞過（需模組 owner 決策）",
+   "status": "BLOCKED_DECISION",
+   "evidence": []
+  },
+  {
+   "id": "SEC-02",
+   "track": "待人類決策",
+   "title": "deid-proxy／codex-deid 大小限制、逾時、背壓、斷線與路徑政策（owner 工單）",
+   "status": "BLOCKED_DECISION",
+   "evidence": []
+  },
+  {
+   "id": "DEC-05",
+   "track": "待人類決策",
+   "title": "OPS-REPORT 多來源合計列數的業務契約（目前工程上限 5 萬）",
+   "status": "BLOCKED_DECISION",
+   "evidence": []
+  }
  ]
 }

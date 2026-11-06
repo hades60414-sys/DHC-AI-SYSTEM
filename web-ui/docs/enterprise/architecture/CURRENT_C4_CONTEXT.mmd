@@ -1,7 +1,8 @@
-%% C4 Level 1（系統情境）。標記：CURRENT＝已在程式中、NEW_IN_V5＝本輪新增、PLANNED＝尚未實作、BLOCKED_DECISION＝待人類決策。
+%% V5.1：紫色＝NEW_IN_V51。C4 Level 1（系統情境）。標記：CURRENT＝已在程式中、NEW_IN_V5＝本輪新增、PLANNED＝尚未實作、BLOCKED_DECISION＝待人類決策。
 flowchart LR
   classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A
   classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
+  classDef newv51 fill:#e9e6f6,stroke:#5a4a9a,color:#2A2A2A
   classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
   classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2
 
@@ -14,6 +15,7 @@ flowchart LR
   registry["映像發布（GHCR 等）<br/>[BLOCKED_DECISION：正式發布 Gate]"]:::blocked
   billing["真實金流／收款<br/>[BLOCKED_DECISION：不啟用]"]:::blocked
   clause["條款比對功能<br/>[BLOCKED_DECISION：BLOCKED_PRODUCT_DECISION]"]:::blocked
+  other["同 repo 其他模組（非企業產品）<br/>remote-agent cmd-run、deid-proxy／codex-deid<br/>[BLOCKED_DECISION：模組 owner 決策（V5.1 威脅模型）]"]:::blocked
 
   staff -->|"HTTPS（反向代理）＋Bearer session"| system
   operator -->|"docker compose／dhc-office.py"| system
@@ -23,3 +25,4 @@ flowchart LR
   github -.-> registry
   system -.-> billing
   system -.-> clause
+  github -.->|"同一公開 repo"| other

@@ -20,6 +20,11 @@ sequenceDiagram
     API-->>C: 200 reused
   else 交易中被停權／降權
     DB-->>API: FOR SHARE 序列化：降權等本交易提交，或本交易看到降權而拒絕
+  else [NEW_IN_V51] OPS-REPORT 輸入過大／併發滿／用戶端斷線
+    API-->>C: 413 OPS_REPORT_TOO_LARGE（不讀 blob）／429 RATE_LIMITED／中止計算（不寫入）
+  else [NEW_IN_V51] 長時間計算期間被停權
+    API->>DB: commit 新交易重驗 session → 無效
+    API-->>C: 401（無結果列、無稽核）
   end
   Note over W,DB: 行程重啟：worker 重新取 queued；running 超過 10 分鐘標 ENTERPRISE_RUN_TIMEOUT 並釋放預留額度
   OP->>DB: backup（pg_dump＋blob 參照檢查＋manifest）

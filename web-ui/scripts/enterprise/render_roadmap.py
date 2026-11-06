@@ -9,8 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DIR = ROOT / 'docs/enterprise/architecture'
-ORDER = ['CURRENT', 'NEW_IN_V5', 'PLANNED', 'BLOCKED_DECISION']
-MARK = {'CURRENT': '■', 'NEW_IN_V5': '◆', 'PLANNED': '□', 'BLOCKED_DECISION': '✕'}
+ORDER = ['CURRENT', 'NEW_IN_V5', 'NEW_IN_V51', 'PLANNED', 'BLOCKED_DECISION']
+MARK = {'CURRENT': '■', 'NEW_IN_V5': '◆', 'NEW_IN_V51': '◇', 'PLANNED': '□', 'BLOCKED_DECISION': '✕'}
 
 
 def width(text):
@@ -23,9 +23,9 @@ def pad(text, size):
 
 def render(data):
     items = data['items']
-    missing = [item['id'] for item in items if item['status'] in ('CURRENT', 'NEW_IN_V5') and (not item['evidence'] or any(not (ROOT / p).exists() for p in item['evidence']))]
+    missing = [item['id'] for item in items if item['status'] in ('CURRENT', 'NEW_IN_V5', 'NEW_IN_V51') and (not item['evidence'] or any(not (ROOT / p).exists() for p in item['evidence']))]
     counts = {status: sum(item['status'] == status for item in items) for status in ORDER}
-    done = counts['CURRENT'] + counts['NEW_IN_V5']
+    done = counts['CURRENT'] + counts['NEW_IN_V5'] + counts['NEW_IN_V51']
     bar_size = 40
     filled = round(bar_size * done / len(items))
     inner = 78
@@ -45,20 +45,21 @@ def render(data):
             out.append(line(text + flag))
         out.append(line())
     out[-1] = '└' + '─' * (inner + 2) + '┘'
-    md = ['# 後端路線圖（TUI 檢視）', '', '> 由 `scripts/enterprise/render_roadmap.py` 依 `roadmap.json` 產生；CURRENT／NEW_IN_V5 項目的 evidence 路徑皆經存在性檢查。', '',
+    md = ['# 後端路線圖（TUI 檢視）', '', '> 由 `scripts/enterprise/render_roadmap.py` 依 `roadmap.json` 產生；CURRENT／NEW_IN_V5／NEW_IN_V51 項目的 evidence 路徑皆經存在性檢查。', '',
           '```text', *out, '```', '', '| ID | 軌道 | 項目 | 狀態 | 證據 |', '|---|---|---|---|---|']
     md += [f"| {i['id']} | {i['track']} | {i['title']} | {i['status']} | {'<br/>'.join(f'`{p}`' for p in i['evidence']) or '—'} |" for i in items]
     mmd = ['%% 由 scripts/enterprise/render_roadmap.py 依 roadmap.json 產生，勿手改。', 'flowchart LR',
            '  classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A', '  classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A',
+           '  classDef newv51 fill:#e9e6f6,stroke:#5a4a9a,color:#2A2A2A',
            '  classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3', '  classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2']
-    css = {'CURRENT': 'current', 'NEW_IN_V5': 'newv5', 'PLANNED': 'planned', 'BLOCKED_DECISION': 'blocked'}
+    css = {'CURRENT': 'current', 'NEW_IN_V5': 'newv5', 'NEW_IN_V51': 'newv51', 'PLANNED': 'planned', 'BLOCKED_DECISION': 'blocked'}
     for index, status in enumerate(ORDER):
         mmd.append(f'  subgraph S{index}["{status}"]')
         for item in [i for i in items if i['status'] == status]:
             node = item['id'].replace('-', '_')
             mmd.append(f'    {node}["{item["id"]}<br/>{item["title"].replace(chr(34), "")}"]:::{css[status]}')
         mmd.append('  end')
-    mmd += ['  S0 --> S1 --> S2', '  S3 -.->|"人類決策後才排入"| S2']
+    mmd += ['  S0 --> S1 --> S2 --> S3', '  S4 -.->|"人類決策後才排入"| S3']
     return '\n'.join(md) + '\n', '\n'.join(mmd) + '\n', missing
 
 
