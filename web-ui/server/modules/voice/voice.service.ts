@@ -5,7 +5,7 @@ import type {
   VoiceServiceResult,
   VoiceSpeechPayload,
 } from '@/shared/types.js';
-import { toTraditional } from '@/modules/providers/list/claude/auto-session-title.js';
+import { toTraditional } from '@/modules/providers/index.js';
 
 type VoiceServiceDependencies = {
   defaults: {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { brandText, installBrandText } from './brandText';
+import { brandText, installBrandText } from '@/shared/brandText';
 
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 

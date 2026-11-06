@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { describe, expect, it, vi } from 'vitest';
 
-import { PII_BLOCK_EVENT, findPii, findPiiInFile, findPiiInTurn, installPiiNetworkGuard, piiBlockMessage } from './piiGuard';
+import { PII_BLOCK_EVENT, findPii, findPiiInFile, findPiiInTurn, installPiiNetworkGuard, piiBlockMessage } from '@/shared/piiGuard';
 
 const kinds = (text: string) => findPii(text).map((h) => h.kind);
 

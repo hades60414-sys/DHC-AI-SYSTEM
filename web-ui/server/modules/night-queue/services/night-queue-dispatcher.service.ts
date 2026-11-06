@@ -165,6 +165,8 @@ async function runItem(item: NightQueueItemRow, runtime: ProviderRuntimeGateway,
   // `item` is the row as it was before the claim: an earlier attempt means that run did not finish.
   const attempt = item.attempts + 1;
   const { content, options } = buildRunInput(item);
+  // 以派送時鐘 `now` 為準，再加上這次執行實際經過的時間＝失敗當下（不混用真實時鐘與注入時鐘）。
+  const startedAtMs = Date.now();
 
   try {
     const settled = runDetachedChatTurn(
@@ -203,8 +205,10 @@ async function runItem(item: NightQueueItemRow, runtime: ProviderRuntimeGateway,
     }
 
     // Whatever failed this run (a usage limit, an outage) will fail the next one too: pause the lane first.
-    // Timed from whichever is later, the dispatch clock or the moment of failure.
-    pausedUntil = Math.max(now.getTime(), Date.now()) + RETRY_BACKOFF_MS;
+    // Timed from the moment of failure on the dispatch clock: dispatch time plus how long the run took.
+    // (V5 fix: Math.max(now, Date.now()) mixed an injected clock with the wall clock, so a pass driven with a
+    // clock in the past stayed paused until wall-clock time caught up.)
+    pausedUntil = now.getTime() + Math.max(0, Date.now() - startedAtMs) + RETRY_BACKOFF_MS;
     if (attempt >= MAX_ATTEMPTS) {
       nightQueueDb.finish(item.id, 'failed', `試了 ${attempt} 次都沒有完成：${failure.reason}`);
     } else {

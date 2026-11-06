@@ -3,7 +3,8 @@
 name: enterprise-verify
 on:
   pull_request:
-    branches: [main]
+    # main，以及 stacked PR 的 base（V4 整合分支）——讓 V5 PR 也觸發完整驗證
+    branches: [main, 'integration/enterprise-rcfix-v4-20261106']
     paths: ['web-ui/**', '.github/workflows/enterprise-*.yml']
   workflow_dispatch:
 permissions:
@@ -33,6 +34,8 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           # 原生模組與 ripgrep 執行檔（對話搜尋測試需要；--ignore-scripts 不會下載）
           npm rebuild better-sqlite3 node-pty @vscode/ripgrep
+      - name: CI 基線比對器自身的單元測試（24 種失敗情境）
+        run: python3 -B scripts/enterprise/ci/test_compare_known_failures.py
       - name: typecheck
         run: npm run -s typecheck
       - name: lint（只擋新錯誤）

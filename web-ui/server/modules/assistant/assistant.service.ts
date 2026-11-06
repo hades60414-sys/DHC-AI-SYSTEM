@@ -7,9 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { projectsDb, sessionsDb, userDb, userPreferencesDb } from '@/modules/database/index.js';
-import { toTraditional } from '@/modules/providers/list/claude/auto-session-title.js';
-import { sessionsService } from '@/modules/providers/services/sessions.service.js';
-import { failureKind } from '@/modules/providers/services/tool-assist/tool-assist.service.js';
+import { failureKind, sessionsService, toTraditional } from '@/modules/providers/index.js';
 import { resolveClaudeCodeExecutablePath } from '@/shared/claude-cli-path.js';
 import { AppError } from '@/shared/utils.js';
 import { getDhcPublicConfig } from '@/modules/dhc/index.js';

@@ -1576,7 +1576,11 @@ test('11/02 存成 SOP gets the tool log of the answer before it; 試著問 list
     await post(baseUrl, { roomId: 'lobby', triggerAt: save.at, profileId: ME });
     await waitIdle(baseUrl, 'lobby');
     const prompt = (await calls(log)).at(-1)!.prompt;
-    assert.ok(prompt.includes('實際跑過的步驟') && prompt.includes('1. [成功] Read：D:/x/a.md') && prompt.includes('來源：2026-11-02 工具紀錄'), prompt.slice(-600));
+    // 來源日期＝工具紀錄實際記下的日期（record.at，執行當下的 UTC 日期）。原本寫死 2026-11-02，只在寫測試那天會過（V5 修正）。
+    const source = /來源：(\d{4}-\d{2}-\d{2}) 工具紀錄/.exec(prompt);
+    assert.ok(prompt.includes('實際跑過的步驟') && prompt.includes('1. [成功] Read：D:/x/a.md') && source, prompt.slice(-600));
+    const recordedDays = [Date.now() - 60_000, Date.now()].map((ms) => new Date(ms).toISOString().slice(0, 10));
+    assert.ok(recordedDays.includes(source![1]), `來源日期 ${source![1]} 應為工具紀錄執行當天 ${recordedDays.join('/')}`);
     assert.ok(prompt.includes('<<<資料開始'), 'chat history is fenced');
 
     seedRoom('dm:proj-me~dhc-assistant', [msg('d1', ME, '我的薪水單在哪裡呢', '2026-11-02T02:07:00.000Z'), { ...msg('d2', 'dhc-assistant', '在這', '2026-11-02T02:07:30.000Z'), replyTo: 'd1' }]);
