@@ -1,9 +1,9 @@
 {
  "schema_version": 1,
  "source": "docs/enterprise/uat/UAT_TRACEABILITY_V5.json＋證據代號圖例（UAT_MATRIX V4）＋EXPLICIT 對照",
- "product_sha": "PENDING_FINAL",
- "verify_run": null,
- "image_run": null,
+ "product_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+ "verify_run": "42247102617",
+ "image_run": "42247102627",
  "total_ids": 66,
  "evidence_status_counts": {
   "FILE_LEVEL": 37,
@@ -82,7 +82,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "API 登入、/identity/me；組織來自 session（BLOCKED_RD：身份主檔未批准）",
    "evidence": [
     {
@@ -96,7 +96,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -109,7 +111,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "API／SEC 無憑證 401、偽造 401、legacy 403",
    "evidence": [
     {
@@ -123,7 +125,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "tests/enterprise/sec01/run_sec01.py",
@@ -136,7 +140,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": null,
+     "ci_run_url": null
     }
    ]
   },
@@ -149,7 +155,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "API 稽核者上傳 403；PLAN 到期唯讀 402（WF）",
    "evidence": [
     {
@@ -163,7 +169,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
@@ -176,7 +184,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/entitlements.integration.test.ts",
@@ -189,7 +199,9 @@
        "resolution": "INFERRED"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -202,7 +214,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "API／DOC／WF 跨組織 404、搜尋空、引用 404",
    "evidence": [
     {
@@ -216,7 +228,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
@@ -229,7 +243,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
@@ -242,7 +258,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -255,7 +273,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "WF 員工不能決定審批（403）",
    "evidence": [
     {
@@ -269,7 +287,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -282,7 +302,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "API 停權後舊 token 401；SEC REVOKED_SESSION",
    "evidence": [
     {
@@ -296,7 +316,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "tests/enterprise/sec01/run_sec01.py",
@@ -309,7 +331,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": null,
+     "ci_run_url": null
     }
    ]
   },
@@ -322,7 +346,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "HTTP 與 Run worker 撤權已驗（API、WF）；企業模式無 WS（無長連線可測）",
    "evidence": [
     {
@@ -336,7 +360,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
@@ -349,7 +375,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -362,7 +390,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "SEC legacy/WS/Agent/MCP 全拒；企業無 platform 模式",
    "evidence": [
     {
@@ -376,7 +404,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": null,
+     "ci_run_url": null
     }
    ]
   },
@@ -389,7 +419,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "營運明細依明示案例集只納入 BASE 六筆（selectedRows 6／excludedRows 1）、丙站缺值旗標保留；合成事項紀錄（備註）導入仍未實作",
    "evidence": [
     {
@@ -400,7 +430,9 @@
      "aliases": [],
      "test_names": [
       "正常週：14 項主張的值、狀態與來源紀錄 ID 與 預期主張.csv 逐項一致"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
@@ -410,7 +442,9 @@
      "aliases": [],
      "test_names": [
       "正常週：14 項主張由伺服器計算、來源綁定版本與 hash、結果 hash 可重算；重送回同一筆（不加倍）；稽核者可讀不可建"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -423,7 +457,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "同內容同組織重用 blob（E05）；擷取冪等 reused（DOC）",
    "evidence": [
     {
@@ -437,7 +471,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
@@ -450,7 +486,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -463,7 +501,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "移除期間或 owner 欄 → HEADER_MISMATCH 整批拒收；owner／識別欄空白 → MISSING_*；拒收留紀錄與稽核，原文件版本不變",
    "evidence": [
     {
@@ -474,7 +512,9 @@
      "aliases": [],
      "test_names": [
       "缺欄位：識別／owner 欄空白拒收；件數空白是 UNKNOWN 不是 0（OP-NEG-01）"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
@@ -484,7 +524,9 @@
      "aliases": [],
      "test_names": [
       "拒收留痕：結構錯誤 → 201 rejected（錯誤清單與稽核），不產生主張；請求錯誤 → 4xx 且不寫入"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -497,7 +539,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "E05 版本鏈、DOC 舊版 history 檢索",
    "evidence": [
     {
@@ -511,7 +553,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
@@ -524,7 +568,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -537,7 +583,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "DOC 引用版本／位置／hash 驗證；「回答 210」需數值能力（見 14）",
    "evidence": [
     {
@@ -551,7 +597,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -564,7 +612,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "確定性引擎 210／180／+30／16.67%、待辦 61／46／+15；BigInt＋最後一步 ROUND_HALF_UP；引擎不產生因果文字；與規格 oracle 逐項比對",
    "evidence": [
     {
@@ -576,7 +624,9 @@
      "test_names": [
       "正常週：14 項主張的值、狀態與來源紀錄 ID 與 預期主張.csv 逐項一致",
       "ROUND_HALF_UP 與符號：0.00625% → 0.01、−0.00625% → −0.01；前週 0 → UNKNOWN（分母為 0）"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
@@ -586,7 +636,9 @@
      "aliases": [],
      "test_names": [
       "正常週：14 項主張由伺服器計算、來源綁定版本與 hash、結果 hash 可重算；重送回同一筆（不加倍）；稽核者可讀不可建"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -599,7 +651,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "甲乙 150/160＝93.75%、前週 130/140＝92.86%、差 0.89 百分點（未四捨五入比率相減）；全體 UNKNOWN；分子分母與子集合 sites 明示",
    "evidence": [
     {
@@ -610,7 +662,9 @@
      "aliases": [],
      "test_names": [
       "正常週：14 項主張的值、狀態與來源紀錄 ID 與 預期主張.csv 逐項一致"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
@@ -618,7 +672,9 @@
      "ci_job": "enterprise-verify / postgres-integration",
      "artifact": "enterprise-verify-postgres",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -631,7 +687,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "缺值為 UNKNOWN（不補 0／平均／前值），原因 FIELD_UNKNOWN 指出據點與欄位、其餘主張照常；owner 需經來源列查得，未在主張直接列出，UI 未呈現",
    "evidence": [
     {
@@ -645,7 +701,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
@@ -656,7 +714,9 @@
      "test_names": [
       "缺欄位：識別／owner 欄空白拒收；件數空白是 UNKNOWN 不是 0（OP-NEG-01）",
       "正常週：14 項主張的值、狀態與來源紀錄 ID 與 預期主張.csv 逐項一致"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -669,7 +729,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "同週同站 70／72 → CONFLICT、列出雙方來源、受影響主張值為空，不自動挑選；週報定稿流程尚未實作（無法驗「停止定稿」）",
    "evidence": [
     {
@@ -680,7 +740,9 @@
      "aliases": [],
      "test_names": [
       "重複來源（OP-NEG-02）：同時選 BASE＋NEG-CONFLICT → 乙站本週 CONFLICT，列出雙方，不挑版本；前週主張不受影響"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
@@ -690,7 +752,9 @@
      "aliases": [],
      "test_names": [
       "來源衝突與多來源：選 BASE＋NEG-CONFLICT → CONFLICT；兩個來源調換順序是同一份結果"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -703,7 +767,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "敘述數字守門 validateOpsNarrative 擋下引擎未產生的數字（如 35%）；但恰等於某主張值的數字擋不住（語意限制），敘述生成未實作",
    "evidence": [
     {
@@ -714,7 +778,9 @@
      "aliases": [],
      "test_names": [
       "敘述驗證（模型只寫文字）：數字必須出自引擎；百分點不得寫成 %；不得引用 UNKNOWN 主張；無來源的節省宣稱被擋（OP-NEG-03／06）"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -727,7 +793,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "引用來源 hash 漂移後核准與匯出被拒（ENTERPRISE_CITATION_INVALID）：server/modules/enterprise-api/tests/citation-integrity.integration.test.ts（evidence/RCFIX_V3_007）",
    "evidence": [
     {
@@ -736,7 +802,9 @@
      "ci_job": "enterprise-verify / postgres-integration",
      "artifact": "enterprise-verify-postgres",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -749,7 +817,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "未核准不能匯出（WF 409）；文件內容只作資料（系統提示要求，未對 prompt injection 做評測）",
    "evidence": [
     {
@@ -763,7 +831,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -776,7 +846,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "作業分鐘以「營運負荷，非工時節省」標示，引擎不計算 ROI／節省；敘述守門擋無來源數字；ROI 要求的明確拒絕回覆未實作",
    "evidence": [
     {
@@ -787,7 +857,9 @@
      "aliases": [],
      "test_names": [
       "敘述驗證（模型只寫文字）：數字必須出自引擎；百分點不得寫成 %；不得引用 UNKNOWN 主張；無來源的節省宣稱被擋（OP-NEG-03／06）"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -800,7 +872,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "「無引用主張阻止定稿」已做（UNCITED／INVALID 不能送審核准匯出，server/modules/enterprise-api/tests/citation-integrity.integration.test.ts（evidence/RCFIX_V3_007））；差異檢視 UI 仍未實作",
    "evidence": [
     {
@@ -814,7 +886,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/citation-integrity.integration.test.ts",
@@ -822,7 +896,9 @@
      "ci_job": "enterprise-verify / postgres-integration",
      "artifact": "enterprise-verify-postgres",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -835,7 +911,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "退回 API 存在、可修改再送審；退回路徑未有自動化測試",
    "evidence": [
     {
@@ -849,7 +925,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -862,7 +940,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "核准綁定修訂號、具名、時間、意見（WF、匯出含核准修訂）",
    "evidence": [
     {
@@ -876,7 +954,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -889,7 +969,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "自我核准 403（WF）；DB CHECK 亦禁止",
    "evidence": [
     {
@@ -903,7 +983,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -916,7 +998,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "新修訂必須重新送審（狀態機）；「V2 重新 PENDING」未有專門測試",
    "evidence": []
   },
@@ -929,7 +1011,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "未核准匯出 409（WF）",
    "evidence": [
     {
@@ -943,7 +1025,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -956,7 +1040,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "匯出內容＝核准修訂、含來源附錄、SHA 標頭與 draft_exports（WF、DLV）",
    "evidence": [
     {
@@ -970,7 +1054,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "scripts/enterprise/驗證AI_Office交付.py",
@@ -983,7 +1069,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102627",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
    ]
   },
@@ -996,7 +1084,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "Run 冪等（WF）；匯出每次記一筆（可辨識），無冪等鍵",
    "evidence": [
     {
@@ -1010,7 +1098,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1023,7 +1113,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "全鏈稽核事件（DLV、API）",
    "evidence": [
     {
@@ -1037,7 +1127,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "scripts/enterprise/驗證AI_Office交付.py",
@@ -1050,7 +1142,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102627",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
    ]
   },
@@ -1063,7 +1157,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "員工讀稽核 403；runtime 無 UPDATE/DELETE audit（E02b）",
    "evidence": [
     {
@@ -1077,7 +1171,9 @@
        "resolution": "INFERRED"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1090,7 +1186,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "Run 重試／逾時（WF）；備份還原（DLV）",
    "evidence": [
     {
@@ -1104,7 +1200,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "scripts/enterprise/驗證AI_Office交付.py",
@@ -1117,7 +1215,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102627",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
    ]
   },
@@ -1130,7 +1230,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "完成率／修正率／工時量測",
    "evidence": []
   },
@@ -1143,7 +1243,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "需真人操作與回饋",
    "evidence": []
   },
@@ -1156,7 +1256,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "只取指定 ISO 週與前一週，其他週別列不入算（excludedRows 計數）；列的起訖與週別不符 → PERIOD_MISMATCH 拒收；結果含固定起迄、前週範圍與 Asia/Taipei",
    "evidence": [
     {
@@ -1168,7 +1268,9 @@
      "test_names": [
       "跨月週與 ISO 週邊界：W44 跨 10/11 月、2026-W53 跨年、2027 沒有 W53",
       "錯誤期間：週別不存在 → INVALID_WEEK；列的起訖不符週別 → PERIOD_MISMATCH；案例集參數不合法 → 拒收"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
@@ -1178,7 +1280,9 @@
      "aliases": [],
      "test_names": [
       "正常週：14 項主張由伺服器計算、來源綁定版本與 hash、結果 hash 可重算；重送回同一筆（不加倍）；稽核者可讀不可建"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1191,7 +1295,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "本矩陣與 GATE_BOARD 區分 fixture／系統／歷史",
    "evidence": []
   },
@@ -1204,7 +1308,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "兩份 CSV 以文件版本導入，結果顯示 9＋9 列與兩個版本 hash；同版重送回原結果（reused），不變 18＋18：server/modules/enterprise-api/tests/reconciliation.integration.test.ts（真 PG＋HTTP）",
    "evidence": [
     {
@@ -1215,7 +1319,9 @@
      "aliases": [],
      "test_names": [
       "ACC-UAT-01/03–07：導入兩份固定 CSV → 9 案件（完全匹配 3、六類例外各 1），來源指回版本與 hash；重送回同一結果（不加倍）"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1228,7 +1334,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "非整數、空值、負值、指數、未知幣別、跨組織、重複資料列ID、期間外／不存在日期、欄名錯誤、小數位數不符 → 整批拒收、逐行原因、無部分案件：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；server/modules/enterprise-api/tests/reconciliation.integration.test.ts（真 PG＋HTTP）",
    "evidence": [
     {
@@ -1239,7 +1345,9 @@
      "aliases": [],
      "test_names": [
       "ACC-UAT-02：結構錯誤整批拒收（記錄錯誤與稽核，不產生案件），原始文件版本不變"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
@@ -1249,7 +1357,9 @@
      "aliases": [],
      "test_names": [
       "ACC-UAT-02：結構錯誤整批拒收，指出行與列；不產生部分案件"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1262,7 +1372,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "恰 3 個完全匹配，TWD 350000／USD 12345 分列，逐列來源可見：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；server/modules/enterprise-api/tests/reconciliation.integration.test.ts（真 PG＋HTTP）；tests/enterprise/e2e/office_e2e.mjs「W6-B 對帳」步驟（真瀏覽器，見交付驗證證據）",
    "evidence": [
     {
@@ -1271,7 +1381,9 @@
      "ci_job": "enterprise-verify / postgres-integration",
      "artifact": "enterprise-verify-postgres",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
@@ -1281,7 +1393,9 @@
      "aliases": [],
      "test_names": [
       "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "tests/enterprise/e2e/office_e2e.mjs",
@@ -1289,7 +1403,9 @@
      "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
      "artifact": "enterprise-delivery-{amd64,arm64}",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102627",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
    ]
   },
@@ -1302,7 +1418,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "003 缺收款明細、009 缺內部單據，差額留空（不補 0），不自動建單：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；tests/enterprise/e2e/office_e2e.mjs「W6-B 對帳」步驟（真瀏覽器，見交付驗證證據）",
    "evidence": [
     {
@@ -1313,7 +1429,9 @@
      "aliases": [],
      "test_names": [
       "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "tests/enterprise/e2e/office_e2e.mjs",
@@ -1321,7 +1439,9 @@
      "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
      "artifact": "enterprise-delivery-{amd64,arm64}",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102627",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
    ]
   },
@@ -1334,7 +1454,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "004：80000 對 75000，差額 -5000 最小單位，不判定原因：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；server/modules/enterprise-api/tests/reconciliation.integration.test.ts（真 PG＋HTTP）；tests/enterprise/e2e/office_e2e.mjs「W6-B 對帳」步驟（真瀏覽器，見交付驗證證據）",
    "evidence": [
     {
@@ -1343,7 +1463,9 @@
      "ci_job": "enterprise-verify / postgres-integration",
      "artifact": "enterprise-verify-postgres",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
@@ -1353,7 +1475,9 @@
      "aliases": [],
      "test_names": [
       "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "tests/enterprise/e2e/office_e2e.mjs",
@@ -1361,7 +1485,9 @@
      "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
      "artifact": "enterprise-delivery-{amd64,arm64}",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102627",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
    ]
   },
@@ -1374,7 +1500,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "005 幣別不一致、差額空白、原值保留；數字相等但幣別不同的變體同樣判不一致；無匯率：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）",
    "evidence": [
     {
@@ -1386,7 +1512,9 @@
      "test_names": [
       "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）",
       "ACC-UAT-06：數字相等但幣別不同仍為幣別不一致，差額空白、保留原值、無跨幣別總額"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1399,7 +1527,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "006 單據ID重複、007 收款ID重複，相關 6 列整組隔離、不選首列、不加總進完全匹配；同側混幣改判未支援：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；tests/enterprise/e2e/office_e2e.mjs「W6-B 對帳」步驟（真瀏覽器，見交付驗證證據）",
    "evidence": [
     {
@@ -1410,7 +1538,9 @@
      "aliases": [],
      "test_names": [
       "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "tests/enterprise/e2e/office_e2e.mjs",
@@ -1418,7 +1548,9 @@
      "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
      "artifact": "enterprise-delivery-{amd64,arm64}",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102627",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
    ]
   },
@@ -1431,7 +1563,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "草稿引用可驗（WF、DOC）；月報數值需對帳引擎",
    "evidence": [
     {
@@ -1445,7 +1577,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
@@ -1458,7 +1592,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1471,7 +1607,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "系統提示要求只依來源；無 prompt-injection 評測",
    "evidence": [
     {
@@ -1482,7 +1618,9 @@
      "aliases": [],
      "test_names": [
       "來源摘要中的指令文字只是資料（ACC-UAT-09 前置）：不影響分類"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1495,7 +1633,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "員工不能核准；退回保留理由（API 存在）",
    "evidence": [
     {
@@ -1509,7 +1647,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1522,7 +1662,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "修訂需重新送審；「改版使舊簽認失效」未專測",
    "evidence": []
   },
@@ -1535,7 +1675,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "無核准不能匯出（WF）",
    "evidence": [
     {
@@ -1549,7 +1689,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1562,7 +1704,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "跨組織、撤權（API、WF、SEC）",
    "evidence": [
     {
@@ -1576,7 +1718,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
@@ -1589,7 +1733,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "tests/enterprise/sec01/run_sec01.py",
@@ -1602,7 +1748,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": null,
+     "ci_run_url": null
     },
     {
      "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
@@ -1612,7 +1760,9 @@
      "aliases": [],
      "test_names": [
       "ACC-UAT-13（API 部分）：另一組織讀不到、也不能拿本組織的文件版本對帳"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1625,7 +1775,7 @@
    "pass": false,
    "evidence_status": "LINKED_TEST",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "稽核鏈與匯出 hash（DLV）",
    "evidence": [
     {
@@ -1639,7 +1789,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102627",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     },
     {
      "path": "server/modules/enterprise-api/tests/reconciliation-export.integration.test.ts",
@@ -1649,7 +1801,9 @@
      "aliases": [],
      "test_names": [
       "三種格式：內容 SHA-256 與標頭一致、JSON 與已存結果一致；每次匯出留匯出紀錄與稽核；稽核者可匯出"
-     ]
+     ],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1662,7 +1816,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "KPI 計算",
    "evidence": []
   },
@@ -1675,7 +1829,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "兩版上傳與 hash（E05、DOC）；「基線／候選」指定與條款比對未實作",
    "evidence": [
     {
@@ -1689,7 +1843,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
@@ -1702,7 +1858,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1715,7 +1873,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "重送相同內容去重、版本鏈（E05）",
    "evidence": [
     {
@@ -1729,7 +1887,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1742,7 +1902,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "條款逐條比對：DEC-W6-SCOPE-01 使用者決定本輪不做（BLOCKED_PRODUCT_DECISION）",
    "evidence": []
   },
@@ -1755,7 +1915,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "引用版本／位置／hash（DOC）；clause ID 解析未實作",
    "evidence": [
     {
@@ -1769,7 +1929,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1782,7 +1944,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "矛盾標記阻止輸出：DEC-W6-SCOPE-01 本輪不做（BLOCKED_PRODUCT_DECISION）",
    "evidence": []
   },
@@ -1795,7 +1957,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "錯 hash（expectedSha256 不符 400）、未知版本 404（API、E05）",
    "evidence": [
     {
@@ -1809,7 +1971,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
@@ -1822,7 +1986,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1835,7 +2001,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "不存在的引用編號（如 [999]）阻擋送審（server/modules/enterprise-api/tests/citation-integrity.integration.test.ts（evidence/RCFIX_V3_007））；條款 ID 層級的「不存在條款」檢查仍未實作",
    "evidence": [
     {
@@ -1844,7 +2010,9 @@
      "ci_job": "enterprise-verify / postgres-integration",
      "artifact": "enterprise-verify-postgres",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1857,7 +2025,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "送審前伺服器自動核對每個 [n] 與 metadata、來源存在、版本與 hash：server/modules/enterprise-api/tests/citation-integrity.integration.test.ts（evidence/RCFIX_V3_007）",
    "evidence": [
     {
@@ -1866,7 +2034,9 @@
      "ci_job": "enterprise-verify / postgres-integration",
      "artifact": "enterprise-verify-postgres",
      "aliases": [],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1879,7 +2049,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "跨組織、API key／Agent 入口（SEC、API）",
    "evidence": [
     {
@@ -1893,7 +2063,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "tests/enterprise/sec01/run_sec01.py",
@@ -1906,7 +2078,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": null,
+     "ci_run_url": null
     }
    ]
   },
@@ -1919,7 +2093,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "未核准匯出 409、員工不能核准（WF）",
    "evidence": [
     {
@@ -1933,7 +2107,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1946,7 +2122,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "真人逐條覆核",
    "evidence": []
   },
@@ -1959,7 +2135,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "匯出可回查引用（WF）；覆核摘要格式未實作",
    "evidence": [
     {
@@ -1973,7 +2149,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -1986,7 +2164,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "停權後 HTTP／Run 拒絕（API、WF）；企業模式無 WS",
    "evidence": [
     {
@@ -2000,7 +2178,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
@@ -2013,7 +2193,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
    ]
   },
@@ -2026,7 +2208,7 @@
    "pass": false,
    "evidence_status": "FILE_LEVEL",
    "missing_reason": null,
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "Run 取消／逾時／重試（WF）；備份還原（DLV）",
    "evidence": [
     {
@@ -2040,7 +2222,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102617",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     },
     {
      "path": "scripts/enterprise/驗證AI_Office交付.py",
@@ -2053,7 +2237,9 @@
        "resolution": "LEGEND"
       }
      ],
-     "test_names": []
+     "test_names": [],
+     "ci_run": "42247102627",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
    ]
   },
@@ -2066,7 +2252,7 @@
    "pass": false,
    "evidence_status": "EVIDENCE_MISSING",
    "missing_reason": "NO_EVIDENCE_REFERENCE",
-   "source_version": "PENDING_FINAL",
+   "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "非技術 reviewer 獨立完成與簽認",
    "evidence": []
   }

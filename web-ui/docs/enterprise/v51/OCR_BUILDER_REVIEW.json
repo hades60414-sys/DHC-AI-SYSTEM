@@ -1,0 +1,193 @@
+{
+ "schema": "dhc-ocr-review/v1",
+ "tool": "open-code-review delegate mode（ocr v1.13.6）",
+ "division_of_labor": {
+  "ocr": "檔案篩選（reviewable／excluded）與規則分組；不呼叫 LLM",
+  "builder_agent": "逐檔閱讀 diff 與上下文、判斷缺陷、修正；沒有外送原始碼"
+ },
+ "ranges": [
+  {
+   "name": "V5 尾段（V5 OCR 未涵蓋）",
+   "from": "7100d26ffa7913a708c15d185e27d54a90f1b43f",
+   "to": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "total_files": 12,
+   "reviewable": 8,
+   "reviewed": 8,
+   "excluded": 4,
+   "reviewable_files": [
+    ".github/workflows/enterprise-verify.yml",
+    "web-ui/docs/enterprise/reviews/V5_OCR_REVIEW.json",
+    "web-ui/docs/enterprise/uat/UAT_STATUS_V4.json",
+    "web-ui/docs/enterprise/uat/UAT_TRACEABILITY_V5.json",
+    "web-ui/scripts/enterprise/ci/engine-bench.ts",
+    "web-ui/scripts/enterprise/rcfix/perf_probe.py",
+    "web-ui/scripts/enterprise/uat_v5.py",
+    "web-ui/server/modules/enterprise-persistence/reconciliation-export.ts"
+   ],
+   "excluded_files": [
+    "web-ui/docs/enterprise/reviews/V5_OCR_DISPOSITION.md",
+    "web-ui/docs/enterprise/reviews/V5_OCR_FINDINGS.md",
+    "web-ui/docs/enterprise/uat/UAT_TRACEABILITY_V5.md",
+    "web-ui/server/modules/enterprise-persistence/tests/reconciliation-export.test.ts"
+   ]
+  },
+  {
+   "name": "V5.1 diff",
+   "from": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "to": "6933d5e",
+   "total_files": 40,
+   "reviewable": 24,
+   "reviewed": 24,
+   "excluded": 16,
+   "reviewable_files": [
+    ".github/workflows/enterprise-image-build.yml",
+    ".github/workflows/enterprise-verify.yml",
+    "web-ui/deploy/ai-office/compose.yaml",
+    "web-ui/deploy/customer-single/Dockerfile",
+    "web-ui/docs/enterprise/architecture/roadmap.json",
+    "web-ui/docs/enterprise/uat/UAT_EVIDENCE_INDEX.json",
+    "web-ui/docs/enterprise/v51/evidence/RG-V5-01_ops-probe_GREEN.json",
+    "web-ui/docs/enterprise/v51/evidence/RG-V5-01_ops-probe_RED_877525f.json",
+    "web-ui/scripts/enterprise/ci/check_spreadsheet_import.py",
+    "web-ui/scripts/enterprise/ci/csv-formula-fixtures.ts",
+    "web-ui/scripts/enterprise/ci/ops-resource-probe.ts",
+    "web-ui/scripts/enterprise/ci/upgrade_rollback.py",
+    "web-ui/scripts/enterprise/rcfix/perf_probe.py",
+    "web-ui/scripts/enterprise/render_roadmap.py",
+    "web-ui/scripts/enterprise/uat_evidence_index.py",
+    "web-ui/server/modules/enterprise-api/enterprise-http.ts",
+    "web-ui/server/modules/enterprise-api/enterprise.routes.ts",
+    "web-ui/server/modules/enterprise-persistence/document-blob-store.ts",
+    "web-ui/server/modules/enterprise-persistence/enterprise.service.ts",
+    "web-ui/server/modules/enterprise-persistence/index.ts",
+    "web-ui/server/modules/enterprise-persistence/ops-report-runner.ts",
+    "web-ui/server/modules/enterprise-persistence/ops-report-v1.ts",
+    "web-ui/server/modules/enterprise-persistence/reconciliation-export.ts",
+    "web-ui/server/shared/types.ts"
+   ],
+   "excluded_files": [
+    "web-ui/docs/enterprise/architecture/AUTH_RLS_SEQUENCE.mmd",
+    "web-ui/docs/enterprise/architecture/CURRENT_C4_CONTAINER.mmd",
+    "web-ui/docs/enterprise/architecture/CURRENT_C4_CONTEXT.mmd",
+    "web-ui/docs/enterprise/architecture/DEPLOYMENT_CI_ARCHITECTURE.mmd",
+    "web-ui/docs/enterprise/architecture/FAILURE_RECOVERY_SEQUENCE.mmd",
+    "web-ui/docs/enterprise/architecture/OPS_REPORT_DATA_FLOW.mmd",
+    "web-ui/docs/enterprise/architecture/RECONCILIATION_DATA_FLOW.mmd",
+    "web-ui/docs/enterprise/architecture/ROADMAP_TUI.md",
+    "web-ui/docs/enterprise/architecture/TARGET_BACKEND_COMPONENTS.mmd",
+    "web-ui/docs/enterprise/architecture/TECHNICAL_ROADMAP.mmd",
+    "web-ui/docs/enterprise/v51/evidence/RG-V5-01_RED_GREEN.md",
+    "web-ui/server/modules/agent/tests/agent.routes.test.ts",
+    "web-ui/server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+    "web-ui/server/modules/enterprise-persistence/tests/document-blob-store.test.ts",
+    "web-ui/server/modules/enterprise-persistence/tests/ops-report-limits.test.ts",
+    "web-ui/server/modules/enterprise-persistence/tests/reconciliation-export.test.ts"
+   ]
+  }
+ ],
+ "semantic_coverage": {
+  "reviewed": 32,
+  "of_reviewable": 32,
+  "rate": 1.0,
+  "note": "OCR 排除的測試、文件（.md／.mmd）與 lockfile 不計入語意審查覆蓋；測試檔由 CI 實際執行（見 CI_RUN_MATRIX），文件另以 mermaid.parse／render_roadmap --check 驗證。"
+ },
+ "severity_counts": {
+  "critical": 0,
+  "high": 1,
+  "medium": 3,
+  "low": 5
+ },
+ "findings": [
+  {
+   "id": "V51-OCR-001",
+   "range": "V5.1",
+   "path": "web-ui/scripts/enterprise/ci/upgrade_rollback.py",
+   "category": "bug",
+   "severity": "high",
+   "content": "升級後匯出檢查對 call() 已解析的 dict 再做 json.loads，會丟 TypeError，使新 CI 工作 upgrade-rollback-amd64 必定失敗（誤報產品回歸）。",
+   "disposition": "FIXED",
+   "commit": "6933d5e"
+  },
+  {
+   "id": "V51-OCR-002",
+   "range": "V5.1",
+   "path": "web-ui/server/modules/enterprise-api/enterprise.routes.ts",
+   "category": "performance",
+   "severity": "low",
+   "content": "在計算閘門佇列中等待的請求，用戶端已斷線仍會在取得名額後執行 prepare／計算，佔用名額。",
+   "disposition": "FIXED",
+   "commit": "6933d5e"
+  },
+  {
+   "id": "V51-OCR-003",
+   "range": "V5.1",
+   "path": "web-ui/server/modules/enterprise-persistence/ops-report-v1.ts",
+   "category": "other",
+   "severity": "low",
+   "content": "快速拒絕改變拒收內容：多來源時只回報第一個出錯來源的錯誤（V5 回報全部來源）。數值結果與合法輸入不受影響（V5 oracle 測試全過，累積器與一次性引擎 hash 相同）。",
+   "disposition": "ACCEPTED",
+   "reason": "RG-V5-01 要求快速拒絕；已記錄於 RESOURCE_BOUNDARY_REPORT。"
+  },
+  {
+   "id": "V51-OCR-004",
+   "range": "V5.1",
+   "path": "web-ui/scripts/enterprise/ci/check_spreadsheet_import.py",
+   "category": "test",
+   "severity": "medium",
+   "content": "LibreOffice 24.2 只對 = 開頭的值求值，+ - @ 開頭在 LibreOffice 不求值，故 CI 實測只證明 = 類 payload 的防護；Excel 未實測。",
+   "disposition": "DOCUMENTED",
+   "reason": "Excel 無法在 Linux runner 執行，標 NOT_RUN；CSV_SECURITY_REPORT 明列。"
+  },
+  {
+   "id": "V51-OCR-005",
+   "range": "V5.1",
+   "path": "web-ui/server/modules/enterprise-persistence/document-blob-store.ts",
+   "category": "security",
+   "severity": "low",
+   "content": "verify() 先 lstat 再開啟串流，存在 TOCTOU 視窗（檔案可能在兩步之間被換成 symlink）。",
+   "disposition": "ACCEPTED",
+   "reason": "與既有 readVerified 相同模式；目錄層逐段拒絕 symlink，且內容 hash 必須等於 storage key，無法以其他內容通過。"
+  },
+  {
+   "id": "V51-OCR-006",
+   "range": "V5.1",
+   "path": "web-ui/server/modules/enterprise-persistence/enterprise.service.ts",
+   "category": "performance",
+   "severity": "low",
+   "content": "ACC-MATCH-v1 建立對帳仍在單一交易內讀入兩個來源（各 ≤ 25 MiB），未比照 OPS-REPORT 改為兩階段。",
+   "disposition": "DEFERRED",
+   "reason": "V4 已審程式；5 萬列約 0.8 s。列入 NEXT_SESSION。"
+  },
+  {
+   "id": "V51-OCR-007",
+   "range": "V5 tail 7100d26..877525f",
+   "path": "web-ui/server/modules/enterprise-persistence/reconciliation-export.ts",
+   "category": "security",
+   "severity": "medium",
+   "content": "V5 的 V5-OCR-001 修正（4dee7d6）不完整：「-」後接數字一律放行，-1+1、-2*3 等仍未中和；且拒收結果的 rowId 可攜帶任意字串（可達）。",
+   "disposition": "FIXED",
+   "commit": "49c4017（RG-V5-02）"
+  },
+  {
+   "id": "V51-OCR-008",
+   "range": "V5 tail 7100d26..877525f",
+   "path": "web-ui/scripts/enterprise/ci/engine-bench.ts",
+   "category": "test",
+   "severity": "low",
+   "content": "rss_delta_mb 以前後 RSS 相減，可能出現負值（量測假象）；heap 增量未強制 GC。",
+   "disposition": "DOCUMENTED",
+   "reason": "新的 ops-resource-probe 改用子行程 maxRSS；engine-bench 數值只作參考。"
+  },
+  {
+   "id": "V51-OCR-009",
+   "range": "V5 tail 7100d26..877525f",
+   "path": "web-ui/scripts/enterprise/uat_v5.py",
+   "category": "other",
+   "severity": "medium",
+   "content": "V5 UAT 表 66 列中只有變更列列出證據；其餘 57 列無機械化證據連結。",
+   "disposition": "FIXED",
+   "commit": "4e18881（RG-V5-04 證據索引）"
+  }
+ ],
+ "not_a_substitute": "Builder 自審，不是 Astra 或獨立審查結論。"
+}
