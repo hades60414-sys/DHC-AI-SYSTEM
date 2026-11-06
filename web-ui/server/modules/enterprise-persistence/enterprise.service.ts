@@ -7,7 +7,7 @@ import type { EnterpriseDocumentBlobStore, EnterpriseOpsReportRow, EnterprisePag
 import { inspectDocumentContent } from './document-content.policy.js';
 import { chunkUnits, extractDocumentText, unsupportedExtractorName } from './document-extraction.js';
 import { createScopedEnterpriseRepository, findActiveEnterpriseMembership, findLiveEnterpriseSessionMember } from './enterprise.repository.js';
-import { OPS_REPORT_MAX_SOURCES, OPS_REPORT_MAX_TOTAL_BYTES, OPS_REPORT_RULE_VERSION, isoWeekRange, opsReportResultSha256, type OpsReportResult } from './ops-report-v1.js';
+import { OPS_REPORT_MAX_SOURCES, OPS_REPORT_MAX_TOTAL_BYTES, OPS_REPORT_RULE_VERSION, isoWeekRange, opsReportResultSha256, opsReportWeekRanges, type OpsReportResult } from './ops-report-v1.js';
 import type { OpsReportPlan } from './ops-report-runner.js';
 import { ACC_MATCH_RULE_VERSION, reconciliationResultSha256, runAccMatchV1, type ReconciliationResult } from './reconciliation-acc-match-v1.js';
 import { buildReconciliationExport, RECONCILIATION_EXPORT_FORMATS, type ReconciliationExportFormat, type ReconciliationExportSource } from './reconciliation-export.js';
@@ -246,12 +246,16 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
       };
       const ledgerRef = pick(input.ledger);
       const receiptsRef = pick(input.receipts);
+      // V5.2 ASTRA-ROLL-006：在任何 DB date cast 之前驗證真實日期與起迄順序（2026-02-30、反向期間 → 400，不再 22008／CHECK 500）
       const date = (value: unknown) => {
         if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('ENTERPRISE_INVALID_RECONCILIATION');
+        const parsed = new Date(`${value}T00:00:00Z`);
+        if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) throw new Error('ENTERPRISE_INVALID_RECONCILIATION');
         return value;
       };
       const periodStart = date(input.periodStart);
       const periodEnd = date(input.periodEnd);
+      if (periodStart > periodEnd) throw new Error('ENTERPRISE_INVALID_RECONCILIATION');
       if (input.ruleVersion !== undefined && input.ruleVersion !== ACC_MATCH_RULE_VERSION) throw new Error('ENTERPRISE_INVALID_RECONCILIATION');
       const load = async (ref: { documentId: string; versionNumber: number }) => {
         const version = await repository.getDocumentVersion(ref.documentId, ref.versionNumber);
@@ -288,7 +292,7 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
       requireBlobStore();
       const invalid = () => new Error('ENTERPRISE_INVALID_OPS_REPORT');
       if (input.ruleVersion !== undefined && input.ruleVersion !== OPS_REPORT_RULE_VERSION) throw invalid();
-      if (typeof input.week !== 'string' || !isoWeekRange(input.week)) throw invalid();
+      if (typeof input.week !== 'string' || !opsReportWeekRanges(input.week)) throw invalid();
       const week = input.week;
       const [periodStart, periodEnd] = isoWeekRange(week)!;
       const datasets = input.datasets;

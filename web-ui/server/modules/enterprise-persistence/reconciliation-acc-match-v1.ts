@@ -59,18 +59,28 @@ function parseCsv(content: Buffer, header: string[], side: ReconciliationSide, e
   if (text.startsWith('﻿')) text = text.slice(1);
   const lines = text.replace(/\r\n/g, '\n').split('\n');
   if (lines.at(-1) === '') lines.pop();
+  // V5.2 ASTRA-ROLL-004：RFC 4180 狀態機。引號欄關閉後只能接逗號或行尾（"100"000 拒收）；未加引號的欄內不得出現雙引號。
   const split = (line: string, number: number) => {
     const cells: string[] = [];
     let cell = '';
-    let quoted = false;
+    let state: 'start' | 'plain' | 'quoted' | 'closed' = 'start';
+    const fail = (code: string) => { errors.push({ side, line: number, rowId: null, code }); return null; };
     for (let i = 0; i < line.length; i += 1) {
       const char = line[i];
-      if (quoted) {
-        if (char === '"' && line[i + 1] === '"') { cell += '"'; i += 1; } else if (char === '"') quoted = false; else cell += char;
-      } else if (char === '"' && cell === '') quoted = true;
-      else if (char === ',') { cells.push(cell); cell = ''; } else cell += char;
+      if (state === 'quoted') {
+        if (char === '"' && line[i + 1] === '"') { cell += '"'; i += 1; } else if (char === '"') state = 'closed'; else cell += char;
+      } else if (char === ',') {
+        cells.push(cell); cell = ''; state = 'start';
+      } else if (state === 'closed') {
+        return fail('TEXT_AFTER_CLOSING_QUOTE');
+      } else if (char === '"') {
+        if (state !== 'start') return fail('QUOTE_IN_UNQUOTED_FIELD');
+        state = 'quoted';
+      } else {
+        cell += char; state = 'plain';
+      }
     }
-    if (quoted) { errors.push({ side, line: number, rowId: null, code: 'UNTERMINATED_QUOTE' }); return null; }
+    if (state === 'quoted') return fail('UNTERMINATED_QUOTE');
     cells.push(cell);
     return cells;
   };
@@ -111,7 +121,8 @@ function validateRows(rows: Row[], side: ReconciliationSide, input: Reconciliati
     if (rowId) seen.add(rowId);
     if (!validDate(fields[dateField])) fail(fields[dateField] ? 'INVALID_DATE' : 'MISSING_DATE');
     else if (fields[dateField] < input.periodStart || fields[dateField] > input.periodEnd) fail('DATE_OUTSIDE_PERIOD');
-    const decimals = CURRENCY_DECIMALS[fields['幣別']];
+    // V5.2 ASTRA-ROLL-005：只接受白名單自有鍵（__proto__／constructor 等原型鍵不得命中）
+    const decimals = Object.hasOwn(CURRENCY_DECIMALS, fields['幣別']) ? CURRENCY_DECIMALS[fields['幣別']] : undefined;
     if (decimals === undefined) fail(fields['幣別'] ? 'UNKNOWN_CURRENCY' : 'MISSING_CURRENCY');
     else if (fields['最小單位小數位數'] !== String(decimals)) fail('CURRENCY_DECIMALS_MISMATCH');
     if (!POSITIVE_INTEGER.test(fields[amountField] ?? '')) fail(fields[amountField] ? 'AMOUNT_NOT_POSITIVE_INTEGER' : 'MISSING_AMOUNT');
@@ -187,13 +198,15 @@ export function runAccMatchV1(input: ReconciliationInput): ReconciliationResult 
   const totals = currencies.map(currency => {
     const of = (rows: Row[], field: string, pick: (row: Row) => boolean = () => true) =>
       sum(rows.filter(row => row.fields['幣別'] === currency && pick(row)).map(row => BigInt(row.fields[field]))).toString();
-    const isolatedRows = new Set(cases.filter(item => item.isolated).flatMap(item => [...item.ledgerRowIds, ...item.receiptRowIds]));
+    // V5.2 ASTRA-ROLL-003：兩側資料列ID 各自唯一但可能同名，隔離集合必須以（側別, 資料列ID）為鍵
+    const isolatedLedger = new Set(cases.filter(item => item.isolated).flatMap(item => item.ledgerRowIds));
+    const isolatedReceipts = new Set(cases.filter(item => item.isolated).flatMap(item => item.receiptRowIds));
     const exact = cases.filter(item => item.includedInExactMatchTotal && item.ledgerCurrency === currency);
     return {
       currency,
       ledgerSourceMinor: of(ledger, '應收金額_最小單位'), receiptSourceMinor: of(receipts, '收款金額_最小單位'),
-      isolatedLedgerMinor: of(ledger, '應收金額_最小單位', row => isolatedRows.has(row.fields['資料列ID'])),
-      isolatedReceiptMinor: of(receipts, '收款金額_最小單位', row => isolatedRows.has(row.fields['資料列ID'])),
+      isolatedLedgerMinor: of(ledger, '應收金額_最小單位', row => isolatedLedger.has(row.fields['資料列ID'])),
+      isolatedReceiptMinor: of(receipts, '收款金額_最小單位', row => isolatedReceipts.has(row.fields['資料列ID'])),
       exactMatchMinor: sum(exact.map(item => BigInt(item.ledgerTotalMinor!))).toString(),
     };
   });

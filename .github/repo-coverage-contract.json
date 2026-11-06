@@ -1,0 +1,18 @@
+{
+ "schema": "dhc-repo-coverage-contract/v1",
+ "note": "V5.2 RG-003：整個 DAS repository 的 CI 覆蓋契約。每個追蹤中的頂層路徑都必須在此分類；未分類即失敗。Enterprise CI 綠燈只代表 web-ui，不涵蓋其他模組的 runtime。",
+ "components": {
+  "web-ui": {"class": "CI_COVERED", "jobs": ["enterprise-verify", "enterprise-image-build"], "in_enterprise_image": true, "owner": "DHC AI Office Builder"},
+  "harness": {"class": "STATIC_SYNTAX_ONLY", "runtime": "NOT_RUN：Windows／主機專屬 harness", "in_enterprise_image": false, "owner": "TAS Team"},
+  "tools": {"class": "STATIC_SYNTAX_ONLY", "runtime": "NOT_RUN：含 D:/TAS 等主機路徑（例 codex-deid）", "in_enterprise_image": false, "owner": "TAS Team"},
+  "web-ops": {"class": "STATIC_SYNTAX_ONLY", "runtime": "NOT_RUN：deid-proxy 等本機服務，見 DEID_PROXY_HARDENING_PLAN 工單", "in_enterprise_image": false, "owner": "TAS Team"},
+  "remote-agent": {"class": "STATIC_SYNTAX_ONLY", "runtime": "NOT_RUN：C#／PowerShell 需 Windows；cmd-run 見 SEC-01 決策", "in_enterprise_image": false, "owner": "TAS Team"},
+  "local-model": {"class": "STATIC_SYNTAX_ONLY", "runtime": "NOT_RUN：本機模型服務", "in_enterprise_image": false, "owner": "TAS Team"},
+  "migration": {"class": "STATIC_SYNTAX_ONLY", "runtime": "NOT_RUN：一次性搬遷腳本", "in_enterprise_image": false, "owner": "TAS Team"},
+  "scripts": {"class": "STATIC_SYNTAX_ONLY", "runtime": "NOT_RUN", "in_enterprise_image": false, "owner": "TAS Team"},
+  "vendor": {"class": "THIRD_PARTY_NOT_EXECUTED", "runtime": "NOT_RUN：第三方程式，不在 CI 執行或解析", "in_enterprise_image": false, "owner": "上游各自維護者（見 THIRD-PARTY.md）"},
+  "docs": {"class": "DOCUMENTATION", "in_enterprise_image": false},
+  ".github": {"class": "CI_CONFIG", "in_enterprise_image": false},
+  "ROOT_FILES": {"class": "DOCUMENTATION", "files": ["README.md", "ARCHITECTURE.md", "SETUP_PROMPT.md", "SKILLS.md", "THIRD-PARTY.md", "EXPORT-MANIFEST.txt", "安裝說明.md", ".gitmodules", ".gitignore"]}
+ }
+}

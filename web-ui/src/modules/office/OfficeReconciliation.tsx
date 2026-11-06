@@ -40,7 +40,9 @@ export function OfficeReconciliation({ canWrite }: { canWrite: boolean }) {
     }
   };
   const field = (key: keyof typeof form) => ({ value: form[key], onChange: (event: { target: { value: string } }) => setForm({ ...form, [key]: event.target.value }) });
-  const result = detail.data?.result;
+  // V5.2 ASTRA-ROLL-002：只顯示屬於目前選取對帳的資料
+  const shown = detail.data && detail.data.id === selected ? detail.data : null;
+  const result = shown?.result;
 
   return (
     <section className="space-y-4" aria-label="對帳">
@@ -81,9 +83,9 @@ export function OfficeReconciliation({ canWrite }: { canWrite: boolean }) {
             ))}
           </ul>
         </div>
-        {detail.data && (
+        {shown && (
           <div className="space-y-2 text-sm">
-            <p className="text-xs text-muted-foreground" data-testid="reconciliation-hash">結果 SHA-256 {detail.data.resultSha256.slice(0, 16)}…；內部帳 {detail.data.ledgerSha256.slice(0, 12)}…；收款 {detail.data.receiptsSha256.slice(0, 12)}…</p>
+            <p className="text-xs text-muted-foreground" data-testid="reconciliation-hash">結果 SHA-256 {shown.resultSha256.slice(0, 16)}…；內部帳 {shown.ledgerSha256.slice(0, 12)}…；收款 {shown.receiptsSha256.slice(0, 12)}…</p>
             {result?.errors && (
               <ul className="list-disc pl-5 text-destructive" aria-label="拒收原因">
                 {result.errors.map((error, index) => <li key={index}>{error.side} 第 {error.line ?? '—'} 行 {error.rowId ?? ''}：{error.code}</li>)}

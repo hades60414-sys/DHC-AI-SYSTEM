@@ -188,7 +188,8 @@ test('a today row or a lone subtask drags into the chat with its open subtasks; 
   const list = screen.getByRole('complementary', LIST);
   const drag = (text: string) => {
     const data = new Map<string, string>();
-    const dataTransfer = { setData: (type: string, value: string) => data.set(type, value), effectAllowed: '' };
+    // V5.2 ASTRA-ROLL-008 發現：原 mock 沒有 types，TodoTrash 的 dragstart 計時器讀 types.includes 丟出未處理例外（舊 CI 以 || true 吞掉 vitest 退出碼）
+    const dataTransfer = { setData: (type: string, value: string) => data.set(type, value), get types() { return [...data.keys()]; }, effectAllowed: '' };
     fireEvent.dragStart(within(list).getByText(text).closest('[draggable]') as HTMLElement, { dataTransfer });
     return data;
   };

@@ -4,7 +4,7 @@ name: enterprise-verify
 on:
   pull_request:
     # main，以及 stacked PR 的 base（V4 整合分支）——讓 V5 PR 也觸發完整驗證
-    branches: [main, 'integration/enterprise-rcfix-v4-20261106', 'feature/ai-office-backend-v5-20261106']
+    branches: [main, 'integration/enterprise-rcfix-v4-20261106', 'feature/ai-office-backend-v5-20261106', 'fix/ai-office-v51-repoguard-hardening']
     paths: ['web-ui/**', '.github/workflows/enterprise-*.yml']
   workflow_dispatch:
 permissions:
@@ -14,6 +14,8 @@ concurrency:
   cancel-in-progress: true
 defaults:
   run:
+    # V5.2 ASTRA-ROLL-001：明定 bash＝-eo pipefail，管線（| tee）不再遮蔽失敗
+    shell: bash
     working-directory: web-ui
 jobs:
   static-and-unit:
@@ -34,25 +36,26 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           # 原生模組與 ripgrep 執行檔（對話搜尋測試需要；--ignore-scripts 不會下載）
           npm rebuild better-sqlite3 node-pty @vscode/ripgrep
-      - name: CI 基線比對器自身的單元測試（24 種失敗情境）
+      - name: CI 基線比對器自身的單元測試
         run: python3 -B scripts/enterprise/ci/test_compare_known_failures.py
+      - name: V5.2 閘門負向測試（新失敗／未處理例外／截斷／缺檔／新 skip／lint 範圍／checksum＋tee；每個 job 必須 shell bash）
+        run: python3 -B scripts/enterprise/ci/test_gate.py
+      - name: V5.2 ASTRA-ROLL-007 離線 image reference 一致性單元測試
+        run: python3 -B deploy/ai-office/test_dhc_office_images.py
       - name: typecheck
         run: npm run -s typecheck
       - name: lint（只擋新錯誤）
         run: |
           mkdir -p ../ci-out
           # 固定 JSON 格式：GitHub Actions 上 oxlint 預設改用 ::error 註解格式，文字比對會漏判（2026-11-06 PR #10 首輪實際發生）
-          npx oxlint -f json src/ server/ > ../ci-out/lint.json 2> ../ci-out/lint.stderr || true
-          python3 -B scripts/enterprise/ci/compare_known_failures.py lint ../ci-out/lint.json | tee ../ci-out/lint-compare.json
+          bash scripts/enterprise/ci/gate.sh lint ../ci-out/lint.json ../ci-out/lint -- bash -c 'npx oxlint -f json src/ server/ > ../ci-out/lint.json 2> ../ci-out/lint.stderr'
       - name: backend tests（隔離 HOME；只擋新失敗）
         run: |
           export DHC_TEST_ROOT="$(mktemp -d)" NODE_OPTIONS="--import=$PWD/scripts/enterprise/隔離測試家目錄.mjs"
-          npm test > ../ci-out/backend.tap 2>&1 || true
-          python3 -B scripts/enterprise/ci/compare_known_failures.py backend ../ci-out/backend.tap | tee ../ci-out/backend-compare.json
+          bash scripts/enterprise/ci/gate.sh backend ../ci-out/backend.tap ../ci-out/backend -- bash -c 'npm test > ../ci-out/backend.tap 2>&1'
       - name: frontend tests（只擋新失敗）
         run: |
-          npx vitest run --reporter=json --outputFile=../ci-out/vitest.json > ../ci-out/vitest.txt 2>&1 || true
-          python3 -B scripts/enterprise/ci/compare_known_failures.py frontend ../ci-out/vitest.json | tee ../ci-out/frontend-compare.json
+          bash scripts/enterprise/ci/gate.sh frontend ../ci-out/vitest.json ../ci-out/frontend -- bash -c 'npx vitest run --reporter=json --outputFile=../ci-out/vitest.json > ../ci-out/vitest.txt 2>&1'
       - name: 確定性引擎效能邊界（ACC-MATCH 5 萬列上限、OPS-REPORT 5 萬列、匯出 5 萬案件；只記錄耗時，不設門檻）
         run: npx tsx --tsconfig server/tsconfig.json scripts/enterprise/ci/engine-bench.ts ../ci-out/engine-bench.json
       - name: 路線圖產出與證據路徑一致
@@ -74,7 +77,7 @@ jobs:
     # V5.1 RG-V5-02：以真實試算表（LibreOffice Calc 無頭、開啟求值公式）匯入，驗證匯出 CSV 不會被當公式執行。Excel 無法在 Linux runner 執行。
     needs: static-and-unit
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -85,9 +88,17 @@ jobs:
           name: enterprise-verify-static-unit
           path: ci-in
       - name: 安裝 LibreOffice Calc（nogui）
+        # V5.2：首次執行時 apt 卡住直到 job 逾時（42257331619）。等待 dpkg 鎖、重試下載、單步逾時，失敗時再試一次。
+        timeout-minutes: 20
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends libreoffice-calc-nogui > /dev/null
+          APT='-o DPkg::Lock::Timeout=600 -o Acquire::Retries=3 -o Acquire::http::Timeout=60'
+          sudo apt-get $APT update -qq
+          for attempt in 1 2; do
+            if sudo DEBIAN_FRONTEND=noninteractive apt-get $APT install -y -qq --no-install-recommends libreoffice-calc-nogui > /tmp/apt.log 2>&1; then break; fi
+            tail -20 /tmp/apt.log
+            [ "$attempt" = 2 ] && exit 1
+            sleep 20
+          done
           soffice --version
       - name: 匯入並檢查顯示值
         run: |

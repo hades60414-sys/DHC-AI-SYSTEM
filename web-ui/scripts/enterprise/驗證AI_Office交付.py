@@ -241,6 +241,8 @@ try:
     os.symlink(package / 'images.tar', bad_package / 'images.tar')
     record('12b-b-install-image-tampered-refused', ['python3', str(TOOL), 'install-image', str(bad_package)], envs['b'], expected=1)
     record('12c-b-install-image', ['python3', str(TOOL), 'install-image', str(package)], envs['b'])
+    # V5.2 ASTRA-ROLL-007：離線安裝後以環境變數指向另一個存在的 image（db image）→ up 與 restore 都必須拒絕（不能驗 A 啟 B）
+    record('12d-b-up-image-override-refused', ['python3', str(TOOL), 'up'], envs['b'], expected=1, extra={'DHC_IMAGE': db_reference})
     check('載入後 image ID 與 manifest 相同', all(subprocess.run(['docker', 'image', 'inspect', '--format', '{{.Id}}', i['tag']], env=envs['a'], capture_output=True, text=True).stdout.strip() == i['image_id']
                                               for i in image_manifest['images']))
     tampered = work / 'backup-tampered'
@@ -249,6 +251,7 @@ try:
         (tampered / name).write_bytes((backup_dir / name).read_bytes())
     (tampered / 'blobs.tar').write_bytes((backup_dir / 'blobs.tar').read_bytes() + b'x')
     record('13-b-restore-tampered-refused', ['python3', str(TOOL), 'restore', str(tampered)], envs['b'], expected=1)
+    record('13c-b-restore-image-override-refused', ['python3', str(TOOL), 'restore', str(backup_dir)], envs['b'], expected=1, extra={'DHC_IMAGE': db_reference})
     record('14-b-restore', ['python3', str(TOOL), 'restore', str(backup_dir)], envs['b'])
     restore_log = (out / '14-b-restore.txt').read_text()
     check('還原驗證全表指紋、schema 與 blob（離線 image）', '"schema": "match"' in restore_log, restore_log[-300:])

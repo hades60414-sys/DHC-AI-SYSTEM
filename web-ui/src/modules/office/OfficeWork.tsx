@@ -129,11 +129,14 @@ export function OfficeDrafts({ canWrite, canRelease = false }: { canWrite: boole
     const providerKey = form.providerKey || providers.data?.items.find(item => item.enabled)?.key || '';
     void act(() => officeApi.startDraftRun({ ...form, providerKey }), '已送出 AI 草稿工作');
   };
-  const revision = detail.data?.revision;
-  const editKey = `${selected}:${revision?.revision ?? 0}`;
+  // V5.2 ASTRA-ROLL-002：只使用「屬於目前選取草稿」的資料；寫入時用資料自身的 id 與版號，且必須 ready（不在載入中、無錯誤）。
+  const current = detail.data && detail.data.draft.id === selected ? detail.data : null;
+  const revision = current?.revision;
+  const editKey = `${current?.draft.id ?? ''}:${revision?.revision ?? 0}`;
   const body = edits[editKey] ?? revision?.body ?? '';
-  const setBody = (value: string) => setEdits(current => ({ ...current, [editKey]: value }));
-  const editable = detail.data && ['draft', 'rejected'].includes(detail.data.draft.status);
+  const setBody = (value: string) => setEdits(state => ({ ...state, [editKey]: value }));
+  const editable = current && ['draft', 'rejected'].includes(current.draft.status);
+  const canAct = Boolean(current) && detail.ready;
 
   return (
     <section className="grid gap-4 lg:grid-cols-2" aria-label="草稿">
@@ -189,10 +192,10 @@ export function OfficeDrafts({ canWrite, canRelease = false }: { canWrite: boole
         </ul>
       </div>
       <div className="space-y-3">
-        {selected && <OfficeStatus loading={detail.loading && !detail.data} error={detail.error} onRetry={detail.reload} />}
-        {detail.data && (
+        {selected && <OfficeStatus loading={detail.loading && !current} error={detail.error} onRetry={detail.reload} />}
+        {current && (
           <div className="space-y-2">
-            <h3 className="font-medium">{detail.data.draft.title} <Badge variant="outline">{DRAFT_LABEL[detail.data.draft.status]}</Badge></h3>
+            <h3 className="font-medium">{current.draft.title} <Badge variant="outline">{DRAFT_LABEL[current.draft.status]}</Badge></h3>
             {!revision && <p className="text-sm text-muted-foreground">草稿尚未產生內容</p>}
             {revision && (
               <>
@@ -202,14 +205,14 @@ export function OfficeDrafts({ canWrite, canRelease = false }: { canWrite: boole
                 <div className="flex flex-wrap gap-2">
                   {editable && canWrite && (
                     <>
-                      <Button size="sm" variant="outline" onClick={() => void act(() => officeApi.reviseDraft(selected!, { expectedRevision: revision.revision, body }), '已儲存修改')}>儲存修改</Button>
-                      <Button size="sm" disabled={revision.citationStatus !== 'VALID'} onClick={() => void act(() => officeApi.submitDraft(selected!, revision.revision), '已送審')}>送審</Button>
+                      <Button size="sm" variant="outline" disabled={!canAct} onClick={() => void act(() => officeApi.reviseDraft(current.draft.id, { expectedRevision: revision.revision, body }), '已儲存修改')}>儲存修改</Button>
+                      <Button size="sm" disabled={!canAct || revision.citationStatus !== 'VALID'} onClick={() => void act(() => officeApi.submitDraft(current.draft.id, revision.revision), '已送審')}>送審</Button>
                     </>
                   )}
-                  {detail.data.draft.status === 'approved' && (
+                  {current.draft.status === 'approved' && (
                     <>
-                      <Button size="sm" onClick={() => void act(() => officeApi.exportDraft(selected!, 'docx'), '已匯出 Word')}>匯出 Word</Button>
-                      <Button size="sm" variant="outline" onClick={() => void act(() => officeApi.exportDraft(selected!, 'markdown'), '已匯出 Markdown')}>匯出 Markdown</Button>
+                      <Button size="sm" disabled={!canAct} onClick={() => void act(() => officeApi.exportDraft(current.draft.id, 'docx'), '已匯出 Word')}>匯出 Word</Button>
+                      <Button size="sm" variant="outline" disabled={!canAct} onClick={() => void act(() => officeApi.exportDraft(current.draft.id, 'markdown'), '已匯出 Markdown')}>匯出 Markdown</Button>
                     </>
                   )}
                 </div>
@@ -220,7 +223,7 @@ export function OfficeDrafts({ canWrite, canRelease = false }: { canWrite: boole
                     <li key={citation.chunkId}>[{citation.index}] {citation.title} 第 {citation.versionNumber} 版 {describeLocation(citation.location)}</li>
                   ))}
                 </ol>
-                {detail.data.approvals.filter(item => item.status !== 'pending').map(item => (
+                {current.approvals.filter(item => item.status !== 'pending').map(item => (
                   <p key={item.id} className="text-xs">審核結果：{item.status === 'approved' ? '核准' : '退回'}　{item.decisionComment ?? ''}　{formatOfficeTime(item.decidedAt)}</p>
                 ))}
               </>
@@ -241,11 +244,12 @@ export function OfficeApprovals() {
   const [comment, setComment] = useState('');
   const [message, setMessage] = useState<string | null>(null);
 
+  // V5.2 ASTRA-ROLL-002：只顯示／決定「屬於目前選取 approval」且已 ready 的資料；決定時用資料自身的 approval id、版號與 hash。
+  const current = detail.data && selected && detail.data.approval.id === selected.id ? detail.data : null;
   const decide = async (decision: 'approve' | 'reject') => {
-    if (!selected) return;
+    if (!current || !detail.ready) return;
     try {
-      if (!detail.data) return;
-      await officeApi.decideApproval(selected.id, { decision, comment, expectedRevision: detail.data.approval.revision, expectedSha256: detail.data.approval.revisionSha256 });
+      await officeApi.decideApproval(current.approval.id, { decision, comment, expectedRevision: current.approval.revision, expectedSha256: current.approval.revisionSha256 });
       setMessage(decision === 'approve' ? '已核准' : '已退回');
       setSelected(null);
       setComment('');
@@ -272,18 +276,19 @@ export function OfficeApprovals() {
           ))}
         </ul>
       </div>
-      {detail.data?.revision && (
+      {selected && !current && <OfficeStatus loading={detail.loading} error={detail.error} onRetry={detail.reload} />}
+      {current?.revision && (
         <div className="space-y-2">
-          <h3 className="font-medium">{detail.data.draft.title}</h3>
+          <h3 className="font-medium">{current.draft.title}</h3>
           <p className="text-xs text-muted-foreground" data-testid="approval-revision">
-            審核第 {detail.data.approval.revision} 版（內容 SHA-256 {detail.data.approval.revisionSha256.slice(0, 12)}…）
+            審核第 {current.approval.revision} 版（內容 SHA-256 {current.approval.revisionSha256.slice(0, 12)}…）
           </p>
-          <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-md border p-2 text-sm">{detail.data.revision.body}</pre>
-          <CitationCheck check={detail.data.revision} />
+          <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-md border p-2 text-sm">{current.revision.body}</pre>
+          <CitationCheck check={current.revision} />
           <label className="block text-sm">審核意見<Input value={comment} onChange={event => setComment(event.target.value)} /></label>
           <div className="flex gap-2">
-            <Button disabled={detail.data.revision.citationStatus !== 'VALID'} onClick={() => void decide('approve')}>核准</Button>
-            <Button variant="destructive" onClick={() => void decide('reject')}>退回</Button>
+            <Button disabled={!detail.ready || current.revision.citationStatus !== 'VALID'} onClick={() => void decide('approve')}>核准</Button>
+            <Button variant="destructive" disabled={!detail.ready} onClick={() => void decide('reject')}>退回</Button>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@ flowchart TB
   classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A
   classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
   classDef newv51 fill:#e9e6f6,stroke:#5a4a9a,color:#2A2A2A
+  classDef newv52 fill:#f6e9df,stroke:#9a5a2a,color:#2A2A2A
   classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
   classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2
 
@@ -11,6 +12,7 @@ flowchart TB
     su["static-and-unit：比對器單元測試→typecheck→oxlint JSON→後端 TAP→前端 vitest→基線比對（fail closed）<br/>[CURRENT／比對器 v2 NEW_IN_V5]"]:::newv5
     pg["postgres-integration：PostgreSQL 16 固定 digest、全部 *.integration.test.ts 序列執行<br/>[CURRENT]"]:::current
     probe["資源邊界探針、UAT 證據索引檢查、CSV 實測素材<br/>[NEW_IN_V51]"]:::newv51
+    gates["shell bash（pipefail）＋gate.sh：工具／比較器／閘門三段退出碼；runner exit、skip 清單、lint 分母；負向閘門測試<br/>[NEW_IN_V52]"]:::newv52
     lo["csv-spreadsheet-safety：LibreOffice Calc 無頭匯入（求值公式開）<br/>[NEW_IN_V51]"]:::newv51
   end
   subgraph image["enterprise-image-build"]
@@ -19,6 +21,8 @@ flowchart TB
     scan["SBOM＋Trivy（digest 釘選）＋image summary<br/>[CURRENT]"]:::current
     dl["enterprise-delivery-smoke（reusable，各架構載入實際 image）<br/>install／migration／health／E2E<br/>[CURRENT]；報表／匯出端到端耗時 [NEW_IN_V51]"]:::current
     upg["upgrade-rollback-amd64：V4（1e481e2）image → 本次 image 升級＋還原回退<br/>[NEW_IN_V51]"]:::newv51
+    lbl["OCI source＝實際建置 repo、upstream 另列；交付驗證 image 覆寫負例（up／restore）<br/>[NEW_IN_V52]"]:::newv52
+    a64 --- lbl
   end
   art[("Actions artifacts（短期保留）<br/>TAP／JSON／SBOM／Trivy／image tar")]:::current
   ghcr["正式映像發布<br/>[BLOCKED_DECISION]"]:::blocked
@@ -32,6 +36,9 @@ flowchart TB
   a64 --> dl
   a64 --> upg
   su --> probe
+  su --> gates
+  cov["repo-coverage：全 repo 覆蓋契約＋非 web-ui 模組靜態語法（不執行）<br/>[NEW_IN_V52]"]:::newv52
+  pr --> cov
   probe --> lo
   upg --> art
   lo --> art

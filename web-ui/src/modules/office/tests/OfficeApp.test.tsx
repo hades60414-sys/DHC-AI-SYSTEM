@@ -243,3 +243,96 @@ describe('OfficeApp', () => {
     expect(screen.getByText(/內部帳第4行 I003/)).toBeTruthy();
   });
 });
+
+describe('V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B', () => {
+  const draft = (id: string, title: string, body: string, revision = 1) => ({
+    draft: { id, title, status: 'draft', currentRevision: revision, authorMemberId: 'm' },
+    revision: { revision, body, source: 'human', citations: [], citationStatus: 'VALID', citationReport: { cited: [], invalid: [], unused: [] } }, approvals: [],
+  });
+  const draftsList = { items: [{ id: 'dr-a', title: '甲稿', status: 'draft', updatedAt: '2026-11-05T00:00:00Z' }, { id: 'dr-b', title: '乙稿', status: 'draft', updatedAt: '2026-11-05T00:00:00Z' }] };
+  const puts = () => calls.filter(call => call.init.method === 'PUT' || call.init.method === 'POST').map(call => ({ url: call.url, body: String(call.init.body ?? '') }));
+
+  for (const mode of ['error', 'pending'] as const) it(`草稿：A 已載入、B ${mode === 'error' ? '回 503' : '尚未回應'} → 不顯示 A 內容、不能儲存、不送出 PUT B`, async () => {
+    await login(employee);
+    handler = url => {
+      if (url.endsWith('/drafts')) return json(200, draftsList);
+      if (url.endsWith('/drafts/dr-a')) return json(200, draft('dr-a', '甲稿', 'A 的內容'));
+      if (url.endsWith('/drafts/dr-b')) return json(503, { error: { code: 'ENTERPRISE_INTERNAL' } });
+      return json(200, { items: [] });
+    };
+    fireEvent.click(screen.getByRole('button', { name: 'AI 草稿' }));
+    fireEvent.click(await screen.findByRole('button', { name: /甲稿/ }));
+    expect(((await screen.findByDisplayValue('A 的內容')) as HTMLTextAreaElement).value).toBe('A 的內容');
+    if (mode === 'pending') {
+      const original = globalThis.fetch;
+      vi.stubGlobal('fetch', vi.fn((url: string, init: RequestInit = {}) => (String(url).endsWith('/drafts/dr-b') ? new Promise(() => undefined) : (original as typeof fetch)(url, init))));
+    }
+    fireEvent.click(screen.getByRole('button', { name: /乙稿/ }));
+    await vi.waitFor(() => expect(screen.queryByDisplayValue('A 的內容')).toBeNull());
+    expect(screen.queryByRole('button', { name: '儲存修改' })).toBeNull();
+    expect(screen.queryByRole('button', { name: '送審' })).toBeNull();
+    expect(puts().filter(call => call.url.includes('/drafts/dr-b'))).toEqual([]);
+  });
+
+  it('正向對照：B 載入完成後顯示 B 的內容，儲存送出 B 自己的版號與內容', async () => {
+    await login(employee);
+    handler = (url, init) => {
+      if (url.endsWith('/drafts')) return json(200, draftsList);
+      if (url.endsWith('/drafts/dr-a')) return json(200, draft('dr-a', '甲稿', 'A 的內容'));
+      if (url.endsWith('/drafts/dr-b') && init.method === 'PUT') return json(200, { revision: 2 });
+      if (url.endsWith('/drafts/dr-b')) return json(200, draft('dr-b', '乙稿', 'B 的內容'));
+      return json(200, { items: [] });
+    };
+    fireEvent.click(screen.getByRole('button', { name: 'AI 草稿' }));
+    fireEvent.click(await screen.findByRole('button', { name: /甲稿/ }));
+    await screen.findByDisplayValue('A 的內容');
+    fireEvent.click(screen.getByRole('button', { name: /乙稿/ }));
+    await screen.findByDisplayValue('B 的內容');
+    fireEvent.click(screen.getByRole('button', { name: '儲存修改' }));
+    await vi.waitFor(() => expect(puts().some(call => call.url.endsWith('/drafts/dr-b'))).toBe(true));
+    const sent = JSON.parse(puts().find(call => call.url.endsWith('/drafts/dr-b'))!.body);
+    expect(sent).toEqual({ expectedRevision: 1, body: 'B 的內容' });
+  });
+
+  it('審批：A 已載入、B 回 503 → 不顯示 A 的修訂、不能核准；不會用 A 的版號／hash 決定 B', async () => {
+    await login(admin);
+    const approval = (id: string, draftId: string, sha: string, body: string) => ({
+      approval: { id, draftId, revision: 1, revisionSha256: sha, status: 'pending', requestedByMemberId: 'm2', createdAt: '2026-11-05T00:00:00Z' },
+      draft: { id: draftId, title: `標題${id}`, status: 'submitted', currentRevision: 1 },
+      revision: { revision: 1, body, source: 'human', citations: [], citationStatus: 'VALID', citationReport: { cited: [], invalid: [], unused: [] } }, contentSha256: sha,
+    });
+    handler = url => {
+      if (url.endsWith('/approvals')) return json(200, { items: [
+        { id: 'ap-a', draftId: 'dr-a', title: '審甲', revision: 1, revisionSha256: 'a'.repeat(64), createdAt: '2026-11-05T00:00:00Z' },
+        { id: 'ap-b', draftId: 'dr-b', title: '審乙', revision: 1, revisionSha256: 'b'.repeat(64), createdAt: '2026-11-05T00:00:00Z' }] });
+      if (url.endsWith('/approvals/ap-a')) return json(200, approval('ap-a', 'dr-a', 'a'.repeat(64), '甲的審核內容'));
+      if (url.endsWith('/approvals/ap-b')) return json(503, { error: { code: 'ENTERPRISE_INTERNAL' } });
+      return json(200, { items: [] });
+    };
+    fireEvent.click(screen.getByRole('button', { name: '審批' }));
+    fireEvent.click(await screen.findByRole('button', { name: /審甲/ }));
+    expect(await screen.findByText('甲的審核內容')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /審乙/ }));
+    await vi.waitFor(() => expect(screen.queryByText('甲的審核內容')).toBeNull());
+    expect(screen.queryByRole('button', { name: '核准' })).toBeNull();
+    expect(puts().filter(call => call.url.includes('/approvals/'))).toEqual([]);
+  });
+
+  it('對帳明細：A 已載入、B 回 503 → 不顯示 A 的結果 hash', async () => {
+    await login(employee);
+    const recon = (id: string, sha: string) => ({ id, ruleVersion: 'ACC-MATCH-v1', status: 'completed', periodStart: '2026-10-01', periodEnd: '2026-10-28', resultSha256: sha, createdAt: '2026-11-05T00:00:00Z',
+      ledgerSha256: 'c'.repeat(64), receiptsSha256: 'd'.repeat(64), result: { counts: {}, cases: [], totals: [] } });
+    handler = url => {
+      if (url.endsWith('/reconciliations')) return json(200, { items: [
+        { ...recon('rc-a', 'a'.repeat(64)), periodStart: '2026-09-01' }, { ...recon('rc-b', 'b'.repeat(64)), periodStart: '2026-08-01' }] });
+      if (url.endsWith('/reconciliations/rc-a')) return json(200, recon('rc-a', 'a'.repeat(64)));
+      if (url.endsWith('/reconciliations/rc-b')) return json(503, { error: { code: 'ENTERPRISE_INTERNAL' } });
+      return json(200, { items: [] });
+    };
+    fireEvent.click(screen.getByRole('button', { name: '對帳' }));
+    fireEvent.click(await screen.findByRole('button', { name: /2026-09-01/ }));
+    expect((await screen.findByTestId('reconciliation-hash')).textContent).toContain('a'.repeat(16));
+    fireEvent.click(screen.getByRole('button', { name: /2026-08-01/ }));
+    await vi.waitFor(() => expect(screen.queryByTestId('reconciliation-hash')).toBeNull());
+  });
+});

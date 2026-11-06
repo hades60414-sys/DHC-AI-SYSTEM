@@ -5,7 +5,7 @@ name: enterprise-image-build
 on:
   pull_request:
     # main，以及 stacked PR 的 base（V4 整合分支）——讓 V5 PR 也觸發完整驗證
-    branches: [main, 'integration/enterprise-rcfix-v4-20261106', 'feature/ai-office-backend-v5-20261106']
+    branches: [main, 'integration/enterprise-rcfix-v4-20261106', 'feature/ai-office-backend-v5-20261106', 'fix/ai-office-v51-repoguard-hardening']
     paths: ['web-ui/**', '.github/workflows/enterprise-*.yml']
   workflow_dispatch:
 permissions:
@@ -15,6 +15,8 @@ concurrency:
   cancel-in-progress: true
 env:
   SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+  # V5.2 RG-007：實際建置的 repository（PR 來源 repo）
+  SOURCE_REPOSITORY: ${{ github.server_url }}/${{ github.event.pull_request.head.repo.full_name || github.repository }}
   RUNTIME_BASE: node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d
   TRIVY_IMAGE: aquasec/trivy:0.57.1@sha256:5c59e08f980b5d4d503329773480fcea2c9bdad7e381d846fbf9f2ecb8050f6b
 jobs:
@@ -25,6 +27,8 @@ jobs:
       ARCH: amd64
     defaults:
       run:
+        # V5.2 ASTRA-ROLL-001：明定 bash＝-eo pipefail，管線（| tee）不再遮蔽失敗
+        shell: bash
         working-directory: web-ui
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -42,10 +46,10 @@ jobs:
         run: |
           docker buildx build --progress=plain --platform linux/$ARCH \
             -f deploy/customer-single/Dockerfile \
-            --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE="$RUNTIME_BASE" --build-arg DHC_SOURCE_SHA="$SOURCE_SHA" \
+            --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE="$RUNTIME_BASE" --build-arg DHC_SOURCE_SHA="$SOURCE_SHA" --build-arg DHC_SOURCE_REPOSITORY="$SOURCE_REPOSITORY" \
             --cache-from type=gha,scope=enterprise-$ARCH --cache-to type=gha,mode=max,scope=enterprise-$ARCH \
             -t dhc-ai-office:ci-$ARCH --load . 2>&1 | tee ../ci-out/build.log
-          printf '%s\n' "docker buildx build --platform linux/$ARCH -f deploy/customer-single/Dockerfile --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE=$RUNTIME_BASE --build-arg DHC_SOURCE_SHA=$SOURCE_SHA" > ../ci-out/build-command.txt
+          printf '%s\n' "docker buildx build --platform linux/$ARCH -f deploy/customer-single/Dockerfile --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE=$RUNTIME_BASE --build-arg DHC_SOURCE_SHA=$SOURCE_SHA --build-arg DHC_SOURCE_REPOSITORY=$SOURCE_REPOSITORY" > ../ci-out/build-command.txt
       - name: image inspect（ID、架構、source revision、profile）
         run: |
           docker image inspect dhc-ai-office:ci-$ARCH > ../ci-out/image-inspect.json
@@ -56,12 +60,14 @@ jobs:
           arch = os.environ['ARCH']
           summary = {'source_sha': os.environ['SOURCE_SHA'], 'runtime_base': os.environ['RUNTIME_BASE'], 'image_id': meta['Id'],
                      'architecture': f"{meta['Os']}/{meta['Architecture']}", 'repo_digests': meta.get('RepoDigests'),
-                     'source_revision': labels.get('org.opencontainers.image.revision'), 'profile': labels.get('com.dhc.image.profile'),
+                     'source_revision': labels.get('org.opencontainers.image.revision'), 'source_repository': labels.get('org.opencontainers.image.source'),
+                     'upstream': labels.get('com.dhc.image.upstream'), 'profile': labels.get('com.dhc.image.profile'),
                      'license': labels.get('org.opencontainers.image.licenses'), 'oci_manifest_digest': None,
                      'note': '未推送 registry，沒有 registry manifest digest'}
           json.dump(summary, open('../ci-out/image-summary.json', 'w'), indent=1)
           print(json.dumps(summary, indent=1))
           assert summary['source_revision'] == os.environ['SOURCE_SHA'], 'source label 與 PR head 不符'
+          assert summary['source_repository'] == os.environ['SOURCE_REPOSITORY'], 'source repository label 與實際建置 repo 不符（RG-007）'
           assert summary['profile'] == 'enterprise'
           assert summary['architecture'] == f'linux/{arch}'
           PY
@@ -108,6 +114,8 @@ jobs:
       ARCH: arm64
     defaults:
       run:
+        # V5.2 ASTRA-ROLL-001：明定 bash＝-eo pipefail，管線（| tee）不再遮蔽失敗
+        shell: bash
         working-directory: web-ui
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -125,10 +133,10 @@ jobs:
         run: |
           docker buildx build --progress=plain --platform linux/$ARCH \
             -f deploy/customer-single/Dockerfile \
-            --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE="$RUNTIME_BASE" --build-arg DHC_SOURCE_SHA="$SOURCE_SHA" \
+            --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE="$RUNTIME_BASE" --build-arg DHC_SOURCE_SHA="$SOURCE_SHA" --build-arg DHC_SOURCE_REPOSITORY="$SOURCE_REPOSITORY" \
             --cache-from type=gha,scope=enterprise-$ARCH --cache-to type=gha,mode=max,scope=enterprise-$ARCH \
             -t dhc-ai-office:ci-$ARCH --load . 2>&1 | tee ../ci-out/build.log
-          printf '%s\n' "docker buildx build --platform linux/$ARCH -f deploy/customer-single/Dockerfile --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE=$RUNTIME_BASE --build-arg DHC_SOURCE_SHA=$SOURCE_SHA" > ../ci-out/build-command.txt
+          printf '%s\n' "docker buildx build --platform linux/$ARCH -f deploy/customer-single/Dockerfile --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE=$RUNTIME_BASE --build-arg DHC_SOURCE_SHA=$SOURCE_SHA --build-arg DHC_SOURCE_REPOSITORY=$SOURCE_REPOSITORY" > ../ci-out/build-command.txt
       - name: image inspect（ID、架構、source revision、profile）
         run: |
           docker image inspect dhc-ai-office:ci-$ARCH > ../ci-out/image-inspect.json
@@ -139,12 +147,14 @@ jobs:
           arch = os.environ['ARCH']
           summary = {'source_sha': os.environ['SOURCE_SHA'], 'runtime_base': os.environ['RUNTIME_BASE'], 'image_id': meta['Id'],
                      'architecture': f"{meta['Os']}/{meta['Architecture']}", 'repo_digests': meta.get('RepoDigests'),
-                     'source_revision': labels.get('org.opencontainers.image.revision'), 'profile': labels.get('com.dhc.image.profile'),
+                     'source_revision': labels.get('org.opencontainers.image.revision'), 'source_repository': labels.get('org.opencontainers.image.source'),
+                     'upstream': labels.get('com.dhc.image.upstream'), 'profile': labels.get('com.dhc.image.profile'),
                      'license': labels.get('org.opencontainers.image.licenses'), 'oci_manifest_digest': None,
                      'note': '未推送 registry，沒有 registry manifest digest'}
           json.dump(summary, open('../ci-out/image-summary.json', 'w'), indent=1)
           print(json.dumps(summary, indent=1))
           assert summary['source_revision'] == os.environ['SOURCE_SHA'], 'source label 與 PR head 不符'
+          assert summary['source_repository'] == os.environ['SOURCE_REPOSITORY'], 'source repository label 與實際建置 repo 不符（RG-007）'
           assert summary['profile'] == 'enterprise'
           assert summary['architecture'] == f'linux/{arch}'
           PY
@@ -196,6 +206,8 @@ jobs:
       OLD_RUNTIME_BASE: node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da
     defaults:
       run:
+        # V5.2 ASTRA-ROLL-001：明定 bash＝-eo pipefail，管線（| tee）不再遮蔽失敗
+        shell: bash
         working-directory: web-ui
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2

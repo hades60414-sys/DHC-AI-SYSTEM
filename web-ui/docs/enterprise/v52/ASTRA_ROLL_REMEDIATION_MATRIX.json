@@ -1,0 +1,320 @@
+{
+ "schema": "dhc-astra-roll-remediation/v1",
+ "source_work_order": "ASTRA_ROLLING_AUDIT_20261106/NEXT_CLAUDE_IMPLEMENTATION_PROMPT.md",
+ "base_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+ "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+ "pr": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/pull/13",
+ "commit_range": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d..d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+ "commits": [
+  "d38afd8 ci: RG-003 whole-repository coverage contract and static syntax job",
+  "42d47a0 ci: make the LibreOffice install step robust against apt lock/mirror stalls",
+  "7667822 fix(image): RG-007 OCI source label names the repository actually built",
+  "c75054f fix(deploy): ASTRA-ROLL-007 offline install verifies the image it actually starts",
+  "f4aab0f test(todo-dock): give the drag mock DataTransfer.types (hidden unhandled error)",
+  "5138dd9 fix(office): ASTRA-ROLL-002 bind detail data to the selected resource before any write",
+  "afbdea9 fix(enterprise): ASTRA-ROLL-003/004/005/006/011 deterministic data correctness",
+  "6210554 fix(ci): ASTRA-ROLL-001/008/009 gate exit propagation, runner exits, skip inventory"
+ ],
+ "ci": {
+  "verify": {
+   "run": "42276319689",
+   "attempt": 1,
+   "conclusion": "success"
+  },
+  "image_build": {
+   "run": "42276319770",
+   "attempt": 1,
+   "conclusion": "success"
+  },
+  "repo_coverage": {
+   "run": "42276319968",
+   "conclusion": "success"
+  }
+ },
+ "images": {
+  "amd64": {
+   "image_id": "sha256:00d56aaa2e0193b32c9930aed76e13966e4c2e80330e46b0660eaa7adce56782",
+   "archive_sha256": "f8ad9b8a5016a6fc353a12b27aeff7dcb0b0e701241855a1627cf80191f1dc8e",
+   "source_revision": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "source_repository": "https://github.com/hades60414-sys/DHC-AI-SYSTEM",
+   "manifest_digest": null
+  },
+  "arm64": {
+   "image_id": "sha256:b955436e1c04b0a907c8c644d4892c9a4baa5890f27d74b23ec898e81c1bc082",
+   "archive_sha256": "8d771e62c76e89eb43c8c7495d84a15db3c37cc89fd328ea1254381a37298ce7",
+   "source_revision": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "source_repository": "https://github.com/hades60414-sys/DHC-AI-SYSTEM",
+   "manifest_digest": null
+  }
+ },
+ "findings": [
+  {
+   "id": "ASTRA-ROLL-001",
+   "severity": "HIGH",
+   "commit": "6210554",
+   "red": "test_gate.py Shell 對照：無 pipefail 時 sha256sum -c | tee 回 0（原缺陷重現）",
+   "tests": [
+    "scripts/enterprise/ci/test_gate.py"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "static-and-unit",
+    "evidence": "enterprise-verify-static-unit：backend-exit.json／frontend-exit.json／lint-exit.json"
+   },
+   "note": "所有 workflow 每個 run step 解析為 shell bash（test_gate 檢查）；品質 step 經 gate.sh，無 || true",
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-002",
+   "severity": "HIGH",
+   "commit": "5138dd9",
+   "red": "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-002_RED_afbdea9.txt（4 失敗）",
+   "tests": [
+    "src/modules/office/tests/OfficeApp.test.tsx"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "static-and-unit（vitest 1151／1151，exit 0）"
+   },
+   "note": "元件層 fetch stub 驗證：B 503／pending、approval B 503、對帳 B 503、正向對照；後端版號／hash 檢查不變。真 Chromium 網路延遲 E2E：NOT_RUN（交付冒煙的 E2E 未加此情境）",
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-003",
+   "severity": "MEDIUM",
+   "commit": "afbdea9",
+   "red": "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap",
+   "tests": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "static-and-unit"
+   },
+   "note": "V4 oracle fixture 結果與 hash 不變；匯出直接取已存結果（同一修正）",
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-004",
+   "severity": "MEDIUM",
+   "commit": "afbdea9",
+   "red": "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap",
+   "tests": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "static-and-unit"
+   },
+   "note": "ACC 與 OPS 兩個 parser 同一狀態機",
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-005",
+   "severity": "MEDIUM",
+   "commit": "afbdea9",
+   "red": "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap",
+   "tests": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "static-and-unit"
+   },
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-006",
+   "severity": "MEDIUM",
+   "commit": "afbdea9",
+   "red": "靜態推導（原 500）；修正後 PG 測試",
+   "tests": [
+    "server/modules/enterprise-api/tests/reconciliation.integration.test.ts"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "postgres-integration（136 pass／0 fail）"
+   },
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-007",
+   "severity": "MEDIUM",
+   "commit": "c75054f",
+   "red": "靜態推導（驗 A 啟 B）",
+   "tests": [
+    "deploy/ai-office/test_dhc_office_images.py",
+    "scripts/enterprise/驗證AI_Office交付.py 12d／13c"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319770",
+    "job": "delivery-amd64／delivery-arm64：12d、13c 皆 exit 1（預期 1）"
+   },
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-008",
+   "severity": "MEDIUM",
+   "commit": "6210554",
+   "red": "gate 首次本機執行即抓到既有 vitest 未處理例外（exit 1、測試全過）→ f4aab0f 修測試 mock",
+   "tests": [
+    "scripts/enterprise/ci/test_gate.py"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "static-and-unit（frontend tool_exit 0）"
+   },
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-009",
+   "severity": "MEDIUM",
+   "commit": "6210554",
+   "red": "test_gate：新增 skip → 1",
+   "tests": [
+    "scripts/enterprise/ci/test_gate.py"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "static-and-unit"
+   },
+   "note": "18 個 PG 套件 skip 以 RUNS_IN_POSTGRES_INTEGRATION 允許，並由 postgres-integration 19 步實際執行；lint 分母 min_files 1158",
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-010",
+   "severity": "MEDIUM",
+   "commit": "11359bb（V5.1）",
+   "red": "V5.1 RG-V5-01 RED（五來源 65 s）",
+   "tests": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts（同站 5 萬列衝突）"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "static-and-unit"
+   },
+   "note": "V5.1 已修；V5.2 補同站衝突最壞形狀回歸",
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-011",
+   "severity": "LOW",
+   "commit": "afbdea9",
+   "red": "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap",
+   "tests": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "job": "static-and-unit"
+   },
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "ASTRA-ROLL-012",
+   "severity": "MEDIUM",
+   "status": "WORK_ORDER_ISSUED",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": "docs/enterprise/v52/DEID_WORK_ORDERS_ADDENDUM.md DEID-09",
+   "note": "TAS 模組，不在 enterprise image；依指示不重構"
+  },
+  {
+   "id": "ASTRA-ROLL-013",
+   "severity": "MEDIUM",
+   "status": "WORK_ORDER_ISSUED",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": "docs/enterprise/v52/DEID_WORK_ORDERS_ADDENDUM.md DEID-10"
+  },
+  {
+   "id": "RG-001",
+   "severity": "HIGH",
+   "status": "BLOCKED_DECISION",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": "docs/enterprise/v51/REMOTE_AGENT_THREAT_MODEL.md（完整版受控保存）",
+   "note": "SEC-01 owner／RD 決策"
+  },
+  {
+   "id": "RG-002",
+   "severity": "MEDIUM",
+   "status": "WORK_ORDER_ISSUED",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": "docs/enterprise/v51/DEID_PROXY_HARDENING_PLAN.md DEID-01..08"
+  },
+  {
+   "id": "RG-003",
+   "severity": "MEDIUM",
+   "commit": "d38afd8",
+   "red": "靜態：只改 remote-agent 不觸發任何 workflow",
+   "tests": [
+    "scripts/enterprise/ci/check_repo_coverage.py"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319968",
+    "job": "repo-coverage（2,621 檔全分類、非 web-ui JS／Python 語法 PASS）"
+   },
+   "note": "其他模組 runtime 仍 NOT_RUN（Windows／主機專屬）",
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "RG-005",
+   "severity": "MEDIUM",
+   "status": "HUMAN_DECISION_REQUIRED",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": "docs/enterprise/v52/SUPPLY_CHAIN_FINAL_LEDGER.json",
+   "note": "剩餘 OS HIGH 全為無修補；需具名 owner＋期限（SC-OWNER）"
+  },
+  {
+   "id": "RG-006",
+   "severity": "LOW",
+   "commit": "2cc9e93（V5.1）＋本輪",
+   "red": "—",
+   "tests": [
+    "docs/enterprise/v52/SUPPLY_CHAIN_FINAL_LEDGER.json"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319770",
+    "job": "image-build"
+   },
+   "note": "台帳綁 d38afd8 兩架構 image ID／archive SHA／SBOM／Trivy／報告檔 hash；保留 V5 前後比較歷史",
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "RG-007",
+   "severity": "MEDIUM",
+   "commit": "7667822",
+   "red": "V5.1 image label source=dhc-cli",
+   "tests": [
+    ".github/workflows/enterprise-image-build.yml 兩架構 assert"
+   ],
+   "ci": {
+    "run": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319770",
+    "job": "build-amd64／build-arm64"
+   },
+   "note": "source＝https://github.com/hades60414-sys/DHC-AI-SYSTEM",
+   "status": "FIXED_PENDING_REAUDIT",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+  },
+  {
+   "id": "RG-008",
+   "severity": "LOW",
+   "status": "HUMAN_DECISION_REQUIRED",
+   "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "note": "UAT／RD-002／003／IP／SOW／客戶簽認；PASS 0"
+  }
+ ],
+ "status_rule": "FIXED_PENDING_REAUDIT＝Builder 已修並有 RED／GREEN＋同 SHA CI；不是 AUDIT_VERIFIED。",
+ "not_a_substitute": "Builder 自評，不是 Astra 結論。"
+}

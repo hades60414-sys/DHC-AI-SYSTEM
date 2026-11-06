@@ -84,6 +84,18 @@ function isoWeekOf(ms: number) {
   return `${year}-W${String(number).padStart(2, '0')}`;
 }
 
+/**
+ * V5.2 ASTRA-ROLL-011：可受理的週別＝本週與前週都能表示（isoWeekRange 下限 1970）。1970-W01 的前週 1969-W52 不可表示 → 拒收。
+ * 服務層與引擎共用，避免服務層接受、引擎才失敗。
+ */
+export function opsReportWeekRanges(week: string): { current: [string, string]; previousWeek: string; previous: [string, string] } | null {
+  const current = isoWeekRange(week);
+  if (!current) return null;
+  const previousWeek = isoWeekOf(Date.parse(`${current[0]}T00:00:00Z`) - 7 * 86_400_000);
+  const previous = isoWeekRange(previousWeek);
+  return previous ? { current, previousWeek, previous } : null;
+}
+
 function previousWeekOf(week: string) {
   const [monday] = isoWeekRange(week)!;
   return isoWeekOf(Date.parse(`${monday}T00:00:00Z`) - 7 * 86_400_000);
@@ -122,18 +134,28 @@ function parseCsv(content: Buffer, source: number, errors: OpsReportError[], onR
     return;
   }
   if (text.startsWith('﻿')) text = text.slice(1);
+  // V5.2 ASTRA-ROLL-004：RFC 4180 狀態機。引號欄關閉後只能接逗號或行尾（"100"000 拒收）；未加引號的欄內不得出現雙引號。
   const split = (line: string, number: number) => {
     const cells: string[] = [];
     let cell = '';
-    let quoted = false;
+    let state: 'start' | 'plain' | 'quoted' | 'closed' = 'start';
+    const fail = (code: string) => { errors.push({ source, line: number, recordId: null, code }); return null; };
     for (let i = 0; i < line.length; i += 1) {
       const char = line[i];
-      if (quoted) {
-        if (char === '"' && line[i + 1] === '"') { cell += '"'; i += 1; } else if (char === '"') quoted = false; else cell += char;
-      } else if (char === '"' && cell === '') quoted = true;
-      else if (char === ',') { cells.push(cell); cell = ''; } else cell += char;
+      if (state === 'quoted') {
+        if (char === '"' && line[i + 1] === '"') { cell += '"'; i += 1; } else if (char === '"') state = 'closed'; else cell += char;
+      } else if (char === ',') {
+        cells.push(cell); cell = ''; state = 'start';
+      } else if (state === 'closed') {
+        return fail('TEXT_AFTER_CLOSING_QUOTE');
+      } else if (char === '"') {
+        if (state !== 'start') return fail('QUOTE_IN_UNQUOTED_FIELD');
+        state = 'quoted';
+      } else {
+        cell += char; state = 'plain';
+      }
     }
-    if (quoted) { errors.push({ source, line: number, recordId: null, code: 'UNTERMINATED_QUOTE' }); return null; }
+    if (state === 'quoted') return fail('UNTERMINATED_QUOTE');
     cells.push(cell);
     return cells;
   };
@@ -184,13 +206,14 @@ const capped = <T>(items: T[]) => ({ list: items.length > OPS_REPORT_LIST_CAP ? 
  */
 export function createOpsReportAccumulator(request: { week: string; datasets: string[]; sourceCount: number }) {
   const reject = (errors: OpsReportError[]): OpsReportResult => ({ status: 'rejected', ruleVersion: OPS_REPORT_RULE_VERSION, errors });
-  const range = isoWeekRange(request.week);
+  const ranges = opsReportWeekRanges(request.week);
+  const range = ranges?.current ?? null;
   let early: OpsReportResult | null = null;
-  if (!range) early = reject([{ source: null, line: null, recordId: null, code: 'INVALID_WEEK' }]);
+  if (!ranges) early = reject([{ source: null, line: null, recordId: null, code: 'INVALID_WEEK' }]);
   else if (!request.datasets.length || request.datasets.length > 5 || request.datasets.some(item => !ID.test(item)) || new Set(request.datasets).size !== request.datasets.length) {
     early = reject([{ source: null, line: null, recordId: null, code: 'INVALID_DATASETS' }]);
   } else if (!request.sourceCount || request.sourceCount > OPS_REPORT_MAX_SOURCES) early = reject([{ source: null, line: null, recordId: null, code: 'INVALID_SOURCES' }]);
-  const previousWeek = range ? previousWeekOf(request.week) : '';
+  const previousWeek = ranges ? ranges.previousWeek : '';
   const datasets = new Set(request.datasets);
   const errors: OpsReportError[] = [];
   const selected: Row[] = [];

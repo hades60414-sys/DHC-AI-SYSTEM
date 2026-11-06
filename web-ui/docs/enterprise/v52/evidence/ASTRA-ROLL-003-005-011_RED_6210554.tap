@@ -1,0 +1,195 @@
+TAP version 13
+# Subtest: V5.2 ASTRA-ROLL ACC-MATCH-v1 資料正確性
+    # Subtest: ROLL-003：兩側資料列ID 同名時，隔離合計只計同側且屬隔離案件的列（手算 golden）
+    not ok 1 - ROLL-003：兩側資料列ID 同名時，隔離合計只計同側且屬隔離案件的列（手算 golden）
+      ---
+      duration_ms: 3.965208
+      type: 'test'
+      location: '/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:3:602'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly deep-equal:
+        + actual - expected
+        
+          [
+            '130',
+            '130',
+        +   '130',
+            '30',
+        -   '30',
+            '100'
+          ]
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected:
+        0: '130'
+        1: '130'
+        2: '30'
+        3: '30'
+        4: '100'
+      actual:
+        0: '130'
+        1: '130'
+        2: '130'
+        3: '30'
+        4: '100'
+      operator: 'deepStrictEqual'
+      stack: |-
+        TestContext.<anonymous> (/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:32:12)
+        Test.runInAsyncScope (node:async_hooks:214:14)
+        Test.run (node:internal/test_runner/test:1047:25)
+        Test.start (node:internal/test_runner/test:944:17)
+        node:internal/test_runner/test:1440:71
+        node:internal/per_context/primordials:466:82
+        new Promise (<anonymous>)
+        new SafePromise (node:internal/per_context/primordials:435:3)
+        node:internal/per_context/primordials:466:9
+        Array.map (<anonymous>)
+      ...
+    # Subtest: ROLL-004：閉引號後還有字元（"100"000）→ 拒收；合法引號欄（含逗號、跳脫雙引號）仍可
+    not ok 2 - ROLL-004：閉引號後還有字元（"100"000）→ 拒收；合法引號欄（含逗號、跳脫雙引號）仍可
+      ---
+      duration_ms: 0.898084
+      type: 'test'
+      location: '/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:3:1539'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly deep-equal:
+        + actual - expected
+        
+        + []
+        - [
+        -   'TEXT_AFTER_CLOSING_QUOTE'
+        - ]
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected:
+        0: 'TEXT_AFTER_CLOSING_QUOTE'
+      actual:
+      operator: 'deepStrictEqual'
+      stack: |-
+        TestContext.<anonymous> (/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:43:12)
+        Test.runInAsyncScope (node:async_hooks:214:14)
+        Test.run (node:internal/test_runner/test:1047:25)
+        Suite.processPendingSubtests (node:internal/test_runner/test:744:18)
+        Test.postRun (node:internal/test_runner/test:1173:19)
+        Test.run (node:internal/test_runner/test:1101:12)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    # Subtest: ROLL-005：幣別只接受白名單自有鍵（__proto__／constructor／toString → UNKNOWN_CURRENCY）
+    not ok 3 - ROLL-005：幣別只接受白名單自有鍵（__proto__／constructor／toString → UNKNOWN_CURRENCY）
+      ---
+      duration_ms: 0.348292
+      type: 'test'
+      location: '/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:3:2337'
+      failureType: 'testCodeFailure'
+      error: '__proto__ → []'
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: true
+      actual: false
+      operator: '=='
+      stack: |-
+        TestContext.<anonymous> (/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:52:14)
+        Test.runInAsyncScope (node:async_hooks:214:14)
+        Test.run (node:internal/test_runner/test:1047:25)
+        Suite.processPendingSubtests (node:internal/test_runner/test:744:18)
+        Test.postRun (node:internal/test_runner/test:1173:19)
+        Test.run (node:internal/test_runner/test:1101:12)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..3
+not ok 1 - V5.2 ASTRA-ROLL ACC-MATCH-v1 資料正確性
+  ---
+  duration_ms: 5.715417
+  type: 'suite'
+  location: '/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:3:526'
+  failureType: 'subtestsFailed'
+  error: '3 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: V5.2 ASTRA-ROLL OPS-REPORT-v1 邊界
+    # Subtest: ROLL-011：前週超出可表示範圍的最小週別（1970-W01）→ 明確拒收 INVALID_WEEK，不丟 TypeError；1970-W02 可用
+    not ok 1 - ROLL-011：前週超出可表示範圍的最小週別（1970-W01）→ 明確拒收 INVALID_WEEK，不丟 TypeError；1970-W02 可用
+      ---
+      duration_ms: 1.501125
+      type: 'test'
+      location: '/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:5:74'
+      failureType: 'testCodeFailure'
+      error: "Cannot read properties of null (reading '0')"
+      code: 'ERR_TEST_FAILURE'
+      name: 'TypeError'
+      stack: |-
+        compute (/w/web-ui/server/modules/enterprise-persistence/ops-report-v1.ts:424:40)
+        Object.finish (/w/web-ui/server/modules/enterprise-persistence/ops-report-v1.ts:246:14)
+        runOpsReportV1 (/w/web-ui/server/modules/enterprise-persistence/ops-report-v1.ts:258:22)
+        ops (/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:60:49)
+        TestContext.<anonymous> (/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:64:21)
+        Test.runInAsyncScope (node:async_hooks:214:14)
+        Test.run (node:internal/test_runner/test:1047:25)
+        Test.start (node:internal/test_runner/test:944:17)
+        node:internal/test_runner/test:1440:71
+        node:internal/per_context/primordials:466:82
+      ...
+    # Subtest: ROLL-004（OPS）：閉引號後還有字元 → 拒收
+    not ok 2 - ROLL-004（OPS）：閉引號後還有字元 → 拒收
+      ---
+      duration_ms: 0.862083
+      type: 'test'
+      location: '/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:5:578'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly deep-equal:
+        + actual - expected
+        
+        + 'completed'
+        - [
+        -   'TEXT_AFTER_CLOSING_QUOTE'
+        - ]
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected:
+        0: 'TEXT_AFTER_CLOSING_QUOTE'
+      actual: 'completed'
+      operator: 'deepStrictEqual'
+      stack: |-
+        TestContext.<anonymous> (/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:71:12)
+        Test.runInAsyncScope (node:async_hooks:214:14)
+        Test.run (node:internal/test_runner/test:1047:25)
+        Suite.processPendingSubtests (node:internal/test_runner/test:744:18)
+        Test.postRun (node:internal/test_runner/test:1173:19)
+        Test.run (node:internal/test_runner/test:1101:12)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    # Subtest: ROLL-010：同週同站 5 萬列合法衝突輸入在有界時間內完成（V5.1 已改 Map 就地 append／Set）
+    ok 3 - ROLL-010：同週同站 5 萬列合法衝突輸入在有界時間內完成（V5.1 已改 Map 就地 append／Set）
+      ---
+      duration_ms: 458.158791
+      type: 'test'
+      ...
+    1..3
+not ok 2 - V5.2 ASTRA-ROLL OPS-REPORT-v1 邊界
+  ---
+  duration_ms: 460.727083
+  type: 'suite'
+  location: '/w/web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts:3:3037'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..2
+# tests 6
+# suites 2
+# pass 1
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 646.567208
