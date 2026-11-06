@@ -14,8 +14,66 @@
   }
  },
  "fresh_scan": {
-  "status": "PENDING_CI",
-  "note": "由 PR #11 的 enterprise-image-build（原生 amd64／arm64）重新掃描；結果寫入 V5 交付 SUPPLY_CHAIN_REMEDIATION 與 CI_RUN_MATRIX。"
+  "status": "COMPARED",
+  "method": "同一條 GitHub Actions 管線（enterprise-image-build，原生 ubuntu-24.04／ubuntu-24.04-arm，Trivy 以 digest 釘選）前後兩次 fresh scan",
+  "before": {
+   "source_sha": "bd9ad91f923107243b27e3028b693a0f111e054b",
+   "run_id": 42223687621,
+   "per_arch": {
+    "CRITICAL": 1,
+    "HIGH": 55,
+    "MEDIUM": 119,
+    "LOW": 84,
+    "UNKNOWN": 1
+   },
+   "node_packages": {
+    "HIGH": 19,
+    "MEDIUM": 21,
+    "LOW": 2
+   }
+  },
+  "after": {
+   "source_sha": "369837b5aa6a312a2f81a80997b7402838e14396",
+   "run_id": 42224771426,
+   "image_id_amd64": "sha256:5895f3c028226c2466c6e13171bc52312a18469702768661659ccc159c7734b2",
+   "image_id_arm64": "sha256:edec1347ad18af3453942988624670067ab6a4dbdb01da79c90922371361c341",
+   "per_arch": {
+    "CRITICAL": 1,
+    "HIGH": 36,
+    "MEDIUM": 102,
+    "LOW": 83,
+    "UNKNOWN": 1
+   },
+   "node_packages": {
+    "HIGH": 0,
+    "MEDIUM": 4,
+    "LOW": 1
+   }
+  },
+  "diff_per_arch": {
+   "removed": 37,
+   "removed_by_severity": {
+    "HIGH": 19,
+    "MEDIUM": 17,
+    "LOW": 1
+   },
+   "new": 0,
+   "removed_packages": [
+    "@sigstore/core",
+    "brace-expansion",
+    "glob",
+    "ip-address",
+    "lodash-es",
+    "minimatch",
+    "nanoid",
+    "pacote",
+    "picomatch",
+    "postcss-selector-parser",
+    "sigstore"
+   ]
+  },
+  "remaining_critical": "zlib1g CVE-2023-45853（NOT_AFFECTED，見下方條目）",
+  "remaining_high": "36 項全為 Debian OS 套件（affected／fix_deferred 無修補，或 apt 2.6.2 待基底 digest 更新）"
  },
  "policy": {
   "no_npm_audit_fix_force": true,
@@ -52,7 +110,7 @@
    "contract_check": "chevrotain 只用 lodash-es 4.x 一般集合函式；4.17→4.18 為同主版本 minor。以 @mermaid-js/parser 0.6.3＋lodash-es 4.18.1 實際 parse pie／gitGraph 冒煙通過。根目錄本已是 4.18.1（dagre-d3-es、chevrotain-allstar 宣告 ^4.17.21）。",
    "reachability": "前端 bundle 內 mermaid 解析；server 不載入。_.template 未被 chevrotain 使用，屬低可達。",
    "remediation": "OVERRIDE：package.json overrides.lodash-es = 4.18.1（全樹統一）。",
-   "status": "REMEDIATED_PENDING_FRESH_SCAN"
+   "status": "REMEDIATED_VERIFIED_FRESH_SCAN"
   },
   {
    "package": "nanoid",
@@ -69,7 +127,7 @@
    "contract_check": "同主版本 patch 升級；excalidraw 只呼叫 nanoid()。",
    "reachability": "前端白板元件 ID 產生；固定長度呼叫，自訂 size=0／負值路徑不可達。",
    "remediation": "OVERRIDE：overrides[@excalidraw/excalidraw].nanoid = 3.3.20；鎖檔根 nanoid 3.3.20（postcss 去重）。",
-   "status": "REMEDIATED_PENDING_FRESH_SCAN"
+   "status": "REMEDIATED_VERIFIED_FRESH_SCAN"
   },
   {
    "package": "nanoid",
@@ -86,7 +144,7 @@
    "contract_check": "mermaid-to-excalidraw dist 只用 `import { nanoid } from 'nanoid'` 與 nanoid()（grep 確認，無 customAlphabet）；4→5 對此 API 不變，兩者皆 ESM；Node 22 runtime 符合 5.x engines。nanoid 5.1.16 node 冒煙產生 21 字元 ID。",
    "reachability": "前端 mermaid→excalidraw 轉換；固定長度。",
    "remediation": "OVERRIDE（跨主版本，有界）：overrides[@excalidraw/mermaid-to-excalidraw].nanoid = 5.1.16。前端測試／build 由 CI 驗證。",
-   "status": "REMEDIATED_PENDING_FRESH_SCAN"
+   "status": "REMEDIATED_VERIFIED_FRESH_SCAN"
   },
   {
    "package": "brace-expansion",
@@ -104,7 +162,7 @@
    "upstream_fix": "2.1.6",
    "reachability": "企業 runtime 不呼叫 npm：唯一 spawn npm 的是 legacy /api/plugins（plugin-registry.service.ts，企業 profile 未掛載）與 CLI 自我更新（cli.module.ts，不在容器 entrypoint）。",
    "remediation": "REMOVED_FROM_RUNTIME：Dockerfile 企業 profile 刪除 npm/npx/corepack/yarn 並在 build 時斷言不存在。",
-   "status": "REMEDIATED_PENDING_FRESH_SCAN"
+   "status": "REMEDIATED_VERIFIED_FRESH_SCAN"
   },
   {
    "package": "ip-address",
@@ -118,7 +176,7 @@
    "upstream_fix": "10.3.1",
    "reachability": "企業 runtime 不呼叫 npm：唯一 spawn npm 的是 legacy /api/plugins（plugin-registry.service.ts，企業 profile 未掛載）與 CLI 自我更新（cli.module.ts，不在容器 entrypoint）。",
    "remediation": "REMOVED_FROM_RUNTIME：Dockerfile 企業 profile 刪除 npm/npx/corepack/yarn 並在 build 時斷言不存在。",
-   "status": "REMEDIATED_PENDING_FRESH_SCAN"
+   "status": "REMEDIATED_VERIFIED_FRESH_SCAN"
   },
   {
    "package": "pacote",
@@ -132,7 +190,7 @@
    "upstream_fix": "21.5.1",
    "reachability": "企業 runtime 不呼叫 npm：唯一 spawn npm 的是 legacy /api/plugins（plugin-registry.service.ts，企業 profile 未掛載）與 CLI 自我更新（cli.module.ts，不在容器 entrypoint）。",
    "remediation": "REMOVED_FROM_RUNTIME：Dockerfile 企業 profile 刪除 npm/npx/corepack/yarn 並在 build 時斷言不存在。",
-   "status": "REMEDIATED_PENDING_FRESH_SCAN"
+   "status": "REMEDIATED_VERIFIED_FRESH_SCAN"
   },
   {
    "package": "picomatch",
@@ -146,7 +204,7 @@
    "upstream_fix": "4.0.4",
    "reachability": "企業 runtime 不呼叫 npm：唯一 spawn npm 的是 legacy /api/plugins（plugin-registry.service.ts，企業 profile 未掛載）與 CLI 自我更新（cli.module.ts，不在容器 entrypoint）。",
    "remediation": "REMOVED_FROM_RUNTIME：Dockerfile 企業 profile 刪除 npm/npx/corepack/yarn 並在 build 時斷言不存在。",
-   "status": "REMEDIATED_PENDING_FRESH_SCAN"
+   "status": "REMEDIATED_VERIFIED_FRESH_SCAN"
   },
   {
    "package": "sigstore",
@@ -160,7 +218,7 @@
    "upstream_fix": "4.1.1",
    "reachability": "企業 runtime 不呼叫 npm：唯一 spawn npm 的是 legacy /api/plugins（plugin-registry.service.ts，企業 profile 未掛載）與 CLI 自我更新（cli.module.ts，不在容器 entrypoint）。",
    "remediation": "REMOVED_FROM_RUNTIME：Dockerfile 企業 profile 刪除 npm/npx/corepack/yarn 並在 build 時斷言不存在。",
-   "status": "REMEDIATED_PENDING_FRESH_SCAN"
+   "status": "REMEDIATED_VERIFIED_FRESH_SCAN"
   },
   {
    "package": "zlib1g",

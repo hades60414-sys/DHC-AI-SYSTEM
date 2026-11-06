@@ -257,6 +257,17 @@ export function createScopedEnterpriseRepository(client: PoolClient, organizatio
       return (await client.query<EnterpriseOpsReportRow>(`SELECT ${opsReportSummaryColumns} FROM enterprise.ops_reports r
         WHERE r.organization_id=$1 ORDER BY r.created_at DESC, r.id LIMIT 100`, [organizationId])).rows;
     },
+    /** 依版本 id 取版本 metadata 與同文件最新版號（匯出時判斷來源是否已有新版本）。 */
+    async getDocumentVersionById(versionId: string) {
+      return (await client.query<EnterpriseDocumentVersionRow & { latestVersionNumber: number }>(`SELECT ${versionColumns},
+          (SELECT max(o.version_number) FROM enterprise.document_versions o WHERE o.organization_id=v.organization_id AND o.document_id=v.document_id)::int AS "latestVersionNumber"
+        FROM ${versionFrom} WHERE v.organization_id=$1 AND v.id=$2`, [organizationId, versionId])).rows[0];
+    },
+    async insertReconciliationExport(input: { reconciliationId: string; format: string; sha256: string; byteSize: number; sourcesSuperseded: boolean }) {
+      return (await client.query<{ id: string; exportedAt: Date }>(`INSERT INTO enterprise.reconciliation_exports(organization_id,reconciliation_id,format,sha256,byte_size,sources_superseded,exported_by_member_id)
+        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, exported_at AS "exportedAt"`,
+      [organizationId, input.reconciliationId, input.format, input.sha256, input.byteSize, input.sourcesSuperseded, memberId])).rows[0];
+    },
     async appendAudit(action: string, resourceType: 'task' | 'document' | 'reconciliation' | 'ops_report', resourceId: string) {
       await client.query('INSERT INTO enterprise.audit_events(organization_id,actor_member_id,action,resource_type,resource_id) VALUES ($1,$2,$3,$4,$5)', [organizationId, memberId, action, resourceType, resourceId]);
     },

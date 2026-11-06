@@ -222,6 +222,19 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
     res.json(await inScope(res, service => service.getReconciliation(param(req, 'reconciliationId'))));
   }));
 
+  router.get('/reconciliations/:reconciliationId/export', requireAuth, requirePermission('documents.read'), enterpriseHandler(async (req, res) => {
+    const exported = await inScope<{ content: Buffer; sha256: string; mediaType: string; filename: string; exportId: string; sourcesSuperseded: boolean }>(res,
+      service => service.exportReconciliation(param(req, 'reconciliationId'), req.query.format));
+    res.setHeader('Content-Type', exported.mediaType);
+    res.setHeader('Content-Disposition', contentDisposition(exported.filename));
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-DHC-Content-SHA256', exported.sha256);
+    res.setHeader('X-DHC-Export-Id', exported.exportId);
+    res.setHeader('X-DHC-Sources-Superseded', String(exported.sourcesSuperseded));
+    res.end(exported.content);
+  }));
+
   // ---- Ops report（V5 OPS-REPORT-v1：確定性營運週報；數字全由引擎計算，不呼叫模型）----
   router.post('/ops-reports', requireAuth, requirePermission('documents.write'), json, enterpriseHandler(async (req, res) => {
     const result = await inScope<{ opsReport: unknown; reused: boolean }>(res, service => service.createOpsReport((req.body ?? {}) as Record<string, unknown>));

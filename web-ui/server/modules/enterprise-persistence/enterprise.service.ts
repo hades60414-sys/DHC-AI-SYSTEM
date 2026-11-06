@@ -8,7 +8,8 @@ import { inspectDocumentContent } from './document-content.policy.js';
 import { chunkUnits, extractDocumentText, unsupportedExtractorName } from './document-extraction.js';
 import { createScopedEnterpriseRepository, findActiveEnterpriseMembership, findLiveEnterpriseSessionMember } from './enterprise.repository.js';
 import { OPS_REPORT_MAX_SOURCES, OPS_REPORT_RULE_VERSION, isoWeekRange, opsReportResultSha256, runOpsReportV1 } from './ops-report-v1.js';
-import { ACC_MATCH_RULE_VERSION, reconciliationResultSha256, runAccMatchV1 } from './reconciliation-acc-match-v1.js';
+import { ACC_MATCH_RULE_VERSION, reconciliationResultSha256, runAccMatchV1, type ReconciliationResult } from './reconciliation-acc-match-v1.js';
+import { buildReconciliationExport, RECONCILIATION_EXPORT_FORMATS, type ReconciliationExportFormat, type ReconciliationExportSource } from './reconciliation-export.js';
 
 function isUuid(value: unknown): value is string {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
@@ -332,6 +333,40 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
       const row = await repository.getReconciliation(id.toLowerCase());
       if (!row) throw new Error('ENTERPRISE_NOT_FOUND');
       return row;
+    },
+    /**
+     * V5 ACC-MATCH-v1 結構化匯出（json／csv／markdown）。讀取類動作：訂閱到期仍可匯出（資料取得權），但 session 必須仍有效。
+     * 匯出前重讀兩個來源 blob 並重驗 hash：來源遺失或損毀 → ENTERPRISE_SOURCE_UNAVAILABLE（不產生匯出、不留紀錄）。
+     * 來源已有新版本時照常匯出但明確標示 superseded（結果只對應綁定版本）。每次匯出寫 reconciliation_exports＋稽核事件。
+     */
+    async exportReconciliation(id: string, format: unknown) {
+      checkActive();
+      requireUuid(id);
+      if (typeof format !== 'string' || !(RECONCILIATION_EXPORT_FORMATS as readonly string[]).includes(format)) throw new Error('ENTERPRISE_INVALID_FORMAT');
+      const store = requireBlobStore();
+      const row = await repository.getReconciliation(id.toLowerCase());
+      if (!row) throw new Error('ENTERPRISE_NOT_FOUND');
+      const sources: ReconciliationExportSource[] = [];
+      for (const [side, versionId] of [['ledger', row.ledgerVersionId], ['receipts', row.receiptsVersionId]] as const) {
+        const version = await repository.getDocumentVersionById(versionId);
+        if (!version || version.sha256 !== (side === 'ledger' ? row.ledgerSha256 : row.receiptsSha256)) throw new Error('ENTERPRISE_SOURCE_UNAVAILABLE');
+        try {
+          const content = await store.get(storageOrganizationId, version.sha256);
+          if (createHash('sha256').update(content).digest('hex') !== version.sha256) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
+        } catch (error) {
+          const code = error instanceof Error ? error.message : '';
+          if (code === 'ENTERPRISE_BLOB_NOT_FOUND' || code === 'ENTERPRISE_BLOB_INTEGRITY') throw new Error('ENTERPRISE_SOURCE_UNAVAILABLE');
+          throw error;
+        }
+        sources.push({ side, documentId: version.documentId, versionNumber: version.versionNumber, versionId: version.id, filename: version.filename,
+          sha256: version.sha256, latestVersionNumber: version.latestVersionNumber, superseded: version.latestVersionNumber > version.versionNumber });
+      }
+      const exported = buildReconciliationExport({ reconciliation: { ...row, result: row.result as ReconciliationResult }, sources }, format as ReconciliationExportFormat);
+      checkActive();
+      const record = await repository.insertReconciliationExport({ reconciliationId: row.id, format, sha256: exported.sha256, byteSize: exported.content.length,
+        sourcesSuperseded: sources.some(source => source.superseded) });
+      await repository.appendAudit(`reconciliation.exported_${format}`, 'reconciliation', row.id);
+      return { ...exported, exportId: record.id, filename: `reconciliation-${row.id}.${exported.extension}`, sourcesSuperseded: sources.some(source => source.superseded) };
     },
     async listReconciliations() {
       checkActive();
