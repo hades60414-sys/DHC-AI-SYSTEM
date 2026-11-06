@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { constants } from 'node:fs';
+import { constants, createReadStream } from 'node:fs';
 import { lstat, mkdir, open, readFile, realpath, rename, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -102,6 +102,21 @@ export function createLocalDocumentBlobStore(rootDirectory: string): EnterpriseD
       requireBlobRef(organizationId, storageKey);
       return readVerified(await blobPath(organizationId, storageKey, false), storageKey);
     },
+    async verify(organizationId, storageKey) {
+      requireBlobRef(organizationId, storageKey);
+      const file = await blobPath(organizationId, storageKey, false);
+      try {
+        const info = await lstat(file);
+        if (!info.isFile()) throw new Error('ENTERPRISE_BLOB_INVALID_REF');
+      } catch (error) {
+        if (isMissing(error)) throw new Error('ENTERPRISE_BLOB_NOT_FOUND');
+        throw error;
+      }
+      const hash = createHash('sha256');
+      // 64 KiB 區塊串流；不在記憶體保留整份內容。
+      for await (const chunk of createReadStream(file, { highWaterMark: 64 * 1024 })) hash.update(chunk as Buffer);
+      if (hash.digest('hex') !== storageKey) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
+    },
   };
 }
 
@@ -120,6 +135,12 @@ export function createMemoryDocumentBlobStore(): EnterpriseDocumentBlobStore {
       if (!content) throw new Error('ENTERPRISE_BLOB_NOT_FOUND');
       if (sha256(content) !== storageKey) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
       return Buffer.from(content);
+    },
+    async verify(organizationId, storageKey) {
+      requireBlobRef(organizationId, storageKey);
+      const content = blobs.get(`${organizationId}/${storageKey}`);
+      if (!content) throw new Error('ENTERPRISE_BLOB_NOT_FOUND');
+      if (sha256(content) !== storageKey) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
     },
   };
 }

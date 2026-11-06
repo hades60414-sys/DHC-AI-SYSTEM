@@ -5,3 +5,4 @@ export { createEnterpriseIdentity, bootstrapEnterpriseOrganization, setEnterpris
 export { createEnterpriseWorkflow, createEnterpriseRunWorker } from './enterprise-workflow.service.js';
 export { createEnterpriseNotifications } from './enterprise-notifications.js';
 export { checkEnterpriseEntitlement, ENTERPRISE_BUSINESS_WRITE_ACTIONS, ENTERPRISE_EXPIRY_ALLOWED_ACTIONS } from './enterprise-entitlements.js';
+export { computeOpsReportFromStore, createComputeGate, type OpsReportPlan } from './ops-report-runner.js';

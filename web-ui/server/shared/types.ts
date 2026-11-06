@@ -1430,6 +1430,11 @@ export type EnterpriseDocumentVersionRow = {
 export type EnterpriseDocumentBlobStore = {
   put(organizationId: string, storageKey: string, content: Buffer): Promise<void>;
   get(organizationId: string, storageKey: string): Promise<Buffer>;
+  /**
+   * V5.1：只驗證存在與內容 hash，不回傳 bytes（本機 adapter 以串流計算，記憶體與檔案大小無關）。
+   * 失敗：ENTERPRISE_BLOB_NOT_FOUND／ENTERPRISE_BLOB_INTEGRITY。選用；未實作時呼叫端退回 get()。
+   */
+  verify?(organizationId: string, storageKey: string): Promise<void>;
 };
 /**
  * 企業模式的伺服器端權限代碼（IAM-01 候選契約）。enterprise-persistence 的角色對照表與 enterprise-api 路由守門共用。

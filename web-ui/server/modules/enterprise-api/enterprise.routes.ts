@@ -2,7 +2,7 @@ import express, { type Request, type Response } from 'express';
 import type { Pool } from 'pg';
 
 import {
-  checkEnterpriseEntitlement, createEnterpriseIdentity, createEnterpriseNotifications, createEnterprisePersistence, createEnterpriseWorkflow,
+  checkEnterpriseEntitlement, computeOpsReportFromStore, createComputeGate, createEnterpriseIdentity, createEnterpriseNotifications, createEnterprisePersistence, createEnterpriseWorkflow,
 } from '@/modules/enterprise-persistence/index.js';
 import type { EnterpriseDocumentBlobStore, EnterprisePrincipal } from '@/shared/index.js';
 
@@ -22,6 +22,11 @@ type EnterpriseRouterOptions = {
   metrics?: EnterpriseMetrics;
   metricsToken?: string;
   accessLog?: boolean;
+  /** V5.1：OPS-REPORT 計算併發上限與等待佇列（預設 2／8）。 */
+  opsReportConcurrency?: number;
+  opsReportQueue?: number;
+  /** 只供整合測試注入時序（例如在 commit 前停權）；正式組裝不得傳入。 */
+  testHooks?: { beforeOpsReportCommit?: () => Promise<void> };
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -75,6 +80,7 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
   const metrics = options.metrics ?? defaultEnterpriseMetrics;
   router.use(enterpriseRequestObserver(metrics, { accessLog: options.accessLog }));
   const onEngine = (engine: string, seconds: number) => metrics.observeEngine(engine, seconds);
+  const opsReportGate = createComputeGate(options.opsReportConcurrency ?? 2, options.opsReportQueue ?? 8);
   const json = express.json({ limit: '64kb', type: 'application/json' });
   const raw = (req: Request, res: Response, next: () => void) => {
     express.raw({ type: () => true, limit: options.maxDocumentBytes })(req, res, (error?: unknown) => {
@@ -90,6 +96,7 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
     { blobStore: options.blobStore, maxDocumentBytes: options.maxDocumentBytes,
       reserveStorage: (client, organizationId, blob) => checkEnterpriseEntitlement(client, organizationId, 'document.write', { blob }),
       checkWrite: (client, organizationId, action) => checkEnterpriseEntitlement(client, organizationId, action), onEngine });
+  type ScopedService = Parameters<Parameters<ReturnType<typeof persistenceFor>['withOrganization']>[1]>[0];
   const inScope = <T>(res: Response, operation: Parameters<ReturnType<typeof persistenceFor>['withOrganization']>[1]) => {
     const principal = principalOf(res);
     return persistenceFor(principal).withOrganization(principal.organizationId, operation) as Promise<T>;
@@ -262,9 +269,27 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
 
   // ---- Ops report（V5 OPS-REPORT-v1：確定性營運週報；數字全由引擎計算，不呼叫模型）----
   router.post('/ops-reports', requireAuth, requirePermission('documents.write'), json, enterpriseHandler(async (req, res) => {
-    const result = await inScope<{ opsReport: { status: string }; reused: boolean }>(res, service => service.createOpsReport((req.body ?? {}) as Record<string, unknown>));
-    metrics.count('results', { engine: 'ops_report', outcome: result.reused ? 'reused' : result.opsReport.status });
-    res.status(result.reused ? 200 : 201).json(result);
+    // V5.1 RG-V5-01：併發閘門 → 短交易 prepare → 交易外依序讀 blob 計算（可因斷線中止）→ 新交易 commit（重驗 session）。
+    const abort = new AbortController();
+    res.on('close', () => { if (!res.writableFinished) abort.abort(); });
+    const release = await opsReportGate.acquire();
+    try {
+      const body = (req.body ?? {}) as Record<string, unknown>;
+      const prepared = await inScope<Awaited<ReturnType<ScopedService['prepareOpsReport']>>>(res, service => service.prepareOpsReport(body));
+      if ('existing' in prepared) {
+        metrics.count('results', { engine: 'ops_report', outcome: 'reused' });
+        res.status(200).json({ opsReport: prepared.existing, reused: true });
+        return;
+      }
+      const result = await computeOpsReportFromStore(options.blobStore, prepared.plan, { signal: abort.signal, onEngine: seconds => onEngine('ops_report', seconds) });
+      await options.testHooks?.beforeOpsReportCommit?.();
+      if (abort.signal.aborted) throw new Error('ENTERPRISE_REQUEST_ABORTED');
+      const committed = await inScope<{ opsReport: { status: string }; reused: boolean }>(res, service => service.commitOpsReport(prepared.plan, result));
+      metrics.count('results', { engine: 'ops_report', outcome: committed.reused ? 'reused' : committed.opsReport.status });
+      res.status(committed.reused ? 200 : 201).json(committed);
+    } finally {
+      release();
+    }
   }));
   router.get('/ops-reports', requireAuth, requirePermission('documents.read'), enterpriseHandler(async (_req, res) => {
     res.json({ items: await inScope(res, service => service.listOpsReports()) });
