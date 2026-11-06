@@ -23,6 +23,7 @@ export function createEnterpriseRuntime(env: NodeJS.ProcessEnv) {
     pool, blobStore: createLocalDocumentBlobStore(env.ENTERPRISE_BLOB_ROOT!), maxDocumentBytes,
     sessionTtlMs: env.ENTERPRISE_SESSION_TTL_MS ? Number(env.ENTERPRISE_SESSION_TTL_MS) : undefined,
     secretKey: env.ENTERPRISE_SECRET_KEY,
+    metricsToken: env.DHC_METRICS_TOKEN, accessLog: env.ENTERPRISE_ACCESS_LOG !== 'off',
   });
   // RUN-01：同一行程內的持久工作 worker（狀態全在 PostgreSQL，重啟後由 queued/running 狀態續做或逾時清理）。
   const worker = createEnterpriseRunWorker(pool, { secretKey: env.ENTERPRISE_SECRET_KEY });

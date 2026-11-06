@@ -1,0 +1,224 @@
+{
+ "schema": "dhc-ocr-review/v1",
+ "tool": "open-code-review delegate mode（ocr v1.13.6；檔案篩選與規則由 OCR，審查由 Builder 主機 agent 執行，未呼叫外部 LLM、未外送原始碼）",
+ "base": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+ "head_note": "審查範圍 1e481e2..7100d26（V5 分支），另含 V5-OCR-001 修正",
+ "total_files": 63,
+ "reviewable_files": 32,
+ "reviewed_files": 32,
+ "skipped_files": 0,
+ "excluded_files": 31,
+ "excluded_reason": "OCR 預設排除：測試、文件（.md／.mmd／.csv）、package-lock.json；測試檔仍由 CI 執行並在 TEST_EVIDENCE 記錄",
+ "coverage_rate": 1.0,
+ "severity_counts": {
+  "critical": 0,
+  "high": 0,
+  "medium": 3,
+  "low": 5
+ },
+ "files": [
+  {
+   "path": ".github/workflows/enterprise-image-build.yml",
+   "status": "reviewed"
+  },
+  {
+   "path": ".github/workflows/enterprise-verify.yml",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/db/enterprise/migrations/0013_ops_reports.down.sql",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/db/enterprise/migrations/0013_ops_reports.up.sql",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/db/enterprise/migrations/0014_reconciliation_exports.down.sql",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/db/enterprise/migrations/0014_reconciliation_exports.up.sql",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/deploy/customer-single/Dockerfile",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/docs/enterprise/architecture/roadmap.json",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/docs/enterprise/openapi.yaml",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/docs/enterprise/supply-chain/SUPPLY_CHAIN_REMEDIATION_LEDGER.json",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/package.json",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/scripts/enterprise/ci/compare_known_failures.py",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/scripts/enterprise/ci/known-v32-baseline-failures.json",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/scripts/enterprise/render_roadmap.py",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/assistant/assistant.service.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-api/enterprise-http.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-api/enterprise-observability.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-api/enterprise-runtime.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-api/enterprise.routes.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-persistence/enterprise-entitlements.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-persistence/enterprise.repository.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-persistence/enterprise.service.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-persistence/migrations.service.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-persistence/ops-report-v1.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-persistence/reconciliation-export.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/night-queue/services/night-queue-dispatcher.service.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/providers/index.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/providers/list/claude/claude-runtime.provider.js",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/modules/voice/voice.service.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/shared/index.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/server/shared/types.ts",
+   "status": "reviewed"
+  },
+  {
+   "path": "web-ui/src/modules/sidebar/SidebarHeader.tsx",
+   "status": "reviewed"
+  }
+ ],
+ "findings": [
+  {
+   "id": "V5-OCR-001",
+   "path": "web-ui/server/modules/enterprise-persistence/reconciliation-export.ts",
+   "category": "security",
+   "severity": "medium",
+   "content": "CSV 公式注入防護未涵蓋前導空白（例如 \"  =1+1\"、\" -5\"），部分試算表會去除前導空白後求值。目前欄位值經 ACC-MATCH 的 ID 格式驗證，引擎輸出不可能含這些前綴，屬縱深防禦缺口。",
+   "disposition": "FIXED",
+   "fix": "cell() 改為檢查前導空白後的 = + @ -；單元測試新增兩個案例並確認數值負差額 -5000 不受影響。"
+  },
+  {
+   "id": "V5-OCR-002",
+   "path": "web-ui/server/modules/enterprise-persistence/enterprise.service.ts",
+   "category": "performance",
+   "severity": "medium",
+   "content": "exportReconciliation 為了驗證來源完整性，會把兩個來源 blob 整份讀進記憶體（storage adapter 只提供 get(): Buffer）。100 MiB 上限的文件會造成每次匯出數百 MiB 暫時記憶體。",
+   "disposition": "DEFERRED",
+   "reason": "需擴充 storage adapter 介面（串流 hash 或已驗證 hash 快取），屬 V4 已審 adapter 契約變更；記入 PERFORMANCE_REPORT 與後續路線（PERF-01）。"
+  },
+  {
+   "id": "V5-OCR-003",
+   "path": "web-ui/server/modules/enterprise-persistence/enterprise.repository.ts",
+   "category": "maintainability",
+   "severity": "low",
+   "content": "insertOpsReport 只對 completed 去重；同一份不合格來源重送會產生多筆 rejected 列與稽核事件（與 V4 reconciliations 相同設計）。已登入的寫入者可重複送出造成表成長。",
+   "disposition": "ACCEPTED",
+   "reason": "設計上每次拒收都留稽核痕跡（規格：拒收也留一筆）；與 V4 一致。是否改為 rejected 也去重需產品決定，列入 HUMAN_DECISION_QUEUE。"
+  },
+  {
+   "id": "V5-OCR-004",
+   "path": "web-ui/server/modules/enterprise-persistence/enterprise.service.ts",
+   "category": "other",
+   "severity": "low",
+   "content": "createOpsReport 在查詢既有成功結果之前先做商務權益檢查，訂閱到期後連重送同一請求取回既有結果也回 402（讀取 GET 仍可）。",
+   "disposition": "ACCEPTED",
+   "reason": "與 V4 createReconciliation 行為一致（ASTRA-014 商務寫入政策 fail closed）；到期後讀取既有結果用 GET /ops-reports/:id。"
+  },
+  {
+   "id": "V5-OCR-005",
+   "path": "web-ui/db/enterprise/migrations/0013_ops_reports.down.sql",
+   "category": "maintainability",
+   "severity": "low",
+   "content": "有 ops_report 稽核事件時 down 會因重建 audit_events CHECK 失敗而整筆回退，即使給了 allowDataLoss。",
+   "disposition": "ACCEPTED",
+   "reason": "刻意設計：不默默刪稽核紀錄；與 0012 相同，註解已說明。"
+  },
+  {
+   "id": "V5-OCR-006",
+   "path": "web-ui/server/modules/enterprise-api/enterprise-observability.ts",
+   "category": "security",
+   "severity": "low",
+   "content": "合格格式的 inbound X-Request-Id 會原樣沿用並寫入日誌，用戶端可自訂 request id 以混淆日誌關聯。",
+   "disposition": "ACCEPTED",
+   "reason": "值限制為 [A-Za-z0-9-]{8,64}，無注入風險；沿用 inbound id 是反向代理串接 trace 的常見需求。日誌另含 route／status／時間可交叉比對。"
+  },
+  {
+   "id": "V5-OCR-007",
+   "path": "web-ui/server/modules/enterprise-persistence/ops-report-v1.ts",
+   "category": "other",
+   "severity": "low",
+   "content": "validateOpsNarrative 只比對數值是否出自引擎，恰好等於某主張值的錯誤敘述（例如把增量 30 寫成「節省 30%」）無法偵測。",
+   "disposition": "DOCUMENTED",
+   "reason": "已在函式註解、架構 README 與測試註記；敘述生成尚未實作（PLANNED），上線前仍需人審。"
+  },
+  {
+   "id": "V5-OCR-008",
+   "path": "web-ui/server/modules/agent/tests/agent.routes.test.ts",
+   "category": "test",
+   "severity": "medium",
+   "content": "本機全套 npm test 2 次中 1 次出現 node test runner IPC 錯誤 'Unable to deserialize cloned data due to invalid or unsupported version'（整個檔案判 fail）；單獨執行 3/3 通過，CI 未出現。疑似子行程 stdout 混入非 TAP 位元組。",
+   "disposition": "OPEN",
+   "reason": "根因未確認；未列入基線白名單（比對器照樣會擋）。列為後續調查項（legacy V3.2 測試，非企業模組）。"
+  }
+ ],
+ "not_a_substitute": "Builder 自審，不是 Astra 獨立審查結論。"
+}

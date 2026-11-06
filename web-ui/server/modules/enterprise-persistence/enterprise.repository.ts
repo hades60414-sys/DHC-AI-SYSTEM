@@ -1,6 +1,6 @@
 import type { PoolClient } from 'pg';
 
-import type { EnterpriseTaskRow, EnterpriseDocumentRow, EnterpriseAuditEventRow, EnterprisePageResource, EnterpriseDocumentVersionRow, EnterpriseReconciliationRow } from '@/shared/index.js';
+import type { EnterpriseTaskRow, EnterpriseDocumentRow, EnterpriseAuditEventRow, EnterprisePageResource, EnterpriseDocumentVersionRow, EnterpriseReconciliationRow, EnterpriseOpsReportRow } from '@/shared/index.js';
 
 const taskColumns = 'id, organization_id AS "organizationId", owner_member_id AS "ownerMemberId", title, status, created_at AS "createdAt", updated_at AS "updatedAt"';
 const documentColumns = 'id, organization_id AS "organizationId", owner_member_id AS "ownerMemberId", title, classification, created_at AS "createdAt", updated_at AS "updatedAt"';
@@ -12,6 +12,13 @@ const reconciliationSummaryColumns = `id, rule_version AS "ruleVersion", ledger_
   ledger_sha256 AS "ledgerSha256", receipts_sha256 AS "receiptsSha256", to_char(period_start,'YYYY-MM-DD') AS "periodStart", to_char(period_end,'YYYY-MM-DD') AS "periodEnd",
   status, result_sha256 AS "resultSha256", created_by_member_id AS "createdByMemberId", created_at AS "createdAt"`;
 const reconciliationColumns = `${reconciliationSummaryColumns}, result`;
+// OPS-REPORT-v1：來源以子表聚合成陣列（依 position）；同組織條件寫在子查詢內，RLS 之外再加一道明確篩選。
+const opsReportSummaryColumns = `r.id, r.rule_version AS "ruleVersion", r.iso_week AS "isoWeek", to_char(r.period_start,'YYYY-MM-DD') AS "periodStart",
+  to_char(r.period_end,'YYYY-MM-DD') AS "periodEnd", r.datasets, r.input_key AS "inputKey", r.status, r.result_sha256 AS "resultSha256",
+  r.created_by_member_id AS "createdByMemberId", r.created_at AS "createdAt",
+  coalesce((SELECT json_agg(json_build_object('position', s.position, 'documentVersionId', s.document_version_id, 'sha256', s.sha256) ORDER BY s.position)
+    FROM enterprise.ops_report_sources s WHERE s.organization_id=r.organization_id AND s.ops_report_id=r.id), '[]'::json) AS sources`;
+const opsReportColumns = `${opsReportSummaryColumns}, r.result`;
 const versionFrom = `enterprise.document_versions v JOIN enterprise.document_blobs b ON (b.organization_id,b.id)=(v.organization_id,v.blob_id)`;
 const extractionColumns = `id, organization_id AS "organizationId", document_version_id AS "documentVersionId", attempt, extractor, status,
   error_code AS "errorCode", chunk_count AS "chunkCount", created_at AS "createdAt"`;
@@ -216,7 +223,52 @@ export function createScopedEnterpriseRepository(client: PoolClient, organizatio
       return (await client.query<Omit<EnterpriseReconciliationRow, 'result'>>(`SELECT ${reconciliationSummaryColumns} FROM enterprise.reconciliations
         WHERE organization_id=$1 ORDER BY created_at DESC, id LIMIT 100`, [organizationId])).rows;
     },
-    async appendAudit(action: string, resourceType: 'task' | 'document' | 'reconciliation', resourceId: string) {
+    /**
+     * V5 OPS-REPORT-v1：寫入一筆週報結果與其來源列（只新增，同一交易）。成功結果由部分唯一索引保證同輸入只有一筆；
+     * 並行重送 ON CONFLICT DO NOTHING 後取回既有列，不撞唯一約束成 500。回傳 { row, reused }。
+     */
+    async insertOpsReport(input: { ruleVersion: string; isoWeek: string; periodStart: string; periodEnd: string; datasets: string[]; inputKey: string;
+      status: 'completed' | 'rejected'; result: unknown; resultSha256: string; sources: Array<{ documentVersionId: string; sha256: string }> }) {
+      const inserted = (await client.query<{ id: string }>(`INSERT INTO enterprise.ops_reports(organization_id,rule_version,iso_week,period_start,period_end,datasets,input_key,
+          status,result,result_sha256,created_by_member_id)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+        ON CONFLICT (organization_id, rule_version, iso_week, input_key) WHERE status = 'completed' DO NOTHING RETURNING id`,
+      [organizationId, input.ruleVersion, input.isoWeek, input.periodStart, input.periodEnd, input.datasets, input.inputKey, input.status,
+        JSON.stringify(input.result), input.resultSha256, memberId])).rows[0];
+      const select = (where: string, values: unknown[]) => client.query<EnterpriseOpsReportRow>(`SELECT ${opsReportColumns} FROM enterprise.ops_reports r WHERE r.organization_id=$1 AND ${where}`, [organizationId, ...values]);
+      if (!inserted) {
+        return { row: (await select("r.rule_version=$2 AND r.iso_week=$3 AND r.input_key=$4 AND r.status='completed'", [input.ruleVersion, input.isoWeek, input.inputKey])).rows[0], reused: true };
+      }
+      for (const [index, source] of input.sources.entries()) {
+        await client.query('INSERT INTO enterprise.ops_report_sources(organization_id,ops_report_id,position,document_version_id,sha256) VALUES ($1,$2,$3,$4,$5)',
+          [organizationId, inserted.id, index + 1, source.documentVersionId, source.sha256]);
+      }
+      return { row: (await select('r.id=$2', [inserted.id])).rows[0], reused: false };
+    },
+    async findCompletedOpsReport(input: { ruleVersion: string; isoWeek: string; inputKey: string }) {
+      return (await client.query<EnterpriseOpsReportRow>(`SELECT ${opsReportColumns} FROM enterprise.ops_reports r
+        WHERE r.organization_id=$1 AND r.rule_version=$2 AND r.iso_week=$3 AND r.input_key=$4 AND r.status='completed'`,
+      [organizationId, input.ruleVersion, input.isoWeek, input.inputKey])).rows[0];
+    },
+    async getOpsReport(id: string) {
+      return (await client.query<EnterpriseOpsReportRow>(`SELECT ${opsReportColumns} FROM enterprise.ops_reports r WHERE r.organization_id=$1 AND r.id=$2`, [organizationId, id])).rows[0];
+    },
+    async listOpsReports() {
+      return (await client.query<EnterpriseOpsReportRow>(`SELECT ${opsReportSummaryColumns} FROM enterprise.ops_reports r
+        WHERE r.organization_id=$1 ORDER BY r.created_at DESC, r.id LIMIT 100`, [organizationId])).rows;
+    },
+    /** 依版本 id 取版本 metadata 與同文件最新版號（匯出時判斷來源是否已有新版本）。 */
+    async getDocumentVersionById(versionId: string) {
+      return (await client.query<EnterpriseDocumentVersionRow & { latestVersionNumber: number }>(`SELECT ${versionColumns},
+          (SELECT max(o.version_number) FROM enterprise.document_versions o WHERE o.organization_id=v.organization_id AND o.document_id=v.document_id)::int AS "latestVersionNumber"
+        FROM ${versionFrom} WHERE v.organization_id=$1 AND v.id=$2`, [organizationId, versionId])).rows[0];
+    },
+    async insertReconciliationExport(input: { reconciliationId: string; format: string; sha256: string; byteSize: number; sourcesSuperseded: boolean }) {
+      return (await client.query<{ id: string; exportedAt: Date }>(`INSERT INTO enterprise.reconciliation_exports(organization_id,reconciliation_id,format,sha256,byte_size,sources_superseded,exported_by_member_id)
+        VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id, exported_at AS "exportedAt"`,
+      [organizationId, input.reconciliationId, input.format, input.sha256, input.byteSize, input.sourcesSuperseded, memberId])).rows[0];
+    },
+    async appendAudit(action: string, resourceType: 'task' | 'document' | 'reconciliation' | 'ops_report', resourceId: string) {
       await client.query('INSERT INTO enterprise.audit_events(organization_id,actor_member_id,action,resource_type,resource_id) VALUES ($1,$2,$3,$4,$5)', [organizationId, memberId, action, resourceType, resourceId]);
     },
     async listAuditEvents() {

@@ -61,8 +61,9 @@ const processLocks = new Map();
 
 function waitFor(promise, ms) {
   return new Promise((resolve) => {
+    // 不 unref：這個逾時就是「最遲多久放行下一個 CLI」的保證；unref 後若 event loop 沒有其他工作，
+    // 逾時永遠不觸發（V5：claude-process-lock 三個測試因此被 cancelled）。ms 有上限，不會讓程序久留。
     const timer = setTimeout(() => resolve(false), ms);
-    timer.unref?.();
     promise.then(() => { clearTimeout(timer); resolve(true); });
   });
 }

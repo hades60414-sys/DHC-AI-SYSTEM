@@ -10,5 +10,11 @@ export { providerModelsService } from './services/provider-models.service.js';
 // edited message's resume point, which only the providers module can read.
 export { sessionsService } from './services/sessions.service.js';
 
+// toTraditional: used by assistant and voice to show provider text in Traditional Chinese.
+export { toTraditional } from './list/claude/auto-session-title.js';
+
+// failureKind: used by assistant to classify a provider failure for the room reply.
+export { failureKind } from './services/tool-assist/tool-assist.service.js';
+
 export { initializeSessionsWatcher } from './services/sessions-watcher.service.js';
 export { closeSessionsWatcher } from './services/sessions-watcher.service.js';

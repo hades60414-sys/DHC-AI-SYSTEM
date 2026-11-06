@@ -1,0 +1,27 @@
+%% 文件 → 檢索 → 草稿 → 審批 → 匯出（CURRENT）。
+sequenceDiagram
+  autonumber
+  actor E as 撰稿者（employee）
+  actor A as 審批者（approver）
+  participant API as 企業 API
+  participant BL as blob store（SHA-256）
+  participant X as 擷取沙箱
+  participant DB as PostgreSQL
+  participant M as model gateway（egress 政策）
+  E->>API: POST /documents（內容、檔名、類型）
+  API->>API: 內容政策（類型與 magic bytes、大小）
+  API->>BL: 寫入內容（內容定址）
+  API->>DB: documents＋document_versions（同交易，配額檢查）
+  API->>X: 自動擷取（子行程隔離）
+  X-->>API: 文字段落
+  API->>DB: document_chunks／document_extractions
+  E->>API: 建立 Run（冪等鍵）
+  API->>DB: runs（queued）
+  Note over API,M: worker 取出 → 引用檢索 → 模型（分級與 egress 檢查）→ 草稿修訂＋引用
+  E->>API: 人工修改（expectedRevision）→ 送審
+  A->>API: 核准／退回（不得自審）
+  API->>DB: approvals（綁定修訂與 revision hash）
+  E->>API: GET /drafts/:id/export?format=docx|markdown
+  API->>DB: 核准修訂仍是目前修訂；引用來源仍有效
+  API->>DB: draft_exports＋audit_events
+  API-->>E: 檔案（X-DHC-Content-SHA256）

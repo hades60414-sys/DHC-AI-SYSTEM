@@ -6,6 +6,8 @@ import {
 } from '@/modules/enterprise-persistence/index.js';
 import type { EnterpriseDocumentBlobStore, EnterprisePrincipal } from '@/shared/index.js';
 
+import { defaultEnterpriseMetrics, enterpriseRequestObserver, logEnterpriseEvent, metricsAuthorized, type EnterpriseMetrics } from './enterprise-observability.js';
+
 import {
   createEnterpriseAuth, createFailureLimiter, enterpriseHandler, principalOf, requirePermission, sendEnterpriseError,
 } from './enterprise-http.js';
@@ -16,6 +18,10 @@ type EnterpriseRouterOptions = {
   maxDocumentBytes: number;
   sessionTtlMs?: number;
   secretKey?: string;
+  /** V5 可觀測性：未指定時用行程預設 registry；metricsToken 未設定時 /metrics 回 404。 */
+  metrics?: EnterpriseMetrics;
+  metricsToken?: string;
+  accessLog?: boolean;
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -66,6 +72,9 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
   const requireAuth = createEnterpriseAuth(token => identity.authenticate(token));
   const loginLimiter = createFailureLimiter({ limit: 10, windowMs: 15 * 60 * 1000 });
   const router = express.Router();
+  const metrics = options.metrics ?? defaultEnterpriseMetrics;
+  router.use(enterpriseRequestObserver(metrics, { accessLog: options.accessLog }));
+  const onEngine = (engine: string, seconds: number) => metrics.observeEngine(engine, seconds);
   const json = express.json({ limit: '64kb', type: 'application/json' });
   const raw = (req: Request, res: Response, next: () => void) => {
     express.raw({ type: () => true, limit: options.maxDocumentBytes })(req, res, (error?: unknown) => {
@@ -80,11 +89,24 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
     options.pool, async () => ({ userAccountId: principal.userAccountId, sessionId: principal.sessionId }),
     { blobStore: options.blobStore, maxDocumentBytes: options.maxDocumentBytes,
       reserveStorage: (client, organizationId, blob) => checkEnterpriseEntitlement(client, organizationId, 'document.write', { blob }),
-      checkWrite: (client, organizationId, action) => checkEnterpriseEntitlement(client, organizationId, action) });
+      checkWrite: (client, organizationId, action) => checkEnterpriseEntitlement(client, organizationId, action), onEngine });
   const inScope = <T>(res: Response, operation: Parameters<ReturnType<typeof persistenceFor>['withOrganization']>[1]) => {
     const principal = principalOf(res);
     return persistenceFor(principal).withOrganization(principal.organizationId, operation) as Promise<T>;
   };
+
+  // V5：Prometheus 文字格式。只有設定 metrics token 時開放；未設定或 token 不符一律 404（與不存在的路徑相同）。
+  router.get('/metrics', (req, res) => {
+    if (!metricsAuthorized(req, options.metricsToken)) return sendEnterpriseError(res, new Error('ENTERPRISE_NOT_FOUND'));
+    const pool = options.pool as Pool & { totalCount?: number; idleCount?: number; waitingCount?: number };
+    res.setHeader('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store');
+    res.end(metrics.render([
+      { name: 'dhc_enterprise_db_pool_total', help: 'pg Pool 現有連線數', value: pool.totalCount ?? NaN },
+      { name: 'dhc_enterprise_db_pool_idle', help: 'pg Pool 閒置連線數', value: pool.idleCount ?? NaN },
+      { name: 'dhc_enterprise_db_pool_waiting', help: 'pg Pool 等待取得連線的請求數', value: pool.waitingCount ?? NaN },
+    ]));
+  });
 
   router.get('/health/ready', enterpriseHandler(async (_req, res) => {
     await options.pool.query('SELECT 1');
@@ -144,7 +166,8 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
     try {
       return (await inScope<{ extraction: unknown }>(res, service => service.ingestDocumentVersion(documentId, versionNumber))).extraction;
     } catch (error) {
-      console.error('[enterprise-api] auto ingestion failed:', error instanceof Error && error.message.startsWith('ENTERPRISE_') ? error.message : 'unexpected');
+      logEnterpriseEvent('enterprise.auto_ingestion_failed', { request_id: res.locals.requestId,
+        code: error instanceof Error && error.message.startsWith('ENTERPRISE_') ? error.message : 'unexpected' }, 'warn');
       return null;
     }
   };
@@ -212,7 +235,8 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
 
   // ---- Reconciliation（W6-B：ACC-MATCH-v1 確定性對帳；DEC-W6-SCOPE-01）----
   router.post('/reconciliations', requireAuth, requirePermission('documents.write'), json, enterpriseHandler(async (req, res) => {
-    const result = await inScope<{ reconciliation: unknown; reused: boolean }>(res, service => service.createReconciliation((req.body ?? {}) as Record<string, unknown>));
+    const result = await inScope<{ reconciliation: { status: string }; reused: boolean }>(res, service => service.createReconciliation((req.body ?? {}) as Record<string, unknown>));
+    metrics.count('results', { engine: 'reconciliation', outcome: result.reused ? 'reused' : result.reconciliation.status });
     res.status(result.reused ? 200 : 201).json(result);
   }));
   router.get('/reconciliations', requireAuth, requirePermission('documents.read'), enterpriseHandler(async (_req, res) => {
@@ -220,6 +244,33 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
   }));
   router.get('/reconciliations/:reconciliationId', requireAuth, requirePermission('documents.read'), enterpriseHandler(async (req, res) => {
     res.json(await inScope(res, service => service.getReconciliation(param(req, 'reconciliationId'))));
+  }));
+
+  router.get('/reconciliations/:reconciliationId/export', requireAuth, requirePermission('documents.read'), enterpriseHandler(async (req, res) => {
+    const exported = await inScope<{ content: Buffer; sha256: string; mediaType: string; filename: string; exportId: string; sourcesSuperseded: boolean }>(res,
+      service => service.exportReconciliation(param(req, 'reconciliationId'), req.query.format));
+    res.setHeader('Content-Type', exported.mediaType);
+    res.setHeader('Content-Disposition', contentDisposition(exported.filename));
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-DHC-Content-SHA256', exported.sha256);
+    res.setHeader('X-DHC-Export-Id', exported.exportId);
+    res.setHeader('X-DHC-Sources-Superseded', String(exported.sourcesSuperseded));
+    metrics.count('results', { engine: 'reconciliation_export', outcome: String(req.query.format) });
+    res.end(exported.content);
+  }));
+
+  // ---- Ops report（V5 OPS-REPORT-v1：確定性營運週報；數字全由引擎計算，不呼叫模型）----
+  router.post('/ops-reports', requireAuth, requirePermission('documents.write'), json, enterpriseHandler(async (req, res) => {
+    const result = await inScope<{ opsReport: { status: string }; reused: boolean }>(res, service => service.createOpsReport((req.body ?? {}) as Record<string, unknown>));
+    metrics.count('results', { engine: 'ops_report', outcome: result.reused ? 'reused' : result.opsReport.status });
+    res.status(result.reused ? 200 : 201).json(result);
+  }));
+  router.get('/ops-reports', requireAuth, requirePermission('documents.read'), enterpriseHandler(async (_req, res) => {
+    res.json({ items: await inScope(res, service => service.listOpsReports()) });
+  }));
+  router.get('/ops-reports/:opsReportId', requireAuth, requirePermission('documents.read'), enterpriseHandler(async (req, res) => {
+    res.json(await inScope(res, service => service.getOpsReport(param(req, 'opsReportId'))));
   }));
 
   // ---- Audit ----

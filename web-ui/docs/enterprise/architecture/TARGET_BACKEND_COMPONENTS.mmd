@@ -1,0 +1,46 @@
+%% 後端元件（目標狀態）。實線＝已存在；虛線＝規劃中或待決策。
+flowchart LR
+  classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A
+  classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
+  classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
+  classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2
+
+  subgraph apiLayer["enterprise-api"]
+    routes["enterprise.routes.ts<br/>[CURRENT]"]:::current
+    auth["enterprise-http.ts（auth／權限／錯誤對應）<br/>[CURRENT]"]:::current
+    observ["enterprise-observability.ts<br/>[NEW_IN_V5]"]:::newv5
+    runtime["enterprise-runtime.ts（pool、worker 組裝）<br/>[CURRENT]"]:::current
+  end
+  subgraph persistence["enterprise-persistence"]
+    identity["identity service／repository<br/>session epoch、角色<br/>[CURRENT]"]:::current
+    service["enterprise.service（withOrganization 交易）<br/>[CURRENT]"]:::current
+    repo["enterprise.repository<br/>[CURRENT]"]:::current
+    entitle["enterprise-entitlements（商務寫入政策）<br/>[CURRENT＋ops_report.create NEW_IN_V5]"]:::newv5
+    workflow["workflow service（Run、草稿、審批、匯出）<br/>[CURRENT]"]:::current
+    gateway["model-gateway＋egress-policy＋BYOK 加密<br/>[CURRENT]"]:::current
+    docs["document-content／extraction／sandbox／citation<br/>[CURRENT]"]:::current
+    acc["reconciliation-acc-match-v1<br/>[CURRENT]"]:::current
+    accx["reconciliation-export<br/>[NEW_IN_V5]"]:::newv5
+    ops["ops-report-v1＋validateOpsNarrative<br/>[NEW_IN_V5]"]:::newv5
+    mig["migrations.service（registry＋checksum）<br/>[CURRENT]"]:::current
+  end
+  narrative["週報敘述生成（模型只寫文字）<br/>[PLANNED：須經 validateOpsNarrative]"]:::planned
+  opsflow["週報送審／簽認／正式匯出<br/>[PLANNED：沿用草稿審批鏈]"]:::planned
+  tracing["OpenTelemetry 追蹤<br/>[PLANNED]"]:::planned
+  clause["條款比對<br/>[BLOCKED_DECISION]"]:::blocked
+
+  routes --> auth --> service
+  routes --> observ
+  service --> repo
+  service --> identity
+  service --> entitle
+  service --> acc
+  service --> accx
+  service --> ops
+  routes --> workflow --> gateway
+  service --> docs
+  runtime --> mig
+  ops -.-> narrative
+  ops -.-> opsflow
+  observ -.-> tracing
+  acc -.-> clause

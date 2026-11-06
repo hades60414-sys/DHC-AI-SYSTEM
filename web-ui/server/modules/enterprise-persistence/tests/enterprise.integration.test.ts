@@ -36,7 +36,7 @@ describe('Enterprise 實際 PostgreSQL（只允許明確標記的合成 QA DB）
     assert.equal((await runEnterpriseMigrations(migrator, { directory, direction: 'up' })).applied, false);
     // E05-DOC-01 起有兩個已知版本；斷言仍是「每個版本恰好一列、重跑不重複」。
     assert.deepEqual((await admin.query('SELECT version FROM enterprise.schema_migrations ORDER BY version')).rows.map(row => row.version),
-      ['0001_enterprise_base', '0002_document_versions', '0003_identity_sessions', '0004_document_index', '0005_workflow_models', '0006_subscriptions', '0007_egress_notifications', '0008_run_quarantine', '0009_citation_integrity', '0010_usage_ledger', '0011_approval_revision_binding', '0012_reconciliations']);
+      ['0001_enterprise_base', '0002_document_versions', '0003_identity_sessions', '0004_document_index', '0005_workflow_models', '0006_subscriptions', '0007_egress_notifications', '0008_run_quarantine', '0009_citation_integrity', '0010_usage_ledger', '0011_approval_revision_binding', '0012_reconciliations', '0013_ops_reports', '0014_reconciliation_exports']);
   });
 
   test('Scoped repository 與可信身分核對，不能以 org selector 越權', async () => {
@@ -155,8 +155,9 @@ describe('Enterprise 實際 PostgreSQL（只允許明確標記的合成 QA DB）
     await assert.rejects(runEnterpriseMigrations(migrator, { directory, direction: 'down' }), /ENTERPRISE_DOWN_REQUIRES_ALLOW_DATA_LOSS/);
     const tables = await admin.query("SELECT relforcerowsecurity FROM pg_class WHERE relnamespace='enterprise'::regnamespace AND relkind='r' AND relname <> 'schema_migrations'");
     // E05-DOC-01 +2、IAM-01 +2（account_credentials、auth_sessions）、DOC-02 +2（document_extractions、document_chunks）：8 → 14 張，全部仍須 FORCE RLS。
-    // RUN/MODEL/DOC-03 +7、PLAN-01 +3：24 張；RCFIX ASTRA-002 +2（notifications、notification_reads）、ASTRA-004 +1（run_quarantine）：27 張；V4 W6-B +1（reconciliations）：共 28 張。
-    assert.equal(tables.rowCount, 28);
+    // RUN/MODEL/DOC-03 +7、PLAN-01 +3：24 張；RCFIX ASTRA-002 +2（notifications、notification_reads）、ASTRA-004 +1（run_quarantine）：27 張；V4 W6-B +1（reconciliations）：28 張；
+    // V5 0013 +2（ops_reports、ops_report_sources）、0014 +1（reconciliation_exports）：共 31 張。
+    assert.equal(tables.rowCount, 31);
     assert.ok(tables.rows.every(row => row.relforcerowsecurity));
   });
 

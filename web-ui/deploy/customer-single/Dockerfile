@@ -42,6 +42,15 @@ COPY db/enterprise/migrations/ ./db/enterprise/migrations/
 COPY deploy/customer-single/healthcheck.mjs ./deploy/customer-single/healthcheck.mjs
 RUN mkdir -p /home/node/.cloudcli "/home/node/DHC Workspace" && chown -R node:node /home/node \
     && mkdir -p /var/lib/dhc/blobs && chown node:node /var/lib/dhc/blobs && chmod 0700 /var/lib/dhc/blobs
+# V5 供應鏈：enterprise 執行期不需要套件管理器（只有 legacy 外掛註冊與 CLI 自我更新會 spawn npm，企業模式皆不可達）。
+# 移除 Node 基底 image 內建的 npm／npx／corepack／yarn，消除其相依（brace-expansion、ip-address、pacote、picomatch、sigstore…）的漏洞面。
+# full profile 不受影響。之後斷言 node 與原生模組仍可載入、套件管理器確實不存在。
+RUN if [ "$DHC_IMAGE_PROFILE" = "enterprise" ]; then \
+      rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+             /usr/local/bin/yarn /usr/local/bin/yarnpkg /opt/yarn-* \
+      && for tool in npm npx corepack yarn yarnpkg; do if command -v "$tool" >/dev/null 2>&1; then echo "enterprise runtime still has $tool" >&2; exit 1; fi; done \
+      && node -e "require('better-sqlite3'); require('node-pty'); console.log('runtime ok', process.version)"; \
+    fi
 USER node
 EXPOSE 3001
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \

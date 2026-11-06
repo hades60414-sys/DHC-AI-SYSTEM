@@ -84,7 +84,8 @@ test('during a call with the desktop shared, a spoken turn carries the screen as
   assert.equal(uploads.length, 1, 'the screenshot goes through the normal attachment upload');
   assert.match(uploads[0][0].name, /^指揮模式-.*\.jpg$/);
   assert.match(send?.content ?? '', /^這是測試，回覆收到就好\n〔指揮模式：附上目前的電腦畫面/);
-  assert.equal((send?.options?.attachments as unknown[]).length, 1);
+  assert.ok(Array.isArray(send?.options?.attachments), 'the voice turn carries an attachments array');
+  assert.equal((send!.options!.attachments as unknown[]).length, 1);
 
   await act(async () => { await view.result.current.sendVoiceTurn({ ...VOICE, clientRequestId: 'voice-2' }); });
   const second = sent.filter((m) => m.type === 'chat.send')[1];

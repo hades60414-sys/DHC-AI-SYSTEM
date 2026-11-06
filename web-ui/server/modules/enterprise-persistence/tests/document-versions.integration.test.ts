@@ -54,7 +54,7 @@ describe('E05-DOC-01 文件版本／內容 hash／storage adapter（實際 Postg
 
   test('migration：兩個版本依序記錄、重跑 no-op；新表 FORCE RLS；runtime 只有 SELECT/INSERT', async () => {
     const history = await admin.query<{ version: string }>('SELECT version FROM enterprise.schema_migrations ORDER BY version');
-    assert.deepEqual(history.rows.map(row => row.version), ['0001_enterprise_base', '0002_document_versions', '0003_identity_sessions', '0004_document_index', '0005_workflow_models', '0006_subscriptions', '0007_egress_notifications', '0008_run_quarantine', '0009_citation_integrity', '0010_usage_ledger', '0011_approval_revision_binding', '0012_reconciliations']);
+    assert.deepEqual(history.rows.map(row => row.version), ['0001_enterprise_base', '0002_document_versions', '0003_identity_sessions', '0004_document_index', '0005_workflow_models', '0006_subscriptions', '0007_egress_notifications', '0008_run_quarantine', '0009_citation_integrity', '0010_usage_ledger', '0011_approval_revision_binding', '0012_reconciliations', '0013_ops_reports', '0014_reconciliation_exports']);
     assert.equal((await runEnterpriseMigrations(migrator, { directory, direction: 'up' })).applied, false);
     const rls = await admin.query<{ relname: string; relrowsecurity: boolean; relforcerowsecurity: boolean }>(
       "SELECT relname,relrowsecurity,relforcerowsecurity FROM pg_class WHERE relnamespace='enterprise'::regnamespace AND relname IN ('document_blobs','document_versions') ORDER BY relname");
@@ -236,7 +236,7 @@ describe('E05-DOC-01 文件版本／內容 hash／storage adapter（實際 Postg
     const oldDocument = await legacy.withOrganization(ORG_A, s => s.createDocument({ title: '升級前的 E02b 文件' }));
     const result = await runEnterpriseMigrations(migrator, { directory, direction: 'up' });
     assert.equal(result.applied, true);
-    assert.deepEqual(result.appliedVersions, ['0002_document_versions', '0003_identity_sessions', '0004_document_index', '0005_workflow_models', '0006_subscriptions', '0007_egress_notifications', '0008_run_quarantine', '0009_citation_integrity', '0010_usage_ledger', '0011_approval_revision_binding', '0012_reconciliations']);
+    assert.deepEqual(result.appliedVersions, ['0002_document_versions', '0003_identity_sessions', '0004_document_index', '0005_workflow_models', '0006_subscriptions', '0007_egress_notifications', '0008_run_quarantine', '0009_citation_integrity', '0010_usage_ledger', '0011_approval_revision_binding', '0012_reconciliations', '0013_ops_reports', '0014_reconciliation_exports']);
     assert.equal((await persistenceA.withOrganization(ORG_A, s => s.getDocument(oldDocument.id)))?.title, '升級前的 E02b 文件');
     const added = await persistenceA.withOrganization(ORG_A, s => s.addDocumentVersion(oldDocument.id, { expectedLatestVersion: 0, ...text('升級後補上的第 1 版') }));
     assert.equal(added.versionNumber, 1);

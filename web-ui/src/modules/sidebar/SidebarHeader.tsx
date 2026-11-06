@@ -6,7 +6,7 @@ import { Button, Input, Tooltip } from '@/shared/ui';
 import { CLOUDCLI_WORDMARK_FONT_FAMILY } from '@/shared/constants';
 import { IS_PLATFORM,cn } from '@/shared/utils';
 import { useIsPresenter } from '@/shared/context/ThemeContext';
-import AlertBell from './AlertBell';
+import AlertBell from '@/modules/sidebar/AlertBell';
 import type { SidebarSearchMode } from '@/shared/types';
 
 const MOD_KEY =

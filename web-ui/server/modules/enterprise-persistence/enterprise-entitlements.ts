@@ -19,7 +19,7 @@ export type EnterprisePlanKey = keyof typeof ENTERPRISE_PLAN_CATALOG;
  * （ENTERPRISE_SUBSCRIPTION_INACTIVE，fail closed）；續約後自動恢復。
  */
 export const ENTERPRISE_BUSINESS_WRITE_ACTIONS = [
-  'document.write', 'run.create', 'member.create', 'draft.revise', 'draft.submit', 'approval.decide', 'provider.upsert', 'quarantine.release', 'reconciliation.create',
+  'document.write', 'run.create', 'member.create', 'draft.revise', 'draft.submit', 'approval.decide', 'provider.upsert', 'quarantine.release', 'reconciliation.create', 'ops_report.create',
 ] as const;
 /**
  * 到期後仍允許（安全撤權、停止工作、資料保全與取得）：停權、改角色、登出、取消 Run、丟棄隔離結果、讀取、匯出、通知已讀。

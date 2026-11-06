@@ -1,0 +1,27 @@
+%% 故障與恢復路徑（CURRENT／NEW_IN_V5）。
+sequenceDiagram
+  autonumber
+  participant C as 呼叫端
+  participant API as 企業 API
+  participant DB as PostgreSQL
+  participant BL as blob store
+  participant W as Run worker
+  participant OP as 維運者（dhc-office.py）
+  C->>API: 寫入請求
+  API->>DB: BEGIN …
+  alt 來源 blob hash 不符（建立結果時）
+    API->>DB: ROLLBACK（無結果列、無稽核）
+    API-->>C: 500 ENTERPRISE_BLOB_INTEGRITY（日誌 enterprise.server_error）
+  else 來源遺失或損毀（匯出時）[NEW_IN_V5]
+    API->>DB: ROLLBACK（無匯出紀錄）
+    API-->>C: 409 ENTERPRISE_SOURCE_UNAVAILABLE
+  else 並行重送
+    API->>DB: INSERT … ON CONFLICT DO NOTHING → 取回既有列
+    API-->>C: 200 reused
+  else 交易中被停權／降權
+    DB-->>API: FOR SHARE 序列化：降權等本交易提交，或本交易看到降權而拒絕
+  end
+  Note over W,DB: 行程重啟：worker 重新取 queued；running 超過 10 分鐘標 ENTERPRISE_RUN_TIMEOUT 並釋放預留額度
+  OP->>DB: backup（pg_dump＋blob 參照檢查＋manifest）
+  OP->>DB: restore（驗證表與 blob 後回報 restore_seconds）
+  Note over OP,DB: migration 失敗：版本、DDL、history 同一交易回退；down 遇資料需 allowDataLoss

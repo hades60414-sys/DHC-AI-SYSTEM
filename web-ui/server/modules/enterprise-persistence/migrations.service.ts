@@ -21,6 +21,8 @@ const migrations = [
   { version: '0010_usage_ledger', tables: [] },
   { version: '0011_approval_revision_binding', tables: [] },
   { version: '0012_reconciliations', tables: ['reconciliations'] },
+  { version: '0013_ops_reports', tables: ['ops_report_sources', 'ops_reports'] },
+  { version: '0014_reconciliation_exports', tables: ['reconciliation_exports'] },
 ] as const;
 
 /**

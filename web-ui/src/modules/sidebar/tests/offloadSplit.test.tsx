@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { OffloadSplit, splitSlices } from '../UsageMeters';
+import { OffloadSplit, splitSlices } from '@/modules/sidebar/UsageMeters';
 
 const week = {
   start: '2026-10-25T12:00:00Z',

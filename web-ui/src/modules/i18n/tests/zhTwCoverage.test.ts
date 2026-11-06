@@ -1,5 +1,5 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+// V5：原本用 node:test 寫在 src/ 下，vitest 找不到 suite、後端 npm test 也不掃 src/ → 從未執行過。改用 vitest。
+import { expect, test } from 'vitest';
 import enChat from '@/modules/i18n/locales/en/chat.json';
 import enSidebar from '@/modules/i18n/locales/en/sidebar.json';
 import zhChat from '@/modules/i18n/locales/zh-TW/chat.json';
@@ -13,6 +13,6 @@ const flat = (value: unknown, prefix = ''): string[] =>
 for (const [name, en, zh] of [['chat', enChat, zhChat], ['sidebar', enSidebar, zhSidebar]] as const) {
   test(`zh-TW ${name} 不缺 key`, () => {
     const have = new Set(flat(zh));
-    assert.deepEqual(flat(en).filter((key) => !have.has(key)), []);
+    expect(flat(en).filter((key) => !have.has(key))).toEqual([]);
   });
 }

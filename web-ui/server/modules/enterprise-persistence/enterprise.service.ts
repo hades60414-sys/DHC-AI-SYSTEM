@@ -7,7 +7,9 @@ import type { EnterpriseDocumentBlobStore, EnterprisePageResource } from '@/shar
 import { inspectDocumentContent } from './document-content.policy.js';
 import { chunkUnits, extractDocumentText, unsupportedExtractorName } from './document-extraction.js';
 import { createScopedEnterpriseRepository, findActiveEnterpriseMembership, findLiveEnterpriseSessionMember } from './enterprise.repository.js';
-import { ACC_MATCH_RULE_VERSION, reconciliationResultSha256, runAccMatchV1 } from './reconciliation-acc-match-v1.js';
+import { OPS_REPORT_MAX_SOURCES, OPS_REPORT_RULE_VERSION, isoWeekRange, opsReportResultSha256, runOpsReportV1 } from './ops-report-v1.js';
+import { ACC_MATCH_RULE_VERSION, reconciliationResultSha256, runAccMatchV1, type ReconciliationResult } from './reconciliation-acc-match-v1.js';
+import { buildReconciliationExport, RECONCILIATION_EXPORT_FORMATS, type ReconciliationExportFormat, type ReconciliationExportSource } from './reconciliation-export.js';
 
 function isUuid(value: unknown): value is string {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
@@ -33,7 +35,9 @@ type PersistenceOptions = {
   blobStore?: EnterpriseDocumentBlobStore; maxDocumentBytes?: number;
   reserveStorage?: (client: PoolClient, organizationId: string, blob: { sha256: string; byteSize: number }) => Promise<void>;
   /** 商務寫入前的權益檢查（同一交易內）；未提供時不檢查（模組內部測試）。 */
-  checkWrite?: (client: PoolClient, organizationId: string, action: 'reconciliation.create') => Promise<void>;
+  checkWrite?: (client: PoolClient, organizationId: string, action: 'reconciliation.create' | 'ops_report.create') => Promise<void>;
+  /** V5 可觀測性：確定性引擎純計算耗時（秒），不含 DB／storage。 */
+  onEngine?: (engine: 'ops_report' | 'reconciliation' | 'reconciliation_export', seconds: number) => void;
 };
 
 const MAX_VERSION_NUMBER = 100000;
@@ -125,6 +129,14 @@ export function createEnterprisePersistence(pool: Pool, resolvePrincipal: () => 
 function createScopedService(repository: ReturnType<typeof createScopedEnterpriseRepository>, organizationId: string, isActive: () => boolean, options: PersistenceOptions, client: PoolClient) {
   // storage adapter 只接受小寫 UUID；組織 id 已由 withOrganization 驗證並核對 membership。
   const storageOrganizationId = organizationId.toLowerCase();
+  function timed<T>(engine: 'ops_report' | 'reconciliation' | 'reconciliation_export', compute: () => T): T {
+    const started = process.hrtime.bigint();
+    try {
+      return compute();
+    } finally {
+      options.onEngine?.(engine, Number(process.hrtime.bigint() - started) / 1e9);
+    }
+  }
   function checkActive() {
     if (!isActive()) throw new Error('ENTERPRISE_SCOPE_CLOSED');
   }
@@ -254,15 +266,76 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
       const key = { ruleVersion: ACC_MATCH_RULE_VERSION, ledgerVersionId: ledger.version.id, receiptsVersionId: receipts.version.id, periodStart, periodEnd };
       const existing = await repository.findCompletedReconciliation(key);
       if (existing) return { reconciliation: existing, reused: true };
-      const result = runAccMatchV1({
+      const result = timed('reconciliation', () => runAccMatchV1({
         ledger: { content: ledger.content, versionId: ledger.version.id, sha256: ledger.version.sha256 },
         receipts: { content: receipts.content, versionId: receipts.version.id, sha256: receipts.version.sha256 }, periodStart, periodEnd,
-      });
+      }));
       checkActive();
       const { row, reused } = await repository.insertReconciliation({ ...key, ledgerSha256: ledger.version.sha256, receiptsSha256: receipts.version.sha256,
         status: result.status, result, resultSha256: reconciliationResultSha256(result) });
       if (!reused) await repository.appendAudit(`reconciliation.${result.status}`, 'reconciliation', row.id);
       return { reconciliation: row, reused };
+    },
+    /**
+     * V5 OPS-REPORT-v1：以 1–5 個文件版本、ISO 週別與明示案例集產生確定性週報。組織只來自 session（withOrganization）；
+     * 來源 bytes 由 storage 讀回並重驗 hash；同輸入（來源版本集合＋案例集＋週別）重送回原結果（reused），並行重送由唯一索引收斂。
+     * 撤權／停權：withOrganization 在交易開頭重驗 session epoch；寫入前再檢查商務權益。計算是純函式，不呼叫模型。
+     */
+    async createOpsReport(input: Record<string, unknown>) {
+      checkActive();
+      const store = requireBlobStore();
+      const invalid = () => new Error('ENTERPRISE_INVALID_OPS_REPORT');
+      if (input.ruleVersion !== undefined && input.ruleVersion !== OPS_REPORT_RULE_VERSION) throw invalid();
+      if (typeof input.week !== 'string' || !isoWeekRange(input.week)) throw invalid();
+      const week = input.week;
+      const [periodStart, periodEnd] = isoWeekRange(week)!;
+      const datasets = input.datasets;
+      if (!Array.isArray(datasets) || !datasets.length || datasets.length > 5 || datasets.some(item => typeof item !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(item))
+        || new Set(datasets).size !== datasets.length) throw invalid();
+      const refs = input.sources;
+      if (!Array.isArray(refs) || !refs.length || refs.length > OPS_REPORT_MAX_SOURCES) throw invalid();
+      const loaded = [];
+      for (const value of refs) {
+        const ref = value as { documentId?: unknown; versionNumber?: unknown } | null;
+        if (!ref || typeof ref !== 'object' || typeof ref.documentId !== 'string') throw invalid();
+        requireUuid(ref.documentId);
+        const documentId = ref.documentId.toLowerCase();
+        const version = await repository.getDocumentVersion(documentId, requireVersionNumber(ref.versionNumber, 1));
+        if (!version) throw new Error((await repository.documentExists(documentId)) ? 'ENTERPRISE_VERSION_NOT_FOUND' : 'ENTERPRISE_DOCUMENT_NOT_FOUND');
+        loaded.push(version);
+      }
+      // 同一版本列兩次＝請求錯誤；來源依版本 id 排序，讓「同一組來源」不論請求順序都是同一個冪等鍵與同一份結果。
+      if (new Set(loaded.map(version => version.id)).size !== loaded.length) throw invalid();
+      loaded.sort((a, b) => (a.id < b.id ? -1 : 1));
+      const sortedDatasets = [...(datasets as string[])].sort();
+      const inputKey = createHash('sha256').update(JSON.stringify({ datasets: sortedDatasets, sources: loaded.map(version => [version.id, version.sha256]) })).digest('hex');
+      await options.checkWrite?.(client, organizationId, 'ops_report.create');
+      const key = { ruleVersion: OPS_REPORT_RULE_VERSION, isoWeek: week, inputKey };
+      const existing = await repository.findCompletedOpsReport(key);
+      if (existing) return { opsReport: existing, reused: true };
+      const sources: Array<{ content: Buffer; versionId: string; sha256: string }> = [];
+      for (const version of loaded) {
+        const content = await store.get(storageOrganizationId, version.sha256);
+        if (createHash('sha256').update(content).digest('hex') !== version.sha256) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
+        sources.push({ content, versionId: version.id, sha256: version.sha256 });
+      }
+      const result = timed('ops_report', () => runOpsReportV1({ sources, week, datasets: sortedDatasets }));
+      checkActive();
+      const { row, reused } = await repository.insertOpsReport({ ...key, periodStart, periodEnd, datasets: sortedDatasets, status: result.status, result,
+        resultSha256: opsReportResultSha256(result), sources: loaded.map(version => ({ documentVersionId: version.id, sha256: version.sha256 })) });
+      if (!reused) await repository.appendAudit(`ops_report.${result.status}`, 'ops_report', row.id);
+      return { opsReport: row, reused };
+    },
+    async getOpsReport(id: string) {
+      checkActive();
+      requireUuid(id);
+      const row = await repository.getOpsReport(id.toLowerCase());
+      if (!row) throw new Error('ENTERPRISE_NOT_FOUND');
+      return row;
+    },
+    async listOpsReports() {
+      checkActive();
+      return repository.listOpsReports();
     },
     async getReconciliation(id: string) {
       checkActive();
@@ -270,6 +343,40 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
       const row = await repository.getReconciliation(id.toLowerCase());
       if (!row) throw new Error('ENTERPRISE_NOT_FOUND');
       return row;
+    },
+    /**
+     * V5 ACC-MATCH-v1 結構化匯出（json／csv／markdown）。讀取類動作：訂閱到期仍可匯出（資料取得權），但 session 必須仍有效。
+     * 匯出前重讀兩個來源 blob 並重驗 hash：來源遺失或損毀 → ENTERPRISE_SOURCE_UNAVAILABLE（不產生匯出、不留紀錄）。
+     * 來源已有新版本時照常匯出但明確標示 superseded（結果只對應綁定版本）。每次匯出寫 reconciliation_exports＋稽核事件。
+     */
+    async exportReconciliation(id: string, format: unknown) {
+      checkActive();
+      requireUuid(id);
+      if (typeof format !== 'string' || !(RECONCILIATION_EXPORT_FORMATS as readonly string[]).includes(format)) throw new Error('ENTERPRISE_INVALID_FORMAT');
+      const store = requireBlobStore();
+      const row = await repository.getReconciliation(id.toLowerCase());
+      if (!row) throw new Error('ENTERPRISE_NOT_FOUND');
+      const sources: ReconciliationExportSource[] = [];
+      for (const [side, versionId] of [['ledger', row.ledgerVersionId], ['receipts', row.receiptsVersionId]] as const) {
+        const version = await repository.getDocumentVersionById(versionId);
+        if (!version || version.sha256 !== (side === 'ledger' ? row.ledgerSha256 : row.receiptsSha256)) throw new Error('ENTERPRISE_SOURCE_UNAVAILABLE');
+        try {
+          const content = await store.get(storageOrganizationId, version.sha256);
+          if (createHash('sha256').update(content).digest('hex') !== version.sha256) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
+        } catch (error) {
+          const code = error instanceof Error ? error.message : '';
+          if (code === 'ENTERPRISE_BLOB_NOT_FOUND' || code === 'ENTERPRISE_BLOB_INTEGRITY') throw new Error('ENTERPRISE_SOURCE_UNAVAILABLE');
+          throw error;
+        }
+        sources.push({ side, documentId: version.documentId, versionNumber: version.versionNumber, versionId: version.id, filename: version.filename,
+          sha256: version.sha256, latestVersionNumber: version.latestVersionNumber, superseded: version.latestVersionNumber > version.versionNumber });
+      }
+      const exported = timed('reconciliation_export', () => buildReconciliationExport({ reconciliation: { ...row, result: row.result as ReconciliationResult }, sources }, format as ReconciliationExportFormat));
+      checkActive();
+      const record = await repository.insertReconciliationExport({ reconciliationId: row.id, format, sha256: exported.sha256, byteSize: exported.content.length,
+        sourcesSuperseded: sources.some(source => source.superseded) });
+      await repository.appendAudit(`reconciliation.exported_${format}`, 'reconciliation', row.id);
+      return { ...exported, exportId: record.id, filename: `reconciliation-${row.id}.${exported.extension}`, sourcesSuperseded: sources.some(source => source.superseded) };
     },
     async listReconciliations() {
       checkActive();

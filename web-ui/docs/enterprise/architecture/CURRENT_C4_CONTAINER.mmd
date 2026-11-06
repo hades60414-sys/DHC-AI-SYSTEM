@@ -1,0 +1,31 @@
+%% C4 Level 2（容器）。來源：deploy/customer-single/compose.yaml、Dockerfile、server/modules/。
+flowchart TB
+  classDef current fill:#e8f1e8,stroke:#3d6b3d,color:#2A2A2A
+  classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
+  classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
+
+  browser["瀏覽器 SPA（React／Vite）<br/>Office 前端＋DHC CLI V3.2 介面<br/>[CURRENT]"]:::current
+  subgraph host["客戶主機（單一 compose project）"]
+    subgraph app["app 容器（node:22-bookworm-slim，read_only、cap_drop ALL、非 root）"]
+      api["Express 伺服器<br/>/api/enterprise/v1（企業 API）<br/>legacy V3.2 路由（企業模式隔離）<br/>[CURRENT]"]:::current
+      obs["可觀測性中介層<br/>metrics registry／JSON 日誌／X-Request-Id<br/>[NEW_IN_V5]"]:::newv5
+      worker["Run worker（同行程）<br/>queued／running 續做與逾時清理<br/>[CURRENT]"]:::current
+      sandbox["擷取沙箱子行程<br/>PDF／Office／ZIP 文字擷取<br/>[CURRENT]"]:::current
+      engines["確定性引擎<br/>ACC-MATCH-v1 [CURRENT]<br/>OPS-REPORT-v1＋匯出 [NEW_IN_V5]"]:::newv5
+      sqlite["SQLite auth.db（legacy V3.2 帳號）<br/>[CURRENT]"]:::current
+    end
+    blobs[("dhc-state volume<br/>內容定址 blob（SHA-256）<br/>[CURRENT]")]:::current
+    db[("PostgreSQL 16（固定 digest）<br/>internal 網路、FORCE RLS<br/>dhc_app／dhc_migrator／dhc_bootstrap<br/>migrations 0001–0014<br/>[CURRENT＋0013／0014 NEW_IN_V5]")]:::newv5
+    migrate["migrate 工具容器（profile tools）<br/>dhc_migrator 專用憑證<br/>[CURRENT]"]:::current
+  end
+  proxy["反向代理／TLS（客戶環境）<br/>app 只綁 127.0.0.1<br/>[PLANNED：依客戶 SOW]"]:::planned
+
+  browser --> proxy --> api
+  api --- obs
+  api --> engines
+  api --> sandbox
+  api --> blobs
+  api -->|"每請求一交易＋set_config(dhc.organization_id)"| db
+  worker --> db
+  api --> sqlite
+  migrate --> db
