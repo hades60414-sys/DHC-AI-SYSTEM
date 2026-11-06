@@ -45,10 +45,10 @@ function document(input: ReconciliationExportInput) {
   };
 }
 
-/** CSV 公式注入防護：= + @ Tab CR 開頭，或「-」後面不是數字，前置單引號；數字型負差額（-5000）保持原值。所有欄位一律加引號。 */
+/** CSV 公式注入防護：（可含前導空白的）= + @、Tab／CR 開頭，或前導空白後的「-」、「-」後面不是數字，都前置單引號；純數字負差額（-5000）保持原值。所有欄位一律加引號。 */
 function cell(value: unknown) {
   let text = value === null || value === undefined ? '' : String(value);
-  if (/^[=+@\t\r]/.test(text) || /^-(?!\d)/.test(text)) text = `'${text}`;
+  if (/^[\s]*[=+@]/.test(text) || /^[\t\r]/.test(text) || /^\s*-(?!\d)/.test(text) || /^\s+-/.test(text)) text = `'${text}`;
   return `"${text.replace(/"/g, '""')}"`;
 }
 

@@ -60,9 +60,12 @@ describe('ACC-MATCH-v1 結構化匯出（確定性、可重算 hash、不改寫�
     hostile.cases[0].documentId = '=HYPERLINK("http://x")';
     hostile.cases[1].documentId = '-cmd';
     hostile.cases[2].documentId = '@SUM(A1)';
+    hostile.cases[3].documentId = '  =1+1';
+    hostile.cases[4].documentId = ' -5';
     const [header, ...rows] = parseCsv(buildReconciliationExport(input(hostile), 'csv').content.toString('utf8'));
-    const ids = rows.slice(0, 3).map(row => row[header.indexOf('單據ID')]);
-    assert.deepEqual(ids, [`'=HYPERLINK("http://x")`, `'-cmd`, `'@SUM(A1)`]);
+    const ids = rows.slice(0, 5).map(row => row[header.indexOf('單據ID')]);
+    assert.deepEqual(ids, [`'=HYPERLINK("http://x")`, `'-cmd`, `'@SUM(A1)`, `'  =1+1`, `' -5`]);
+    assert.equal(rows.find(row => row[header.indexOf('案件ID')] === 'ACC-CASE-004')![header.indexOf('差額_最小單位')], '-5000');
   });
 
   test('未支援清單與來源已改版：UNSUPPORTED 案件逐筆列出；superseded 時 JSON 與 Markdown 都明確標示', () => {
