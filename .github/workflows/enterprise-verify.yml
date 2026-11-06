@@ -38,8 +38,9 @@ jobs:
       - name: lint（只擋新錯誤）
         run: |
           mkdir -p ../ci-out
-          npx oxlint src/ server/ > ../ci-out/lint.txt 2>&1 || true
-          python3 -B scripts/enterprise/ci/compare_known_failures.py lint ../ci-out/lint.txt | tee ../ci-out/lint-compare.json
+          # 固定 JSON 格式：GitHub Actions 上 oxlint 預設改用 ::error 註解格式，文字比對會漏判（2026-11-06 PR #10 首輪實際發生）
+          npx oxlint -f json src/ server/ > ../ci-out/lint.json 2> ../ci-out/lint.stderr || true
+          python3 -B scripts/enterprise/ci/compare_known_failures.py lint ../ci-out/lint.json | tee ../ci-out/lint-compare.json
       - name: backend tests（隔離 HOME；只擋新失敗）
         run: |
           export DHC_TEST_ROOT="$(mktemp -d)" NODE_OPTIONS="--import=$PWD/scripts/enterprise/隔離測試家目錄.mjs"

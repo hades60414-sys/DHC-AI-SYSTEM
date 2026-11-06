@@ -18,6 +18,7 @@ jobs:
     timeout-minutes: 90
     env:
       ARCH: ${{ inputs.arch }}
+      SOURCE_SHA: ${{ inputs.source_sha }}
     defaults:
       run:
         working-directory: web-ui
@@ -42,7 +43,7 @@ jobs:
           docker load -i ../image-in/dhc-ai-office-$ARCH.tar.gz | tee ci-evidence/image-load.txt
           rm -f ../image-in/dhc-ai-office-$ARCH.tar.gz
           docker image inspect dhc-ai-office:ci-$ARCH --format '{{.Id}} {{.Os}}/{{.Architecture}} {{index .Config.Labels "org.opencontainers.image.revision"}}' | tee ci-evidence/image-loaded.txt
-          grep -q " linux/$ARCH ${{ inputs.source_sha }}$" ci-evidence/image-loaded.txt
+          grep -q " linux/$ARCH $SOURCE_SHA$" ci-evidence/image-loaded.txt
           { df -h; docker system df; } | tee ci-evidence/capacity-before.txt
       - name: docker-compose shim
         run: |

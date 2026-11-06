@@ -3,7 +3,7 @@
 用法：
   python3 scripts/enterprise/ci/compare_known_failures.py backend  <node --test 的 TAP 輸出檔>
   python3 scripts/enterprise/ci/compare_known_failures.py frontend <vitest --reporter=json 的輸出檔>
-  python3 scripts/enterprise/ci/compare_known_failures.py lint     <oxlint 輸出檔>
+  python3 scripts/enterprise/ci/compare_known_failures.py lint     <oxlint -f json 輸出檔>
 基線是 DHC CLI V3.2 原本就有的失敗（以未合併的 V3.2 實測）；企業測試不在清單內，企業測試失敗一律讓 CI 失敗。
 輸出 JSON 摘要到 stdout；exit 0＝沒有新失敗，1＝有新失敗或輸入無法解析（fail closed）。
 """
@@ -53,8 +53,16 @@ def frontend(text):
 
 
 def lint(text):
-    failures = {f'{m.group(1)}|{m.group(2)}' for m in re.finditer(r'(?m)^(\S+?):\d+:\d+: error (\S+)', text)}
-    return failures, set(BASELINE['lint_errors_file_rule']), {'error_pairs': len(failures)}
+    """讀 `oxlint -f json` 輸出（格式與環境無關）；error＝(檔案, 規則)。沒有掃到任何檔案或無法解析時拒絕判定（fail closed）。"""
+    report = json.loads(text)
+    if not isinstance(report, dict) or not report.get('number_of_files'):
+        raise ValueError('oxlint JSON 缺少 number_of_files（可能沒有執行或沒有掃到檔案）')
+    errors = [item for item in report.get('diagnostics', []) if item.get('severity') == 'error']
+    if any(not item.get('filename') or not item.get('code') for item in errors):
+        raise ValueError('有 error 缺少 filename／code')
+    failures = {f"{item['filename'].removeprefix('./')}|{item['code']}" for item in errors}
+    known = {pair.rstrip(':') for pair in BASELINE['lint_errors_file_rule']}
+    return failures, known, {'files': report['number_of_files'], 'errors': len(errors), 'error_pairs': len(failures)}
 
 
 def main():
