@@ -1,0 +1,27 @@
+   ✓ OfficeApp > 未登入顯示登入頁；登入錯誤以中文提示；員工只看到有權限的分頁 197ms
+   ✓ OfficeApp > 管理員看到管理分頁；token 只放在 Authorization header、不出現在 URL 80ms
+   ✓ OfficeApp > 任何請求回 401 即清除 session 並回到登入頁 153ms
+   ✓ OfficeApp > 載入失敗顯示錯誤與重試；重試成功後顯示資料 165ms
+   ✓ OfficeApp > 檢索結果顯示來源版本與位置，驗證引用顯示結果 72ms
+   ✓ OfficeApp > 網路中斷時顯示離線提示 54ms
+   ✓ OfficeApp > ASTRA-007：引用 INVALID：顯示原因、送審停用 112ms
+   ✓ OfficeApp > ASTRA-007：引用 VALID：送審可按 88ms
+   ✓ OfficeApp > ASTRA-004：隔離的 Run 對申請者顯示硬邊界提示；管理員可放行；通知分頁可標已讀 168ms
+   ✓ OfficeApp > E2E 發現：生成中就打開的草稿，完成後自動顯示內容（不必重新點選）  2063ms
+   ✓ OfficeApp > ASTRA-V3-NEW-001：審核畫面顯示 approval 綁定的版號與內容（不是草稿目前版），核准送出同一版號與 hash；送審帶版號 49ms
+   ✓ OfficeApp > W6-B：對帳分頁送出兩個文件版本與期間；缺資料顯示「—」不是 0；拒收顯示原因 50ms
+   × V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B > 草稿：A 已載入、B 回 503 → 不顯示 A 內容、不能儲存、不送出 PUT B 1071ms
+     → expected <textarea …(1)></textarea> to be null
+   × V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B > 草稿：A 已載入、B 尚未回應 → 不顯示 A 內容、不能儲存、不送出 PUT B 1097ms
+     → expected <textarea …(1)></textarea> to be null
+   ✓ V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B > 正向對照：B 載入完成後顯示 B 的內容，儲存送出 B 自己的版號與內容 69ms
+   × V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B > 審批：A 已載入、B 回 503 → 不顯示 A 的修訂、不能核准；不會用 A 的版號／hash 決定 B 1048ms
+     → expected <pre …(1)></pre> to be null
+   × V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B > 對帳明細：A 已載入、B 回 503 → 不顯示 A 的結果 hash 1052ms
+     → expected <p …(2)></p> to be null
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  src/modules/office/tests/OfficeApp.test.tsx > V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B > 草稿：A 已載入、B 回 503 → 不顯示 A 內容、不能儲存、不送出 PUT B
+ FAIL  src/modules/office/tests/OfficeApp.test.tsx > V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B > 草稿：A 已載入、B 尚未回應 → 不顯示 A 內容、不能儲存、不送出 PUT B
+ FAIL  src/modules/office/tests/OfficeApp.test.tsx > V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B > 審批：A 已載入、B 回 503 → 不顯示 A 的修訂、不能核准；不會用 A 的版號／hash 決定 B
+ FAIL  src/modules/office/tests/OfficeApp.test.tsx > V5.2 ASTRA-ROLL-002：切換資源後不可把 A 的內容寫到 B > 對帳明細：A 已載入、B 回 503 → 不顯示 A 的結果 hash
+      Tests  4 failed | 13 passed (17)
