@@ -1405,6 +1405,16 @@ export type EnterpriseReconciliationRow = {
   periodStart: string; periodEnd: string; status: 'completed' | 'rejected'; resultSha256: string; createdByMemberId: string; createdAt: Date; result: unknown;
 };
 
+/**
+ * V5 OPS-REPORT-v1 營運週報結果列。sources 為綁定的文件版本與 hash（依版本 id 排序）；inputKey＝來源版本＋案例集的正規 SHA-256（冪等鍵）。
+ * result（completed：claims／conflicts／anomalies；rejected：errors）由伺服器計算，resultSha256 為其正規 JSON 的 SHA-256。
+ */
+export type EnterpriseOpsReportRow = {
+  id: string; ruleVersion: string; isoWeek: string; periodStart: string; periodEnd: string; datasets: string[]; inputKey: string;
+  status: 'completed' | 'rejected'; resultSha256: string; createdByMemberId: string; createdAt: Date;
+  sources: Array<{ position: number; documentVersionId: string; sha256: string }>; result?: unknown;
+};
+
 export type EnterpriseDocumentVersionRow = {
   id: string; organizationId: string; documentId: string; versionNumber: number;
   filename: string; mediaType: string; byteSize: number; sha256: string;

@@ -222,6 +222,18 @@ export function createEnterpriseRouter(options: EnterpriseRouterOptions) {
     res.json(await inScope(res, service => service.getReconciliation(param(req, 'reconciliationId'))));
   }));
 
+  // ---- Ops report（V5 OPS-REPORT-v1：確定性營運週報；數字全由引擎計算，不呼叫模型）----
+  router.post('/ops-reports', requireAuth, requirePermission('documents.write'), json, enterpriseHandler(async (req, res) => {
+    const result = await inScope<{ opsReport: unknown; reused: boolean }>(res, service => service.createOpsReport((req.body ?? {}) as Record<string, unknown>));
+    res.status(result.reused ? 200 : 201).json(result);
+  }));
+  router.get('/ops-reports', requireAuth, requirePermission('documents.read'), enterpriseHandler(async (_req, res) => {
+    res.json({ items: await inScope(res, service => service.listOpsReports()) });
+  }));
+  router.get('/ops-reports/:opsReportId', requireAuth, requirePermission('documents.read'), enterpriseHandler(async (req, res) => {
+    res.json(await inScope(res, service => service.getOpsReport(param(req, 'opsReportId'))));
+  }));
+
   // ---- Audit ----
   router.get('/audit-events', requireAuth, requirePermission('audit.read'), enterpriseHandler(async (req, res) => {
     res.json(await inScope(res, service => service.listAuditEventsPage(pageOptions(req))));

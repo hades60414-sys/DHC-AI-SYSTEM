@@ -36,7 +36,7 @@ describe('Enterprise 實際 PostgreSQL（只允許明確標記的合成 QA DB）
     assert.equal((await runEnterpriseMigrations(migrator, { directory, direction: 'up' })).applied, false);
     // E05-DOC-01 起有兩個已知版本；斷言仍是「每個版本恰好一列、重跑不重複」。
     assert.deepEqual((await admin.query('SELECT version FROM enterprise.schema_migrations ORDER BY version')).rows.map(row => row.version),
-      ['0001_enterprise_base', '0002_document_versions', '0003_identity_sessions', '0004_document_index', '0005_workflow_models', '0006_subscriptions', '0007_egress_notifications', '0008_run_quarantine', '0009_citation_integrity', '0010_usage_ledger', '0011_approval_revision_binding', '0012_reconciliations']);
+      ['0001_enterprise_base', '0002_document_versions', '0003_identity_sessions', '0004_document_index', '0005_workflow_models', '0006_subscriptions', '0007_egress_notifications', '0008_run_quarantine', '0009_citation_integrity', '0010_usage_ledger', '0011_approval_revision_binding', '0012_reconciliations', '0013_ops_reports']);
   });
 
   test('Scoped repository 與可信身分核對，不能以 org selector 越權', async () => {

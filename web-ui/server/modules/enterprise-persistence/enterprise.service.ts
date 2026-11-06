@@ -7,6 +7,7 @@ import type { EnterpriseDocumentBlobStore, EnterprisePageResource } from '@/shar
 import { inspectDocumentContent } from './document-content.policy.js';
 import { chunkUnits, extractDocumentText, unsupportedExtractorName } from './document-extraction.js';
 import { createScopedEnterpriseRepository, findActiveEnterpriseMembership, findLiveEnterpriseSessionMember } from './enterprise.repository.js';
+import { OPS_REPORT_MAX_SOURCES, OPS_REPORT_RULE_VERSION, isoWeekRange, opsReportResultSha256, runOpsReportV1 } from './ops-report-v1.js';
 import { ACC_MATCH_RULE_VERSION, reconciliationResultSha256, runAccMatchV1 } from './reconciliation-acc-match-v1.js';
 
 function isUuid(value: unknown): value is string {
@@ -33,7 +34,7 @@ type PersistenceOptions = {
   blobStore?: EnterpriseDocumentBlobStore; maxDocumentBytes?: number;
   reserveStorage?: (client: PoolClient, organizationId: string, blob: { sha256: string; byteSize: number }) => Promise<void>;
   /** 商務寫入前的權益檢查（同一交易內）；未提供時不檢查（模組內部測試）。 */
-  checkWrite?: (client: PoolClient, organizationId: string, action: 'reconciliation.create') => Promise<void>;
+  checkWrite?: (client: PoolClient, organizationId: string, action: 'reconciliation.create' | 'ops_report.create') => Promise<void>;
 };
 
 const MAX_VERSION_NUMBER = 100000;
@@ -263,6 +264,67 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
         status: result.status, result, resultSha256: reconciliationResultSha256(result) });
       if (!reused) await repository.appendAudit(`reconciliation.${result.status}`, 'reconciliation', row.id);
       return { reconciliation: row, reused };
+    },
+    /**
+     * V5 OPS-REPORT-v1：以 1–5 個文件版本、ISO 週別與明示案例集產生確定性週報。組織只來自 session（withOrganization）；
+     * 來源 bytes 由 storage 讀回並重驗 hash；同輸入（來源版本集合＋案例集＋週別）重送回原結果（reused），並行重送由唯一索引收斂。
+     * 撤權／停權：withOrganization 在交易開頭重驗 session epoch；寫入前再檢查商務權益。計算是純函式，不呼叫模型。
+     */
+    async createOpsReport(input: Record<string, unknown>) {
+      checkActive();
+      const store = requireBlobStore();
+      const invalid = () => new Error('ENTERPRISE_INVALID_OPS_REPORT');
+      if (input.ruleVersion !== undefined && input.ruleVersion !== OPS_REPORT_RULE_VERSION) throw invalid();
+      if (typeof input.week !== 'string' || !isoWeekRange(input.week)) throw invalid();
+      const week = input.week;
+      const [periodStart, periodEnd] = isoWeekRange(week)!;
+      const datasets = input.datasets;
+      if (!Array.isArray(datasets) || !datasets.length || datasets.length > 5 || datasets.some(item => typeof item !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(item))
+        || new Set(datasets).size !== datasets.length) throw invalid();
+      const refs = input.sources;
+      if (!Array.isArray(refs) || !refs.length || refs.length > OPS_REPORT_MAX_SOURCES) throw invalid();
+      const loaded = [];
+      for (const value of refs) {
+        const ref = value as { documentId?: unknown; versionNumber?: unknown } | null;
+        if (!ref || typeof ref !== 'object' || typeof ref.documentId !== 'string') throw invalid();
+        requireUuid(ref.documentId);
+        const documentId = ref.documentId.toLowerCase();
+        const version = await repository.getDocumentVersion(documentId, requireVersionNumber(ref.versionNumber, 1));
+        if (!version) throw new Error((await repository.documentExists(documentId)) ? 'ENTERPRISE_VERSION_NOT_FOUND' : 'ENTERPRISE_DOCUMENT_NOT_FOUND');
+        loaded.push(version);
+      }
+      // 同一版本列兩次＝請求錯誤；來源依版本 id 排序，讓「同一組來源」不論請求順序都是同一個冪等鍵與同一份結果。
+      if (new Set(loaded.map(version => version.id)).size !== loaded.length) throw invalid();
+      loaded.sort((a, b) => (a.id < b.id ? -1 : 1));
+      const sortedDatasets = [...(datasets as string[])].sort();
+      const inputKey = createHash('sha256').update(JSON.stringify({ datasets: sortedDatasets, sources: loaded.map(version => [version.id, version.sha256]) })).digest('hex');
+      await options.checkWrite?.(client, organizationId, 'ops_report.create');
+      const key = { ruleVersion: OPS_REPORT_RULE_VERSION, isoWeek: week, inputKey };
+      const existing = await repository.findCompletedOpsReport(key);
+      if (existing) return { opsReport: existing, reused: true };
+      const sources = [];
+      for (const version of loaded) {
+        const content = await store.get(storageOrganizationId, version.sha256);
+        if (createHash('sha256').update(content).digest('hex') !== version.sha256) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
+        sources.push({ content, versionId: version.id, sha256: version.sha256 });
+      }
+      const result = runOpsReportV1({ sources, week, datasets: sortedDatasets });
+      checkActive();
+      const { row, reused } = await repository.insertOpsReport({ ...key, periodStart, periodEnd, datasets: sortedDatasets, status: result.status, result,
+        resultSha256: opsReportResultSha256(result), sources: loaded.map(version => ({ documentVersionId: version.id, sha256: version.sha256 })) });
+      if (!reused) await repository.appendAudit(`ops_report.${result.status}`, 'ops_report', row.id);
+      return { opsReport: row, reused };
+    },
+    async getOpsReport(id: string) {
+      checkActive();
+      requireUuid(id);
+      const row = await repository.getOpsReport(id.toLowerCase());
+      if (!row) throw new Error('ENTERPRISE_NOT_FOUND');
+      return row;
+    },
+    async listOpsReports() {
+      checkActive();
+      return repository.listOpsReports();
     },
     async getReconciliation(id: string) {
       checkActive();

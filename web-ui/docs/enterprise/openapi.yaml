@@ -17,6 +17,7 @@ components:
     Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
     Cursor: { name: cursor, in: query, schema: { type: string } }
   schemas:
+    DocumentVersionRef: { type: object, required: [documentId, versionNumber], properties: { documentId: { type: string, format: uuid }, versionNumber: { type: integer, minimum: 1 } } }
     Error:
       type: object
       required: [error]
@@ -145,3 +146,25 @@ paths:
     get: { summary: 待審清單（approvals.decide）, responses: { '200': { description: items } } }
   /approvals/{id}/decision:
     post: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 核准/退回（不得自審）, responses: { '200': { description: decision }, '403': { $ref: '#/components/responses/Error' }, '409': { $ref: '#/components/responses/Error' } } }
+  /reconciliations:
+    post:
+      summary: ACC-MATCH-v1 確定性對帳（documents.write；兩個文件版本＋期間；重送回原結果）
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [ledger, receipts, periodStart, periodEnd],
+        properties: { ledger: { $ref: '#/components/schemas/DocumentVersionRef' }, receipts: { $ref: '#/components/schemas/DocumentVersionRef' },
+          periodStart: { type: string, format: date }, periodEnd: { type: string, format: date }, ruleVersion: { type: string, enum: [ACC-MATCH-v1] } } } } } }
+      responses: { '201': { description: '新結果（completed 或 rejected）' }, '200': { description: reused }, '400': { $ref: '#/components/responses/Error' }, '402': { $ref: '#/components/responses/Error' }, '404': { $ref: '#/components/responses/Error' } }
+    get: { summary: 對帳清單（不含完整結果）, responses: { '200': { description: items } } }
+  /reconciliations/{id}:
+    get: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 對帳結果（含 result 與 resultSha256）, responses: { '200': { description: reconciliation }, '404': { $ref: '#/components/responses/Error' } } }
+  /ops-reports:
+    post:
+      summary: OPS-REPORT-v1 確定性營運週報（documents.write；1–5 個文件版本＋ISO 週＋明示案例集；同輸入重送回原結果；數字全由伺服器計算）
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [sources, week, datasets],
+        properties: { sources: { type: array, minItems: 1, maxItems: 5, items: { $ref: '#/components/schemas/DocumentVersionRef' } },
+          week: { type: string, pattern: '^[0-9]{4}-W[0-9]{2}$', example: 2026-W43 },
+          datasets: { type: array, minItems: 1, maxItems: 5, uniqueItems: true, items: { type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$' } },
+          ruleVersion: { type: string, enum: [OPS-REPORT-v1] } } } } } }
+      responses: { '201': { description: '新結果（completed：claims／conflicts／anomalies；rejected：errors）' }, '200': { description: reused }, '400': { $ref: '#/components/responses/Error' }, '402': { $ref: '#/components/responses/Error' }, '403': { $ref: '#/components/responses/Error' }, '404': { $ref: '#/components/responses/Error' }, '500': { description: 'ENTERPRISE_BLOB_INTEGRITY（來源內容與 hash 不符；不寫入）' } }
+    get: { summary: 週報清單（不含完整結果）, responses: { '200': { description: items } } }
+  /ops-reports/{id}:
+    get: { parameters: [{ $ref: '#/components/parameters/Id' }], summary: 週報結果（含 sources、result 與 resultSha256）, responses: { '200': { description: opsReport }, '404': { $ref: '#/components/responses/Error' } } }
