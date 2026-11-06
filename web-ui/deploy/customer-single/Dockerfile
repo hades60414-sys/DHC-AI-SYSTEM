@@ -2,8 +2,8 @@
 # 固定 E01 實測下載的 Node 22 bookworm 多平台 manifest digest。
 # RUNTIME_BASE：執行期基底。預設＝與 build 相同的完整 bookworm（full profile 維持原行為）；
 # AI Office（enterprise profile）由 compose 傳入 node:22-bookworm-slim（同 Node 22.23.4、同 glibc 2.36）以移除 ImageMagick 等用不到的 OS 套件。
-ARG RUNTIME_BASE=node:22-bookworm@sha256:63538dfe497cc29dfafdda25ada09b46db68a3f4cc205abf1f5d6bf0913f3384
-FROM node:22-bookworm@sha256:63538dfe497cc29dfafdda25ada09b46db68a3f4cc205abf1f5d6bf0913f3384 AS build
+ARG RUNTIME_BASE=node:22-bookworm@sha256:7702d8aa4d5910871692af4480eb3ba86f23047a6417a44d857d06c95d060d3f
+FROM node:22-bookworm@sha256:7702d8aa4d5910871692af4480eb3ba86f23047a6417a44d857d06c95d060d3f AS build
 WORKDIR /app
 ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1 HUSKY=0
 COPY package.json package-lock.json ./
