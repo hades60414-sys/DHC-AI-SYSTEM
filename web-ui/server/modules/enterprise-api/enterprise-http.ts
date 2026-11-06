@@ -2,6 +2,8 @@ import type { NextFunction, Request, Response } from 'express';
 
 import type { EnterprisePermission, EnterprisePrincipal } from '@/shared/index.js';
 
+import { defaultEnterpriseMetrics, logEnterpriseEvent, type EnterpriseMetrics } from './enterprise-observability.js';
+
 /** 錯誤代碼 → HTTP 狀態。未列出的錯誤一律 500 且不回傳內部訊息。 */
 const STATUS: Record<string, number> = {
   ENTERPRISE_AUTH_REQUIRED: 401,
@@ -58,11 +60,18 @@ export function sendEnterpriseError(res: Response, error: unknown) {
   const code = error instanceof Error && error.message.startsWith('ENTERPRISE_') ? error.message : 'ENTERPRISE_INTERNAL';
   const status = STATUS[code] ?? (BAD_REQUEST.test(code) ? 400 : 500);
   // 只記錄錯誤類別與 driver 代碼，不記錄訊息本文（可能含連線字串或使用者輸入）。
+  const metrics = (res.locals?.enterpriseMetrics as EnterpriseMetrics | undefined) ?? defaultEnterpriseMetrics;
+  // 錯誤代碼是程式內定義的有限集合；格式不符者歸 ENTERPRISE_OTHER，避免任意字串成為標籤。
+  metrics.count('errors', { code: /^ENTERPRISE_[A-Z_]{1,48}$/.test(code) ? code : 'ENTERPRISE_OTHER' });
   if (status === 500 && code === 'ENTERPRISE_INTERNAL') {
     // 只記錄錯誤類型、SQLSTATE 與 schema 層級的約束／資料表名稱（不含訊息內容、參數或資料值）
     const meta = error as { code?: unknown; constraint?: unknown; table?: unknown };
-    console.error('[enterprise-api] unexpected error:', error instanceof Error ? error.name : typeof error, meta?.code ?? '',
-      typeof meta?.constraint === 'string' ? `constraint=${meta.constraint}` : '', typeof meta?.table === 'string' ? `table=${meta.table}` : '');
+    logEnterpriseEvent('enterprise.unexpected_error', {
+      request_id: res.locals?.requestId, error_name: error instanceof Error ? error.name : typeof error, sqlstate: typeof meta?.code === 'string' ? meta.code : undefined,
+      constraint: typeof meta?.constraint === 'string' ? meta.constraint : undefined, table: typeof meta?.table === 'string' ? meta.table : undefined,
+    }, 'error');
+  } else if (status === 500) {
+    logEnterpriseEvent('enterprise.server_error', { request_id: res.locals?.requestId, code }, 'error');
   }
   res.status(status).json({ error: { code: status === 500 && code !== 'ENTERPRISE_BLOB_INTEGRITY' ? 'ENTERPRISE_INTERNAL' : code, message: MESSAGES[status] } });
 }

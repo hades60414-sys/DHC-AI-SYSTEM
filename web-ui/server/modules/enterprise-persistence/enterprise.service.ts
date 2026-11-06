@@ -36,6 +36,8 @@ type PersistenceOptions = {
   reserveStorage?: (client: PoolClient, organizationId: string, blob: { sha256: string; byteSize: number }) => Promise<void>;
   /** 商務寫入前的權益檢查（同一交易內）；未提供時不檢查（模組內部測試）。 */
   checkWrite?: (client: PoolClient, organizationId: string, action: 'reconciliation.create' | 'ops_report.create') => Promise<void>;
+  /** V5 可觀測性：確定性引擎純計算耗時（秒），不含 DB／storage。 */
+  onEngine?: (engine: 'ops_report' | 'reconciliation' | 'reconciliation_export', seconds: number) => void;
 };
 
 const MAX_VERSION_NUMBER = 100000;
@@ -127,6 +129,14 @@ export function createEnterprisePersistence(pool: Pool, resolvePrincipal: () => 
 function createScopedService(repository: ReturnType<typeof createScopedEnterpriseRepository>, organizationId: string, isActive: () => boolean, options: PersistenceOptions, client: PoolClient) {
   // storage adapter 只接受小寫 UUID；組織 id 已由 withOrganization 驗證並核對 membership。
   const storageOrganizationId = organizationId.toLowerCase();
+  function timed<T>(engine: 'ops_report' | 'reconciliation' | 'reconciliation_export', compute: () => T): T {
+    const started = process.hrtime.bigint();
+    try {
+      return compute();
+    } finally {
+      options.onEngine?.(engine, Number(process.hrtime.bigint() - started) / 1e9);
+    }
+  }
   function checkActive() {
     if (!isActive()) throw new Error('ENTERPRISE_SCOPE_CLOSED');
   }
@@ -256,10 +266,10 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
       const key = { ruleVersion: ACC_MATCH_RULE_VERSION, ledgerVersionId: ledger.version.id, receiptsVersionId: receipts.version.id, periodStart, periodEnd };
       const existing = await repository.findCompletedReconciliation(key);
       if (existing) return { reconciliation: existing, reused: true };
-      const result = runAccMatchV1({
+      const result = timed('reconciliation', () => runAccMatchV1({
         ledger: { content: ledger.content, versionId: ledger.version.id, sha256: ledger.version.sha256 },
         receipts: { content: receipts.content, versionId: receipts.version.id, sha256: receipts.version.sha256 }, periodStart, periodEnd,
-      });
+      }));
       checkActive();
       const { row, reused } = await repository.insertReconciliation({ ...key, ledgerSha256: ledger.version.sha256, receiptsSha256: receipts.version.sha256,
         status: result.status, result, resultSha256: reconciliationResultSha256(result) });
@@ -303,13 +313,13 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
       const key = { ruleVersion: OPS_REPORT_RULE_VERSION, isoWeek: week, inputKey };
       const existing = await repository.findCompletedOpsReport(key);
       if (existing) return { opsReport: existing, reused: true };
-      const sources = [];
+      const sources: Array<{ content: Buffer; versionId: string; sha256: string }> = [];
       for (const version of loaded) {
         const content = await store.get(storageOrganizationId, version.sha256);
         if (createHash('sha256').update(content).digest('hex') !== version.sha256) throw new Error('ENTERPRISE_BLOB_INTEGRITY');
         sources.push({ content, versionId: version.id, sha256: version.sha256 });
       }
-      const result = runOpsReportV1({ sources, week, datasets: sortedDatasets });
+      const result = timed('ops_report', () => runOpsReportV1({ sources, week, datasets: sortedDatasets }));
       checkActive();
       const { row, reused } = await repository.insertOpsReport({ ...key, periodStart, periodEnd, datasets: sortedDatasets, status: result.status, result,
         resultSha256: opsReportResultSha256(result), sources: loaded.map(version => ({ documentVersionId: version.id, sha256: version.sha256 })) });
@@ -361,7 +371,7 @@ function createScopedService(repository: ReturnType<typeof createScopedEnterpris
         sources.push({ side, documentId: version.documentId, versionNumber: version.versionNumber, versionId: version.id, filename: version.filename,
           sha256: version.sha256, latestVersionNumber: version.latestVersionNumber, superseded: version.latestVersionNumber > version.versionNumber });
       }
-      const exported = buildReconciliationExport({ reconciliation: { ...row, result: row.result as ReconciliationResult }, sources }, format as ReconciliationExportFormat);
+      const exported = timed('reconciliation_export', () => buildReconciliationExport({ reconciliation: { ...row, result: row.result as ReconciliationResult }, sources }, format as ReconciliationExportFormat));
       checkActive();
       const record = await repository.insertReconciliationExport({ reconciliationId: row.id, format, sha256: exported.sha256, byteSize: exported.content.length,
         sourcesSuperseded: sources.some(source => source.superseded) });
