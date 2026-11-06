@@ -21,10 +21,13 @@ RUN npm run build && npm prune --omit=dev --no-audit --no-fund --ignore-scripts 
 
 FROM ${RUNTIME_BASE} AS runtime
 ARG DHC_SOURCE_SHA=unrecorded
+# V5.2 RG-007：source＝實際建置的 repository（revision 必須能在這裡找到）；上游 attribution 另列 com.dhc.image.upstream
+ARG DHC_SOURCE_REPOSITORY=https://github.com/hades60414-sys/DHC-AI-SYSTEM
 ARG DHC_IMAGE_PROFILE=full
 ARG RUNTIME_BASE
-LABEL org.opencontainers.image.source="https://github.com/hades60414-sys/dhc-cli" \
+LABEL org.opencontainers.image.source=$DHC_SOURCE_REPOSITORY \
       org.opencontainers.image.revision=$DHC_SOURCE_SHA \
+      com.dhc.image.upstream="https://github.com/hades60414-sys/dhc-cli（DHC CLI V3.2 上游，AGPL-3.0）" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later" \
       com.dhc.image.profile=$DHC_IMAGE_PROFILE \
       com.dhc.image.runtime-base=$RUNTIME_BASE
