@@ -57,6 +57,8 @@ jobs:
         run: npx tsx --tsconfig server/tsconfig.json scripts/enterprise/ci/engine-bench.ts ../ci-out/engine-bench.json
       - name: 路線圖產出與證據路徑一致
         run: python3 -B scripts/enterprise/render_roadmap.py --check
+      - name: V5.1 UAT 證據索引完整性（引用的測試檔與標題必須存在）
+        run: python3 -B scripts/enterprise/uat_evidence_index.py --check
       - name: V5.1 OPS-REPORT 資源邊界探針（合法 5 萬列完成、超限依代碼拒收；記錄耗時與子行程峰值 RSS）
         run: npx tsx --tsconfig server/tsconfig.json scripts/enterprise/ci/ops-resource-probe.ts ../ci-out/ops-resource-probe.json
       - name: V5.1 CSV 公式注入實測素材（真 ACC-MATCH 拒收結果的匯出＋未防護對照組）

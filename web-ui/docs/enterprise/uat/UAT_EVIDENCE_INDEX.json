@@ -1,0 +1,2074 @@
+{
+ "schema_version": 1,
+ "source": "docs/enterprise/uat/UAT_TRACEABILITY_V5.json＋證據代號圖例（UAT_MATRIX V4）＋EXPLICIT 對照",
+ "product_sha": "PENDING_FINAL",
+ "verify_run": null,
+ "image_run": null,
+ "total_ids": 66,
+ "evidence_status_counts": {
+  "FILE_LEVEL": 37,
+  "LINKED_TEST": 19,
+  "EVIDENCE_MISSING": 10
+ },
+ "builder_status_counts": {
+  "GENERIC_VERIFIED": 42,
+  "PARTIAL": 17,
+  "NOT_IMPLEMENTED": 4,
+  "CUSTOMER_UAT_PENDING": 3,
+  "PASS": 0
+ },
+ "pass_count": 0,
+ "legend": {
+  "API": {
+   "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+   "runner": "pg-integration",
+   "resolution": "LEGEND"
+  },
+  "DOC": {
+   "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+   "runner": "pg-integration",
+   "resolution": "LEGEND"
+  },
+  "WF": {
+   "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+   "runner": "pg-integration",
+   "resolution": "LEGEND"
+  },
+  "SEC": {
+   "path": "tests/enterprise/sec01/run_sec01.py",
+   "runner": "local-harness",
+   "resolution": "LEGEND"
+  },
+  "E05": {
+   "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+   "runner": "pg-integration",
+   "resolution": "LEGEND"
+  },
+  "DLV": {
+   "path": "scripts/enterprise/驗證AI_Office交付.py",
+   "runner": "delivery",
+   "resolution": "LEGEND"
+  },
+  "UI": {
+   "path": "src/modules/office/tests/OfficeApp.test.tsx",
+   "runner": "vitest",
+   "resolution": "LEGEND"
+  },
+  "PLAN": {
+   "path": "server/modules/enterprise-api/tests/entitlements.integration.test.ts",
+   "runner": "pg-integration",
+   "resolution": "INFERRED"
+  },
+  "E02b": {
+   "path": "server/modules/enterprise-persistence/tests/enterprise.integration.test.ts",
+   "runner": "pg-integration",
+   "resolution": "INFERRED"
+  }
+ },
+ "rules": [
+  "LINKED_TEST：至少一個測試標題引用該 ID 或屬明確對照",
+  "FILE_LEVEL：只有檔案層級對應（舊矩陣代號）",
+  "EVIDENCE_MISSING：無證據或狀態為 NOT_IMPLEMENTED／CUSTOMER_UAT_PENDING",
+  "local-harness（SEC）不在 CI 執行；其證據為 V4 RC 本機歷史",
+  "builder_status 是 Builder 工程驗證，不是客戶 UAT；pass 一律 false"
+ ],
+ "rows": [
+  {
+   "id": "OP-UAT-01",
+   "requirement": "actor與組織由可信主系統判定；可見範圍符合成員身分；CSV owner不能冒充帳號",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "API 登入、/identity/me；組織來自 session（BLOCKED_RD：身份主檔未批准）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-02",
+   "requirement": "以契約規定401/403拒絕；不洩漏來源或形成副作用",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "API／SEC 無憑證 401、偽造 401、legacy 403",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "ci_job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI）",
+     "aliases": [
+      {
+       "alias": "SEC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-03",
+   "requirement": "僅允許具導入權者；唯讀寫入被拒絕且原資料未變",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "API 稽核者上傳 403；PLAN 到期唯讀 402（WF）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/entitlements.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "PLAN",
+       "resolution": "INFERRED"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-04",
+   "requirement": "全部被拒；內容、引用摘要及檔名不得跨組織洩漏",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "API／DOC／WF 跨組織 404、搜尋空、引用 404",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "DOC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-05",
+   "requirement": "撰稿者越權被拒；有權者可審但未明確提交前仍PENDING",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "WF 員工不能決定審批（403）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-06",
+   "requirement": "舊會話依契約即時撤權；所有後續動作拒絕且無副作用",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "API 停權後舊 token 401；SEC REVOKED_SESSION",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "ci_job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI）",
+     "aliases": [
+      {
+       "alias": "SEC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-07",
+   "requirement": "每入口依契約阻止撤權後操作；不因已建立連線繞過授權",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "HTTP 與 Run worker 撤權已驗（API、WF）；企業模式無 WS（無長連線可測）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-08",
+   "requirement": "無scope即拒絕；不得繞過正常組織/角色政策；只做獲准合成操作",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "SEC legacy/WS/Agent/MCP 全拒；企業無 platform 模式",
+   "evidence": [
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "ci_job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI）",
+     "aliases": [
+      {
+       "alias": "SEC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-09",
+   "requirement": "只納入指定六筆；組織、owner、期間、快照、缺值旗標與原檔一致",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "營運明細依明示案例集只納入 BASE 六筆（selectedRows 6／excludedRows 1）、丙站缺值旗標保留；合成事項紀錄（備註）導入仍未實作",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "正常週：14 項主張的值、狀態與來源紀錄 ID 與 預期主張.csv 逐項一致"
+     ]
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": [
+      "正常週：14 項主張由伺服器計算、來源綁定版本與 hash、結果 hash 可重算；重送回同一筆（不加倍）；稽核者可讀不可建"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-10",
+   "requirement": "不重複累加件數或產生互不關聯的正式來源；可辨識原結果與重試",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "同內容同組織重用 blob（E05）；擷取冪等 reused（DOC）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "DOC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "E05",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-11",
+   "requirement": "拒絕或隔離該來源並指出缺欄；不得假定期間/可信owner；原版本不變",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "移除期間或 owner 欄 → HEADER_MISMATCH 整批拒收；owner／識別欄空白 → MISSING_*；拒收留紀錄與稽核，原文件版本不變",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "缺欄位：識別／owner 欄空白拒收；件數空白是 UNKNOWN 不是 0（OP-NEG-01）"
+     ]
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": [
+      "拒收留痕：結構錯誤 → 201 rejected（錯誤清單與稽核），不產生主張；請求錯誤 → 4xx 且不寫入"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-12",
+   "requirement": "舊來源與定位仍可追溯；新舊版本關係可查；不得靜默改寫舊內容",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "E05 版本鏈、DOC 舊版 history 檢索",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "DOC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "E05",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-13",
+   "requirement": "回答210並展示三筆來源；檔案/版本/行定位/ID與內容相符；不可只顯示裝飾連結",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "DOC 引用版本／位置／hash 驗證；「回答 210」需數值能力（見 14）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "DOC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-14",
+   "requirement": "210/180/+30/+16.67%；待辦61/46/+15；最後一步四捨五入；不寫因果",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "確定性引擎 210／180／+30／16.67%、待辦 61／46／+15；BigInt＋最後一步 ROUND_HALF_UP；引擎不產生因果文字；與規格 oracle 逐項比對",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "正常週：14 項主張的值、狀態與來源紀錄 ID 與 預期主張.csv 逐項一致",
+      "ROUND_HALF_UP 與符號：0.00625% → 0.01、−0.00625% → −0.01；前週 0 → UNKNOWN（分母為 0）"
+     ]
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": [
+      "正常週：14 項主張由伺服器計算、來源綁定版本與 hash、結果 hash 可重算；重送回同一筆（不加倍）；稽核者可讀不可建"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-15",
+   "requirement": "甲乙本週150/160=93.75%、前週130/140=92.86%、差0.89百分點；全體UNKNOWN；分母與子集合明示",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "甲乙 150/160＝93.75%、前週 130/140＝92.86%、差 0.89 百分點（未四捨五入比率相減）；全體 UNKNOWN；分子分母與子集合 sites 明示",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "正常週：14 項主張的值、狀態與來源紀錄 ID 與 預期主張.csv 逐項一致"
+     ]
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-16",
+   "requirement": "明列丙站缺件與owner；全體率UNKNOWN；不補0/平均/前值；其餘不受影響欄仍可帶來源展示",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "缺值為 UNKNOWN（不補 0／平均／前值），原因 FIELD_UNKNOWN 指出據點與欄位、其餘主張照常；owner 需經來源列查得，未在主張直接列出，UI 未呈現",
+   "evidence": [
+    {
+     "path": "src/modules/office/tests/OfficeApp.test.tsx",
+     "runner": "vitest",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（vitest.json）",
+     "aliases": [
+      {
+       "alias": "UI",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "缺欄位：識別／owner 欄空白拒收；件數空白是 UNKNOWN 不是 0（OP-NEG-01）",
+      "正常週：14 項主張的值、狀態與來源紀錄 ID 與 預期主張.csv 逐項一致"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-17",
+   "requirement": "列70與72雙來源衝突；受影響完成量及率停止定稿；不得自行取新或較高值",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "同週同站 70／72 → CONFLICT、列出雙方來源、受影響主張值為空，不自動挑選；週報定稿流程尚未實作（無法驗「停止定稿」）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "重複來源（OP-NEG-02）：同時選 BASE＋NEG-CONFLICT → 乙站本週 CONFLICT，列出雙方，不挑版本；前週主張不受影響"
+     ]
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": [
+      "來源衝突與多來源：選 BASE＋NEG-CONFLICT → CONFLICT；兩個來源調換順序是同一份結果"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-18",
+   "requirement": "拒絕無來源主張；要求補可引用證據；ROI/節省成本UNKNOWN",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "敘述數字守門 validateOpsNarrative 擋下引擎未產生的數字（如 35%）；但恰等於某主張值的數字擋不住（語意限制），敘述生成未實作",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "敘述驗證（模型只寫文字）：數字必須出自引擎；百分點不得寫成 %；不得引用 UNKNOWN 主張；無來源的節省宣稱被擋（OP-NEG-03／06）"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-19",
+   "requirement": "識別失效行與ID；不生成可信結論、不以其他來源代補、不正式匯出",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "引用來源 hash 漂移後核准與匯出被拒（ENTERPRISE_CITATION_INVALID）：server/modules/enterprise-api/tests/citation-integrity.integration.test.ts（evidence/RCFIX_V3_007）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/citation-integrity.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-20",
+   "requirement": "視備註為資料；保留PENDING；沒有合法actor簽認不得正式匯出",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "未核准不能匯出（WF 409）；文件內容只作資料（系統提示要求，未對 prompt injection 做評測）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-21",
+   "requirement": "指出資料用途與未知輸入；結果UNKNOWN；不虛構基線/單價/收入",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "作業分鐘以「營運負荷，非工時節省」標示，引擎不計算 ROI／節省；敘述守門擋無來源數字；ROI 要求的明確拒絕回覆未實作",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "敘述驗證（模型只寫文字）：數字必須出自引擎；百分點不得寫成 %；不得引用 UNKNOWN 主張；無來源的節省宣稱被擋（OP-NEG-03／06）"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-22",
+   "requirement": "可見改稿差異與版本；無引用主張被標示/阻止定稿；不能遺失原版本",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "「無引用主張阻止定稿」已做（UNCITED／INVALID 不能送審核准匯出，server/modules/enterprise-api/tests/citation-integrity.integration.test.ts（evidence/RCFIX_V3_007））；差異檢視 UI 仍未實作",
+   "evidence": [
+    {
+     "path": "src/modules/office/tests/OfficeApp.test.tsx",
+     "runner": "vitest",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（vitest.json）",
+     "aliases": [
+      {
+       "alias": "UI",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/citation-integrity.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-23",
+   "requirement": "退回/理由/actor/時間/版本完整；修正稿重新PENDING，不沿用舊通過",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "退回 API 存在、可修改再送審；退回路徑未有自動化測試",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-24",
+   "requirement": "批准只綁定當次來源與草稿版本；保留真人actor/時間/理由與決定；UNKNOWN可否保留按已簽規則",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "核准綁定修訂號、具名、時間、意見（WF、匯出含核准修訂）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-25",
+   "requirement": "依已簽規則拒絕自審；需要另一有權者；若規則未決則PENDING且不得自行批准",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "自我核准 403（WF）；DB CHECK 亦禁止",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-26",
+   "requirement": "新版需重新PENDING及簽認；V1歷史保持；不得自動批准V2",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "新修訂必須重新送審（狀態機）；「V2 重新 PENDING」未有專門測試",
+   "evidence": []
+  },
+  {
+   "id": "OP-UAT-27",
+   "requirement": "阻止正式批准匯出；保留狀態與理由；本包MD存在不能當產品匯出成功",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "未核准匯出 409（WF）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-28",
+   "requirement": "內容與被簽版本一致；UNKNOWN/來源/批准依規則呈現；artifact hash與接收者可追溯",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "匯出內容＝核准修訂、含來源附錄、SHA 標頭與 draft_exports（WF、DLV）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
+     "artifact": "enterprise-delivery-{amd64,arm64}",
+     "aliases": [
+      {
+       "alias": "DLV",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-29",
+   "requirement": "同請求不產生不可辨認的重複副作用；重試可關聯原結果；版本及hash一致",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "Run 冪等（WF）；匯出每次記一筆（可辨識），無冪等鍵",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-30",
+   "requirement": "每段可重建actor/組織/時間/動作/結果/資源版本；不把PG局部transaction audit當全鏈",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "全鏈稽核事件（DLV、API）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
+     "artifact": "enterprise-delivery-{amd64,arm64}",
+     "aliases": [
+      {
+       "alias": "DLV",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-31",
+   "requirement": "依角色及組織拒絕未授權讀/寫；事件不可由普通角色改寫；不洩漏原文",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "員工讀稽核 403；runtime 無 UPDATE/DELETE audit（E02b）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/enterprise.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "E02b",
+       "resolution": "INFERRED"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-32",
+   "requirement": "狀態可解釋且不越過人審；不重複計數/批准/正式輸出；前次失敗仍可追溯",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "Run 重試／逾時（WF）；備份還原（DLV）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
+     "artifact": "enterprise-delivery-{amd64,arm64}",
+     "aliases": [
+      {
+       "alias": "DLV",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-33",
+   "requirement": "可重算完成率/修正率/引用率與工時配對；未量得仍UNKNOWN；不將合成2640分鐘當節省",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "NOT_IMPLEMENTED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "完成率／修正率／工時量測",
+   "evidence": []
+  },
+  {
+   "id": "OP-UAT-34",
+   "requirement": "本人可完成正例且辨認缺件；負例有阻擋；每階段有實際操作證據與真人回饋",
+   "v4_status": "CUSTOMER_UAT_PENDING",
+   "builder_status": "CUSTOMER_UAT_PENDING",
+   "customer_status": "REQUIRED_PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "需真人操作與回饋",
+   "evidence": []
+  },
+  {
+   "id": "OP-UAT-35",
+   "requirement": "混期資料被明示/隔離；不混算；正例顯示固定起迄、時區及比較範圍",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "只取指定 ISO 週與前一週，其他週別列不入算（excludedRows 計數）；列的起訖與週別不符 → PERIOD_MISMATCH 拒收；結果含固定起迄、前週範圍與 Asia/Taipei",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "跨月週與 ISO 週邊界：W44 跨 10/11 月、2026-W53 跨年、2027 沒有 W53",
+      "錯誤期間：週別不存在 → INVALID_WEEK；列的起訖不符週別 → PERIOD_MISMATCH；案例集參數不合法 → 拒收"
+     ]
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": [
+      "正常週：14 項主張由伺服器計算、來源綁定版本與 hash、結果 hash 可重算；重送回同一筆（不加倍）；稽核者可讀不可建"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "OP-UAT-36",
+   "requirement": "可區分fixture檢查/系統UAT/歷史結果；不把同host還原或本包當異機DR/G2/G3",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "本矩陣與 GATE_BOARD 區分 fixture／系統／歷史",
+   "evidence": []
+  },
+  {
+   "id": "ACC-UAT-01",
+   "requirement": "首次顯示內部帳9列、收款9列及來源版本；同版重送不能變18＋18，無真記帳或外部連線副作用",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "兩份 CSV 以文件版本導入，結果顯示 9＋9 列與兩個版本 hash；同版重送回原結果（reused），不變 18＋18：server/modules/enterprise-api/tests/reconciliation.integration.test.ts（真 PG＋HTTP）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": [
+      "ACC-UAT-01/03–07：導入兩份固定 CSV → 9 案件（完全匹配 3、六類例外各 1），來源指回版本與 hash；重送回同一結果（不加倍）"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-02",
+   "requirement": "每種結構錯誤被明確拒收，未部分產生有效批次；原始批次未被改寫",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "非整數、空值、負值、指數、未知幣別、跨組織、重複資料列ID、期間外／不存在日期、欄名錯誤、小數位數不符 → 整批拒收、逐行原因、無部分案件：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；server/modules/enterprise-api/tests/reconciliation.integration.test.ts（真 PG＋HTTP）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": [
+      "ACC-UAT-02：結構錯誤整批拒收（記錄錯誤與稽核，不產生案件），原始文件版本不變"
+     ]
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "ACC-UAT-02：結構錯誤整批拒收，指出行與列；不產生部分案件"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-03",
+   "requirement": "恰3個完全匹配；TWD雙方各350000、USD雙方各12345；逐列原始值與來源可見",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "恰 3 個完全匹配，TWD 350000／USD 12345 分列，逐列來源可見：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；server/modules/enterprise-api/tests/reconciliation.integration.test.ts（真 PG＋HTTP）；tests/enterprise/e2e/office_e2e.mjs「W6-B 對帳」步驟（真瀏覽器，見交付驗證證據）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）"
+     ]
+    },
+    {
+     "path": "tests/enterprise/e2e/office_e2e.mjs",
+     "runner": "delivery",
+     "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
+     "artifact": "enterprise-delivery-{amd64,arm64}",
+     "aliases": [],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-04",
+   "requirement": "分別缺收款、缺內部單據；差額為缺資料而非0；不自動認列欠款／收入或建立單據",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "003 缺收款明細、009 缺內部單據，差額留空（不補 0），不自動建單：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；tests/enterprise/e2e/office_e2e.mjs「W6-B 對帳」步驟（真瀏覽器，見交付驗證證據）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）"
+     ]
+    },
+    {
+     "path": "tests/enterprise/e2e/office_e2e.mjs",
+     "runner": "delivery",
+     "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
+     "artifact": "enterprise-delivery-{amd64,arm64}",
+     "aliases": [],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-05",
+   "requirement": "80000對75000，收款減應收=-5000 TWD最小單位；原因仍待查，不自動標手續費／稅額",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "004：80000 對 75000，差額 -5000 最小單位，不判定原因：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；server/modules/enterprise-api/tests/reconciliation.integration.test.ts（真 PG＋HTTP）；tests/enterprise/e2e/office_e2e.mjs「W6-B 對帳」步驟（真瀏覽器，見交付驗證證據）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）"
+     ]
+    },
+    {
+     "path": "tests/enterprise/e2e/office_e2e.mjs",
+     "runner": "delivery",
+     "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
+     "artifact": "enterprise-delivery-{amd64,arm64}",
+     "aliases": [],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-06",
+   "requirement": "一律幣別不一致、差額空白；保留USD20000與TWD640000原值；沒有匯率呼叫或跨幣別總額",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "005 幣別不一致、差額空白、原值保留；數字相等但幣別不同的變體同樣判不一致；無匯率：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）",
+      "ACC-UAT-06：數字相等但幣別不同仍為幣別不一致，差額空白、保留原值、無跨幣別總額"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-07",
+   "requirement": "同單據兩列及同收款ID兩列均可見；兩案相關6來源列整組隔離；不選首列、不重複累加、不join倍增",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "006 單據ID重複、007 收款ID重複，相關 6 列整組隔離、不選首列、不加總進完全匹配；同側混幣改判未支援：server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts（對 預期對帳結果.csv／來源行索引.csv 逐欄）；tests/enterprise/e2e/office_e2e.mjs「W6-B 對帳」步驟（真瀏覽器，見交付驗證證據）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "固定 fixture：9 案件與預期對帳結果.csv 逐欄一致（分類、列、原始合計、差額、完全匹配、隔離）"
+     ]
+    },
+    {
+     "path": "tests/enterprise/e2e/office_e2e.mjs",
+     "runner": "delivery",
+     "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
+     "artifact": "enterprise-delivery-{amd64,arm64}",
+     "aliases": [],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-08",
+   "requirement": "與預期月報語意／數值一致；每主張引用到固定檔案雜湊＋實體行＋列ID；缺漏主張含對手完整集合；無憑空原因或簽認",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "草稿引用可驗（WF、DOC）；月報數值需對帳引擎",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "DOC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-09",
+   "requirement": "文字作資料處理；規則與簽認狀態不變；沒有額外工具或外部行為",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "系統提示要求只依來源；無 prompt-injection 評測",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "ci_job": "enterprise-verify / static-and-unit",
+     "artifact": "enterprise-verify-static-unit（backend.tap）",
+     "aliases": [],
+     "test_names": [
+      "來源摘要中的指令文字只是資料（ACC-UAT-09 前置）：不影響分類"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-10",
+   "requirement": "整理員拒絕；退回可留具名理由及時間且不能被當簽認；AI無批准入口",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "員工不能核准；退回保留理由（API 存在）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-11",
+   "requirement": "只接受本人有效授權的動作；改版使舊簽認失效並要求重審；若本人未執行就維持PENDING",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "修訂需重新送審；「改版使舊簽認失效」未專測",
+   "evidence": []
+  },
+  {
+   "id": "ACC-UAT-12",
+   "requirement": "無有效簽認拒絕正式輸出；允許的草稿清楚標未簽認；有效輸出帶版本／來源／狀態，下載數值與畫面一致",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "無核准不能匯出（WF）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-13",
+   "requirement": "依實際入口契約拒絕跨組織與撤權後存取；拒絕有一致稽核；若入口未整合則此項不通過",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "跨組織、撤權（API、WF、SEC）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "ci_job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI）",
+     "aliases": [
+      {
+       "alias": "SEC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": [
+      "ACC-UAT-13（API 部分）：另一組織讀不到、也不能拿本組織的文件版本對帳"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-14",
+   "requirement": "事件順序與實際操作相符，可追到源行及輸出雜湊；唯讀者無寫權；不能補造人審或缺失事件",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "LINKED_TEST",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "稽核鏈與匯出 hash（DLV）",
+   "evidence": [
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
+     "artifact": "enterprise-delivery-{amd64,arm64}",
+     "aliases": [
+      {
+       "alias": "DLV",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation-export.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": [
+      "三種格式：內容 SHA-256 與標頭一致、JSON 與已存結果一致；每次匯出留匯出紀錄與稽核；稽核者可匯出"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "ACC-UAT-15",
+   "requirement": "按SOW/KPI公式計算，分母／修正定義一致；缺輸入保持UNKNOWN；不得拿fixture速度當節省工時",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "NOT_IMPLEMENTED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "KPI 計算",
+   "evidence": []
+  },
+  {
+   "id": "UAT-L01",
+   "requirement": "文件、組織、方向、hash 與版本精確相符；錯配停止",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "兩版上傳與 hash（E05、DOC）；「基線／候選」指定與條款比對未實作",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "DOC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "E05",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L02",
+   "requirement": "依後續已裁決契約處理重複；不得靜默改掉既有來源或 hash；契約未定則不能 PASS",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "重送相同內容去重、版本鏈（E05）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "E05",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L03",
+   "requirement": "5 修改／2 新增／1 刪除／4 未變更；沒有漏列、補造、把刪除當現存或反轉版本",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "NOT_IMPLEMENTED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "條款逐條比對：DEC-W6-SCOPE-01 使用者決定本輪不做（BLOCKED_PRODUCT_DECISION）",
+   "evidence": []
+  },
+  {
+   "id": "UAT-L04",
+   "requirement": "21 筆可追溯；不存在不得虛構引文；任一錯誤需退回草稿",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "引用版本／位置／hash（DOC）；clause ID 解析未實作",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "DOC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L05",
+   "requirement": "同一事件 45／7 日均呈現；不得選優先條款；未釐清拒絕正式輸出",
+   "v4_status": "NOT_IMPLEMENTED",
+   "builder_status": "NOT_IMPLEMENTED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "矛盾標記阻止輸出：DEC-W6-SCOPE-01 本輪不做（BLOCKED_PRODUCT_DECISION）",
+   "evidence": []
+  },
+  {
+   "id": "UAT-L06",
+   "requirement": "分別對應 WRONG_VERSION_FILE／VERSION_HASH_MISMATCH／UNKNOWN_VERSION；不形成無來源結論",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "錯 hash（expectedSha256 不符 400）、未知版本 404（API、E05）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "E05",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L07",
+   "requirement": "SOURCE_MISSING／CLAUSE_NOT_FOUND；缺失明示，禁止補造",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "不存在的引用編號（如 [999]）阻擋送審（server/modules/enterprise-api/tests/citation-integrity.integration.test.ts（evidence/RCFIX_V3_007））；條款 ID 層級的「不存在條款」檢查仍未實作",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/citation-integrity.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L08",
+   "requirement": "LOCATION_MISMATCH／QUOTE_MISMATCH；保留錯誤而非悄悄換成別句",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "送審前伺服器自動核對每個 [n] 與 metadata、來源存在、版本與 hash：server/modules/enterprise-api/tests/citation-integrity.integration.test.ts（evidence/RCFIX_V3_007）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/citation-integrity.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L09",
+   "requirement": "全入口依既定 policy 拒絕且不能洩漏原文；fixture 中 SCOPE_MISMATCH 不代表產品 IAM 已測",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "跨組織、API key／Agent 入口（SEC、API）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "ci_job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI）",
+     "aliases": [
+      {
+       "alias": "SEC",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L10",
+   "requirement": "REVIEWER_UNASSIGNED／APPROVAL_PENDING／STALE_DRAFT_BINDING 的條件均阻擋；不得產生假簽認",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "未核准匯出 409、員工不能核准（WF）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L11",
+   "requirement": "人為決定可核對 source pair／draft hash／真人 actor／時間；不附電子簽名；舊來源決定不沿用",
+   "v4_status": "CUSTOMER_UAT_PENDING",
+   "builder_status": "CUSTOMER_UAT_PENDING",
+   "customer_status": "REQUIRED_PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "真人逐條覆核",
+   "evidence": []
+  },
+  {
+   "id": "UAT-L12",
+   "requirement": "輸出標示為覆核摘要、含來源／決定關聯及檔案 hash；文字相符；不被標為正式合約或法律核可",
+   "v4_status": "PARTIAL",
+   "builder_status": "PARTIAL",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "匯出可回查引用（WF）；覆核摘要格式未實作",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L13",
+   "requirement": "依裁決的即時撤權契約拒絕；既有連線不能繞過；未實作就記 FAIL／缺口",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "停權後 HTTP／Run 拒絕（API、WF）；企業模式無 WS",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "API",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L14",
+   "requirement": "原始來源 hash 不變、未批准草稿不能輸出，保留失敗／停止紀錄，回復可重現",
+   "v4_status": "GENERIC_VERIFIED",
+   "builder_status": "GENERIC_VERIFIED",
+   "customer_status": "PENDING",
+   "pass": false,
+   "evidence_status": "FILE_LEVEL",
+   "missing_reason": null,
+   "source_version": "PENDING_FINAL",
+   "note": "Run 取消／逾時／重試（WF）；備份還原（DLV）",
+   "evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "ci_job": "enterprise-verify / postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "aliases": [
+      {
+       "alias": "WF",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    },
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "ci_job": "enterprise-image-build / delivery-{amd64,arm64}",
+     "artifact": "enterprise-delivery-{amd64,arm64}",
+     "aliases": [
+      {
+       "alias": "DLV",
+       "resolution": "LEGEND"
+      }
+     ],
+     "test_names": []
+    }
+   ]
+  },
+  {
+   "id": "UAT-L15",
+   "requirement": "真實使用者能辨識來源、草稿、未決事項及人工責任；逐項接受／拒絕，未測項不勾過",
+   "v4_status": "CUSTOMER_UAT_PENDING",
+   "builder_status": "CUSTOMER_UAT_PENDING",
+   "customer_status": "REQUIRED_PENDING",
+   "pass": false,
+   "evidence_status": "EVIDENCE_MISSING",
+   "missing_reason": "NO_EVIDENCE_REFERENCE",
+   "source_version": "PENDING_FINAL",
+   "note": "非技術 reviewer 獨立完成與簽認",
+   "evidence": []
+  }
+ ]
+}
