@@ -77,16 +77,26 @@ def image_env_path():
     return Path(os.environ['DHC_SECRET_DIR']) / 'image.env'
 
 
-def selected_image():
-    """優先用環境變數 DHC_IMAGE；否則用 install-image 記錄的 tag；都沒有時沿用 compose 預設（開發用）。"""
-    if os.environ.get('DHC_IMAGE'):
-        return os.environ['DHC_IMAGE']
+def installed_images():
+    """install-image 記錄的值（image.env）；沒有離線安裝時回傳 None。"""
     path = image_env_path()
-    if path.exists():
-        for line in path.read_text().splitlines():
-            if line.startswith('DHC_IMAGE='):
-                return line.split('=', 1)[1].strip()
-    return None
+    if not path.exists():
+        return None
+    return dict(line.split('=', 1) for line in path.read_text().splitlines() if '=' in line)
+
+
+def selected_image():
+    """V5.2 ASTRA-ROLL-007：離線安裝（有 image.env）時，實際使用的 reference 只能是 install-image 記錄並驗證過的那一個；
+    環境變數 DHC_IMAGE 若指向別的 reference 一律拒絕（不再「驗 A、啟 B」）。沒有離線安裝時沿用 DHC_IMAGE（開發／CI 用），
+    都沒有時沿用 compose 預設。"""
+    installed = installed_images()
+    override = os.environ.get('DHC_IMAGE')
+    if installed is not None:
+        recorded = installed.get('DHC_IMAGE', '').strip()
+        if override and override != recorded:
+            fail(f'離線安裝只能使用 install-image 驗證過的 image {recorded}；拒絕環境變數 DHC_IMAGE={override}（請 unset DHC_IMAGE 或重新 install-image）')
+        return recorded
+    return override or None
 
 
 def docker(*args, capture=True, stdin=None):
@@ -195,9 +205,10 @@ def offline_install():
 
 def assert_offline_images():
     """離線安裝：所需 image 必須已由 install-image 載入且 ID 相符；不允許 compose 自行 build 或 pull。"""
-    values = dict(line.split('=', 1) for line in image_env_path().read_text().splitlines() if '=' in line)
-    if image_id(values['DHC_IMAGE']) != values.get('DHC_IMAGE_ID'):
-        fail(f"離線安裝的 image {values['DHC_IMAGE']} 不存在或 ID 不符；請重新執行 install-image")
+    values = installed_images()
+    reference = selected_image()  # ROLL-007：驗證「最後實際交給 compose 的」reference
+    if image_id(reference) != values.get('DHC_IMAGE_ID'):
+        fail(f"離線安裝的 image {reference} 不存在或 ID 不符；請重新執行 install-image")
     for reference, expected in json.loads(values.get('DHC_SUPPORT_IMAGES', '{}')).items():
         if image_id(reference) != expected:
             fail(f'離線安裝的 image {reference} 不存在或 ID 不符；請重新執行 install-image')
@@ -366,6 +377,8 @@ def restore(source):
     require_env()
     started = time.monotonic()
     source = Path(source).resolve()
+    if offline_install():
+        assert_offline_images()  # ROLL-007：restore 也只用驗證過的 image，且在動資料庫前檢查
     manifest = json.loads((source / 'MANIFEST.json').read_text())
     for name, meta in manifest['files'].items():
         if sha256_file(source / name) != meta['sha256']:
