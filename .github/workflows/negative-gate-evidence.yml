@@ -68,7 +68,7 @@ jobs:
         run: |
           mkdir -p ../ci-out
           gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs?per_page=100" > ../ci-out/jobs.json
-          python3 -B scripts/enterprise/ci/collect_negative_gate.py ../ci-out/jobs.json ../cases ../ci-out/NEGATIVE_GATE_EVIDENCE.json "${{ github.run_id }}" "${{ github.run_attempt }}" "${{ github.sha }}"
+          python3 -B scripts/enterprise/ci/collect_negative_gate.py ../ci-out/jobs.json ../cases ../ci-out/NEGATIVE_GATE_EVIDENCE.json "${{ github.run_id }}" "${{ github.run_attempt }}" "${{ github.sha }}" --workflow ../.github/workflows/negative-gate-evidence.yml
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:

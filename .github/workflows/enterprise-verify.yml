@@ -44,6 +44,8 @@ jobs:
         run: |
           python3 -B scripts/enterprise/coordination/check_state.py
           python3 -B scripts/enterprise/coordination/test_check_state.py
+      - name: V5.3.1 負向閘門 collector 的合成負向測試（缺 job／重複／收據竄改／continue-on-error）
+        run: python3 -B scripts/enterprise/ci/test_collect_negative_gate.py
       - name: V5.2 ASTRA-ROLL-007 離線 image reference 一致性單元測試
         run: python3 -B deploy/ai-office/test_dhc_office_images.py
       - name: typecheck
