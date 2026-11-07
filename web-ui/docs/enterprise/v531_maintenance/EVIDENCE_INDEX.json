@@ -1,0 +1,1661 @@
+{
+ "schema_version": 1,
+ "generated_from": {
+  "pr14_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+  "final_code_sha": "828a763681fc60c795df27733aaa5c1369be0571",
+  "evidence_sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+  "f1_ci_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+  "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a"
+ },
+ "note": "只整理既有證據；auditor_status 原文照抄自 FINDING_LEDGER（源自 AUDITOR_SNAPSHOT），不改判。",
+ "findings": [
+  {
+   "finding_id": "ASTRA-ROLL-001",
+   "severity": "HIGH",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "6210554",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    },
+    {
+     "workflow": "negative-gate-evidence",
+     "run_id": 42348102897,
+     "job_id": 128330204686,
+     "test_sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+     "artifact_name": "negative-gate-evidence",
+     "artifact_id": 13564144115,
+     "expires_at": "2026-12-07T06:41:40Z",
+     "expired": false,
+     "digest": "sha256:1c256b4067896149ce00bba90872dfacb5440d11cff9241562ba37cbd5cc730a"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "scripts/enterprise/ci/test_gate.py",
+    ".github/workflows/negative-gate-evidence.yml",
+    "scripts/enterprise/ci/negative_gate_case.py",
+    "test_gate.py Shell 對照：無 pipefail 時 sha256sum -c | tee 回 0（原缺陷重現）",
+    "ci:negative_gate_evidence（NEGATIVE_GATE_EVIDENCE.json）"
+   ],
+   "limitations": [
+    "wrong_sha256／build／smoke 三案只接受「失敗」，不辨別失敗原因（OCR-V531-06）；job log 已人工確認"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-ROLL-002",
+   "severity": "HIGH",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5138dd9",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    },
+    {
+     "workflow": "office-e2e-evidence",
+     "run_id": 42348102966,
+     "job_id": 128330145971,
+     "test_sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+     "artifact_name": "office-stale-green-current",
+     "artifact_id": 13564651319,
+     "expires_at": "2026-12-07T06:45:21Z",
+     "expired": false,
+     "digest": "sha256:d59d2bef0ca44ec8bbb97df42fe7cecb27a782820a038aa7751365f2c519a298"
+    },
+    {
+     "workflow": "office-e2e-evidence",
+     "run_id": 42348102966,
+     "job_id": 128330146126,
+     "test_sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+     "artifact_name": "office-stale-red-v51",
+     "artifact_id": 13564188633,
+     "expires_at": "2026-12-07T06:46:03Z",
+     "expired": false,
+     "digest": "sha256:4ba57ed7ef5c2c6c0ee2e33c1469232b18488b1746a1e321c1180e4a6a55fa05"
+    },
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333890302,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-delivery-amd64",
+     "artifact_id": 13564976996,
+     "expires_at": "2026-11-14T07:03:15Z",
+     "expired": false,
+     "digest": "sha256:5b7c11f087f355ac7a035abd4fa06ad53d60eb63308e372603e48654eaf9d5f2"
+    },
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333817245,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-delivery-arm64",
+     "artifact_id": 13564439563,
+     "expires_at": "2026-11-14T07:02:27Z",
+     "expired": false,
+     "digest": "sha256:203cc17815866a1d67c43251f9159377e8763ffe8aee37677fe054c5f7bdca56"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "src/modules/office/tests/OfficeApp.test.tsx",
+    "tests/enterprise/e2e/office_stale_e2e.mjs",
+    "scripts/enterprise/ci/office_e2e_redgreen.py",
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-002_RED_afbdea9.txt（4 失敗）",
+    "ci:office_e2e_evidence（RED V5.1 image／GREEN 本次 image，真 Chromium＋PostgreSQL）",
+    "ci:image_build（delivery 兩架構 office-stale GREEN）"
+   ],
+   "limitations": [
+    "審批這一半的 PG 狀態分不出缺陷與正常行為（OCR-V531-04），判定只靠瀏覽器 oracle；RED 審批正向段 timeout，不列為已重現"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-ROLL-003",
+   "severity": "MEDIUM",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "afbdea9",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153403,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-postgres",
+     "artifact_id": 13565136150,
+     "expires_at": "2026-11-14T06:57:13Z",
+     "expired": false,
+     "digest": "sha256:0e2f29db71b872a7a705bda0d75bc702ca1a1b76abc3ef44aedfeff3d08d66b4"
+    },
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts",
+    "docs/enterprise/scenarios/會計對帳/golden/跨側同列ID_預期.json",
+    "server/modules/enterprise-api/tests/reconciliation-export.integration.test.ts（golden 三格式）",
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "ASTRA-ROLL-004",
+   "severity": "MEDIUM",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "afbdea9",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts",
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "ASTRA-ROLL-005",
+   "severity": "MEDIUM",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "afbdea9",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts",
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "ASTRA-ROLL-006",
+   "severity": "MEDIUM",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "afbdea9",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153403,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-postgres",
+     "artifact_id": 13565136150,
+     "expires_at": "2026-11-14T06:57:13Z",
+     "expired": false,
+     "digest": "sha256:0e2f29db71b872a7a705bda0d75bc702ca1a1b76abc3ef44aedfeff3d08d66b4"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+    "靜態推導（原 500）；修正後 PG 測試"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "ASTRA-ROLL-007",
+   "severity": "MEDIUM",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "c75054f",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    },
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153833,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-amd64",
+     "artifact_id": 13564798331,
+     "expires_at": "2026-11-14T06:58:43Z",
+     "expired": false,
+     "digest": "sha256:acfff29224a250ee3f873c7415bfa5680bfcb80bf4c74852251bbb675a5021d5"
+    },
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153616,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-arm64",
+     "artifact_id": 13564404185,
+     "expires_at": "2026-11-14T06:58:37Z",
+     "expired": false,
+     "digest": "sha256:64fb3e761ef9f1df29f52065f1fa837957395fd9f0d92d7258823b7825b707a6"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319770,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13534760021,
+      13533124955,
+      13533109469,
+      13532878921,
+      13532754733,
+      13532483924,
+      13532064487
+     ],
+     "earliest_expiry": "2026-11-07T19:08:09Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "deploy/ai-office/test_dhc_office_images.py",
+    "scripts/enterprise/驗證AI_Office交付.py 12d／13c",
+    "靜態推導（驗 A 啟 B）"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "ASTRA-ROLL-008",
+   "severity": "MEDIUM",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "6210554",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    },
+    {
+     "workflow": "negative-gate-evidence",
+     "run_id": 42348102897,
+     "job_id": 128330204686,
+     "test_sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+     "artifact_name": "negative-gate-evidence",
+     "artifact_id": 13564144115,
+     "expires_at": "2026-12-07T06:41:40Z",
+     "expired": false,
+     "digest": "sha256:1c256b4067896149ce00bba90872dfacb5440d11cff9241562ba37cbd5cc730a"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "scripts/enterprise/ci/test_gate.py",
+    "gate 首次本機執行即抓到既有 vitest 未處理例外（exit 1、測試全過）→ f4aab0f 修測試 mock",
+    "ci:negative_gate_evidence（frontend_exit1_all_pass、tool_nonzero_output_all_pass）"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "ASTRA-ROLL-009",
+   "severity": "MEDIUM",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "6210554",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    },
+    {
+     "workflow": "negative-gate-evidence",
+     "run_id": 42348102897,
+     "job_id": 128330204686,
+     "test_sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+     "artifact_name": "negative-gate-evidence",
+     "artifact_id": 13564144115,
+     "expires_at": "2026-12-07T06:41:40Z",
+     "expired": false,
+     "digest": "sha256:1c256b4067896149ce00bba90872dfacb5440d11cff9241562ba37cbd5cc730a"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "scripts/enterprise/ci/test_gate.py",
+    "test_gate：新增 skip → 1",
+    "ci:negative_gate_evidence（new_skip、new_todo）"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "ASTRA-ROLL-010",
+   "severity": "MEDIUM",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "11359bb（V5.1）",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts（同站 5 萬列衝突）",
+    "V5.1 RG-V5-01 RED（五來源 65 s）",
+    "scripts/enterprise/ci/ops-resource-probe.ts same_site_conflict_50k（ms／cpu_ms／maxRSS）"
+   ],
+   "limitations": [
+    "5 萬列量測只記錄、不設門檻；單一衝突 sources 不設上限（DEC-05）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-ROLL-011",
+   "severity": "LOW",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "afbdea9",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319689,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13533009540,
+      13532864106,
+      13532774278
+     ],
+     "earliest_expiry": "2026-11-13T19:06:05Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts",
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "ASTRA-ROLL-012",
+   "severity": "MEDIUM",
+   "closure_class": "NOT_IMPLEMENTED",
+   "builder_status": "WORK_ORDER_ISSUED",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": null,
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v52/DEID_WORK_ORDERS_ADDENDUM.md DEID-09"
+   ],
+   "limitations": [
+    "沒有修正，所以沒有修正證據；只有工單／決策文件"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-ROLL-013",
+   "severity": "MEDIUM",
+   "closure_class": "NOT_IMPLEMENTED",
+   "builder_status": "WORK_ORDER_ISSUED",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": null,
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v52/DEID_WORK_ORDERS_ADDENDUM.md DEID-10"
+   ],
+   "limitations": [
+    "沒有修正，所以沒有修正證據；只有工單／決策文件"
+   ]
+  },
+  {
+   "finding_id": "RG-001",
+   "severity": "HIGH",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "builder_status": "BLOCKED_DECISION",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": null,
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v51/REMOTE_AGENT_THREAT_MODEL.md（完整版受控保存）"
+   ],
+   "limitations": [
+    "沒有修正，所以沒有修正證據；只有工單／決策文件"
+   ]
+  },
+  {
+   "finding_id": "RG-002",
+   "severity": "MEDIUM",
+   "closure_class": "NOT_IMPLEMENTED",
+   "builder_status": "WORK_ORDER_ISSUED",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": null,
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v51/DEID_PROXY_HARDENING_PLAN.md DEID-01..08"
+   ],
+   "limitations": [
+    "沒有修正，所以沒有修正證據；只有工單／決策文件"
+   ]
+  },
+  {
+   "finding_id": "RG-003",
+   "severity": "MEDIUM",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "d38afd8",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    },
+    {
+     "workflow": "repo-coverage",
+     "run_id": 42349084813,
+     "job_id": 128333153680,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "repo-coverage",
+     "artifact_id": 13564408816,
+     "expires_at": "2026-11-14T06:55:42Z",
+     "expired": false,
+     "digest": "sha256:db9530870bd032ed55dd0e11c815e1c8689a68dc2ab9d53ab20dd705bd821630"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319968,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13532054265
+     ],
+     "earliest_expiry": "2026-11-13T19:04:09Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "scripts/enterprise/ci/check_repo_coverage.py",
+    "靜態：只改 remote-agent 不觸發任何 workflow"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "RG-005",
+   "severity": "MEDIUM",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "builder_status": "HUMAN_DECISION_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": null,
+   "current_evidence": [
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153833,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-amd64",
+     "artifact_id": 13564798331,
+     "expires_at": "2026-11-14T06:58:43Z",
+     "expired": false,
+     "digest": "sha256:acfff29224a250ee3f873c7415bfa5680bfcb80bf4c74852251bbb675a5021d5"
+    },
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153616,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-arm64",
+     "artifact_id": 13564404185,
+     "expires_at": "2026-11-14T06:58:37Z",
+     "expired": false,
+     "digest": "sha256:64fb3e761ef9f1df29f52065f1fa837957395fd9f0d92d7258823b7825b707a6"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v52/SUPPLY_CHAIN_FINAL_LEDGER.json"
+   ],
+   "limitations": [
+    "沒有修正，所以沒有修正證據；只有工單／決策文件"
+   ]
+  },
+  {
+   "finding_id": "RG-006",
+   "severity": "LOW",
+   "closure_class": "AUDITOR_VERIFIED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "2cc9e93（V5.1）＋本輪",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153833,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-amd64",
+     "artifact_id": 13564798331,
+     "expires_at": "2026-11-14T06:58:43Z",
+     "expired": false,
+     "digest": "sha256:acfff29224a250ee3f873c7415bfa5680bfcb80bf4c74852251bbb675a5021d5"
+    },
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153616,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-arm64",
+     "artifact_id": 13564404185,
+     "expires_at": "2026-11-14T06:58:37Z",
+     "expired": false,
+     "digest": "sha256:64fb3e761ef9f1df29f52065f1fa837957395fd9f0d92d7258823b7825b707a6"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319770,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13534760021,
+      13533124955,
+      13533109469,
+      13532878921,
+      13532754733,
+      13532483924,
+      13532064487
+     ],
+     "earliest_expiry": "2026-11-07T19:08:09Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    "docs/enterprise/v52/SUPPLY_CHAIN_FINAL_LEDGER.json",
+    "—"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "RG-007",
+   "severity": "MEDIUM",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "7667822",
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153833,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-amd64",
+     "artifact_id": 13564798331,
+     "expires_at": "2026-11-14T06:58:43Z",
+     "expired": false,
+     "digest": "sha256:acfff29224a250ee3f873c7415bfa5680bfcb80bf4c74852251bbb675a5021d5"
+    },
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153616,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-arm64",
+     "artifact_id": 13564404185,
+     "expires_at": "2026-11-14T06:58:37Z",
+     "expired": false,
+     "digest": "sha256:64fb3e761ef9f1df29f52065f1fa837957395fd9f0d92d7258823b7825b707a6"
+    }
+   ],
+   "historical_runs": [
+    {
+     "run_id": 42276319770,
+     "test_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+     "artifact_ids": [
+      13534760021,
+      13533124955,
+      13533109469,
+      13532878921,
+      13532754733,
+      13532483924,
+      13532064487
+     ],
+     "earliest_expiry": "2026-11-07T19:08:09Z",
+     "any_expired": false
+    }
+   ],
+   "evidence_paths": [
+    ".github/workflows/enterprise-image-build.yml 兩架構 assert",
+    "V5.1 image label source=dhc-cli"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "RG-008",
+   "severity": "LOW",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "builder_status": "HUMAN_DECISION_REQUIRED",
+   "auditor_status": "NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": null,
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [],
+   "limitations": [
+    "沒有修正，所以沒有修正證據；只有工單／決策文件"
+   ]
+  },
+  {
+   "finding_id": "RG-V5-01",
+   "severity": "HIGH",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "11359bb, 6933d5e",
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153403,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-postgres",
+     "artifact_id": 13565136150,
+     "expires_at": "2026-11-14T06:57:13Z",
+     "expired": false,
+     "digest": "sha256:0e2f29db71b872a7a705bda0d75bc702ca1a1b76abc3ef44aedfeff3d08d66b4"
+    },
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "server/modules/enterprise-persistence/tests/ops-report-limits.test.ts",
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+    "docs/enterprise/v51/RESOURCE_BOUNDARY_REPORT.md",
+    "docs/enterprise/v51/evidence/RG-V5-01_RED_GREEN.md",
+    "server/modules/enterprise-persistence/tests/ops-report-limits.test.ts",
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts"
+   ],
+   "limitations": [
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：web-ui/server/modules/enterprise-persistence/enterprise.service.ts、web-ui/server/modules/enterprise-persistence/ops-report-v1.ts"
+   ]
+  },
+  {
+   "finding_id": "RG-V5-02",
+   "severity": "MEDIUM",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "49c4017, 7679748",
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "server/modules/enterprise-persistence/tests/reconciliation-export.test.ts",
+    "docs/enterprise/v51/CSV_SECURITY_REPORT.md",
+    "server/modules/enterprise-persistence/tests/reconciliation-export.test.ts"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "RG-V5-03",
+   "severity": "LOW",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v51/OCR_BUILDER_REVIEW.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項"
+   ]
+  },
+  {
+   "finding_id": "RG-V5-04",
+   "severity": "MEDIUM",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "4e18881",
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/uat/UAT_EVIDENCE_INDEX.json",
+    "scripts/enterprise/uat_evidence_index.py"
+   ],
+   "limitations": [
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：.github/workflows/enterprise-verify.yml"
+   ]
+  },
+  {
+   "finding_id": "RG-V5-05",
+   "severity": "LOW",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5a72637",
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153833,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-amd64",
+     "artifact_id": 13564798331,
+     "expires_at": "2026-11-14T06:58:43Z",
+     "expired": false,
+     "digest": "sha256:acfff29224a250ee3f873c7415bfa5680bfcb80bf4c74852251bbb675a5021d5"
+    },
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333153616,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-image-report-arm64",
+     "artifact_id": 13564404185,
+     "expires_at": "2026-11-14T06:58:37Z",
+     "expired": false,
+     "digest": "sha256:64fb3e761ef9f1df29f52065f1fa837957395fd9f0d92d7258823b7825b707a6"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v51/SUPPLY_CHAIN_FINAL_LEDGER.json"
+   ],
+   "limitations": []
+  },
+  {
+   "finding_id": "RG-V5-06",
+   "severity": "HIGH",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "builder_status": "BLOCKED_DECISION",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": null,
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v51/REMOTE_AGENT_THREAT_MODEL.md（公開摘要；完整版受控保存）"
+   ],
+   "limitations": [
+    "沒有修正，所以沒有修正證據；只有工單／決策文件"
+   ]
+  },
+  {
+   "finding_id": "RG-V5-07",
+   "severity": "MEDIUM",
+   "closure_class": "NOT_IMPLEMENTED",
+   "builder_status": "WORK_ORDER_ISSUED",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": null,
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v51/DEID_PROXY_HARDENING_PLAN.md"
+   ],
+   "limitations": [
+    "沒有修正，所以沒有修正證據；只有工單／決策文件"
+   ]
+  },
+  {
+   "finding_id": "BD-BLOB",
+   "severity": "UNRATED_IN_REGISTRY",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "11359bb",
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "server/modules/enterprise-persistence/tests/document-blob-store.test.ts",
+    "server/modules/enterprise-persistence/document-blob-store.ts",
+    "server/modules/enterprise-persistence/tests/document-blob-store.test.ts"
+   ],
+   "limitations": [
+    "嚴重度未知（UNRATED_IN_REGISTRY）",
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：web-ui/server/modules/enterprise-persistence/enterprise.service.ts、web-ui/server/modules/enterprise-persistence/ops-report-v1.ts"
+   ]
+  },
+  {
+   "finding_id": "BD-FLAKE",
+   "severity": "UNRATED_IN_REGISTRY",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "17f06a3",
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "server/modules/agent/tests/agent.routes.test.ts",
+    "server/modules/agent/tests/agent.routes.test.ts"
+   ],
+   "limitations": [
+    "嚴重度未知（UNRATED_IN_REGISTRY）"
+   ]
+  },
+  {
+   "finding_id": "BD-REJECTED",
+   "severity": "UNRATED_IN_REGISTRY",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "builder_status": "BLOCKED_DECISION",
+   "auditor_status": "NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": null,
+   "verification_sha": null,
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [],
+   "limitations": [
+    "沒有修正，所以沒有修正證據；只有工單／決策文件",
+    "嚴重度未知（UNRATED_IN_REGISTRY）"
+   ]
+  },
+  {
+   "finding_id": "BD-UPGRADE",
+   "severity": "UNRATED_IN_REGISTRY",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5a72637, 6933d5e",
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-image-build",
+     "run_id": 42349084776,
+     "job_id": 128333890371,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-upgrade-rollback-amd64",
+     "artifact_id": 13564484354,
+     "expires_at": "2026-11-14T07:02:19Z",
+     "expired": false,
+     "digest": "sha256:71d86b374b9f58d11bd2f8c5dee9fbaaefc7834fc44327351f6e2c8684a3d045"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "scripts/enterprise/ci/upgrade_rollback.py"
+   ],
+   "limitations": [
+    "嚴重度未知（UNRATED_IN_REGISTRY）",
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：.github/workflows/enterprise-image-build.yml、web-ui/deploy/customer-single/Dockerfile"
+   ]
+  },
+  {
+   "finding_id": "BD-REVOKE",
+   "severity": "UNRATED_IN_REGISTRY",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "11359bb",
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153403,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-postgres",
+     "artifact_id": 13565136150,
+     "expires_at": "2026-11-14T06:57:13Z",
+     "expired": false,
+     "digest": "sha256:0e2f29db71b872a7a705bda0d75bc702ca1a1b76abc3ef44aedfeff3d08d66b4"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts"
+   ],
+   "limitations": [
+    "嚴重度未知（UNRATED_IN_REGISTRY）",
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：web-ui/server/modules/enterprise-persistence/enterprise.service.ts、web-ui/server/modules/enterprise-persistence/ops-report-v1.ts"
+   ]
+  },
+  {
+   "finding_id": "BD-PERF",
+   "severity": "UNRATED_IN_REGISTRY",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5a72637",
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "current_evidence": [
+    {
+     "workflow": "enterprise-verify",
+     "run_id": 42349084781,
+     "job_id": 128333153533,
+     "test_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+     "artifact_name": "enterprise-verify-static-unit",
+     "artifact_id": 13564913305,
+     "expires_at": "2026-11-14T07:00:51Z",
+     "expired": false,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148"
+    }
+   ],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/v51/PERFORMANCE_REPORT.md"
+   ],
+   "limitations": [
+    "嚴重度未知（UNRATED_IN_REGISTRY）",
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：.github/workflows/enterprise-image-build.yml、web-ui/deploy/customer-single/Dockerfile"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-001",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-002",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-003",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-004",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）",
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：.github/workflows/enterprise-delivery-smoke.yml、.github/workflows/enterprise-image-build.yml、.github/workflows/enterprise-verify.yml"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-005",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）",
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：.github/workflows/enterprise-delivery-smoke.yml、.github/workflows/enterprise-image-build.yml、.github/workflows/enterprise-verify.yml"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-006",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）",
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：.github/workflows/enterprise-delivery-smoke.yml、.github/workflows/enterprise-image-build.yml、.github/workflows/enterprise-verify.yml"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-007",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-008",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-009",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-010",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-011",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-012",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "EVIDENCE_MISSING",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-013",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "EVIDENCE_MISSING",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-014",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-015",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-016",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）",
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：.github/workflows/enterprise-delivery-smoke.yml、.github/workflows/enterprise-image-build.yml、.github/workflows/enterprise-verify.yml"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-017",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）"
+   ]
+  },
+  {
+   "finding_id": "ASTRA-018",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "closure_class": "RETEST_REQUIRED",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "auditor_status": "PASS",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "current_evidence": [],
+   "historical_runs": [],
+   "evidence_paths": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "limitations": [
+    "沒有逐項的測試對應；F1 整套 CI（verify 42349084781／image 42349084776）仍會執行全部測試，但無法指出單一 job 證明此項",
+    "嚴重度未知（UNRATED_IN_SNAPSHOT）",
+    "Astra 在 2cc9e93 判 PASS，但修正檔之後又被改：.github/workflows/enterprise-delivery-smoke.yml、.github/workflows/enterprise-image-build.yml、.github/workflows/enterprise-verify.yml"
+   ]
+  }
+ ]
+}
