@@ -1,0 +1,294 @@
+{
+ "schema_version": 1,
+ "auditor": "Astra（獨立 Auditor）",
+ "report_kind": "INTERIM_AUDIT",
+ "generated_at": "2026-11-06T23:39:57.878381+08:00",
+ "source_file": "ASTRA_ROLLING_AUDIT_20261106/FINDINGS.json（受控交接位置，不在公開 repo）",
+ "source_sha256": "84137ee9ef477bc8c51f20af50d849754e5b47078ccef380b29801f5248402ab",
+ "reviewed_shas": {
+  "track_A": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+  "track_B": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+ },
+ "verdicts": {
+  "SPEC_VERDICT": "FAIL",
+  "ENGINEERING_VERDICT": "FAIL",
+  "SECURITY_VERDICT": "PARTIAL",
+  "ARCHITECTURE_VERDICT": "PARTIAL",
+  "CI_VERDICT": "FAIL",
+  "SUPPLY_CHAIN_VERDICT": "PARTIAL",
+  "PRODUCT_UAT_VERDICT": "PARTIAL",
+  "COMMERCIAL_READINESS": "FAIL",
+  "RELEASE_VERDICT": "FAIL"
+ },
+ "synced_by": "Builder（只抄錄、不改判）",
+ "findings": [
+  {
+   "id": "ASTRA-ROLL-001",
+   "severity": "HIGH",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-002",
+   "severity": "HIGH",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-003",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-004",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-005",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-006",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-007",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-008",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-009",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-010",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-011",
+   "severity": "LOW",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-012",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "ASTRA-ROLL-013",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "RG-002",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "RG-003",
+   "severity": "MEDIUM",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "RG-005",
+   "severity": "MEDIUM",
+   "auditor_status": "CI_RECORD_REVIEWED",
+   "evidence_class": "CI_RECORD",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "RG-006",
+   "severity": "LOW",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "RG-007",
+   "severity": "MEDIUM",
+   "auditor_status": "CI_RECORD_REVIEWED",
+   "evidence_class": "CI_RECORD",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "RG-001",
+   "severity": "HIGH",
+   "auditor_status": "INFERRED_NOT_RUNTIME_VERIFIED",
+   "evidence_class": "INFERRED",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "id": "RG-008",
+   "severity": "LOW",
+   "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+   "evidence_class": "CONFIRMED_STATIC",
+   "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  }
+ ],
+ "original_18": [
+  {
+   "id": "ASTRA-001",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-002",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-003",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-004",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PASS",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PASS"
+  },
+  {
+   "id": "ASTRA-005",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PASS",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PASS"
+  },
+  {
+   "id": "ASTRA-006",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PASS",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PASS"
+  },
+  {
+   "id": "ASTRA-007",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-008",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-009",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-010",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-011",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-012",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "NOT_RUN",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "NOT_RUN"
+  },
+  {
+   "id": "ASTRA-013",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "NOT_RUN",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "NOT_RUN"
+  },
+  {
+   "id": "ASTRA-014",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-015",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-016",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PASS",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PASS"
+  },
+  {
+   "id": "ASTRA-017",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PARTIAL",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PARTIAL"
+  },
+  {
+   "id": "ASTRA-018",
+   "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+   "track_A_verdict": "PASS",
+   "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "track_B_verdict": "PASS"
+  }
+ ]
+}

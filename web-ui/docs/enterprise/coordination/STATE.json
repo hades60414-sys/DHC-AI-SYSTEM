@@ -1,0 +1,68 @@
+{
+ "schema_version": 1,
+ "repo": "hades60414-sys/DHC-AI-SYSTEM",
+ "pr_stack": [
+  {
+   "pr": 10,
+   "head": "1e481e2fca812dcd2bfc45645623129bd7b54dea"
+  },
+  {
+   "pr": 11,
+   "head": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+  },
+  {
+   "pr": 12,
+   "head": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+  },
+  {
+   "pr": 13,
+   "head": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c"
+  },
+  {
+   "pr": "V5.3",
+   "head": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c"
+  }
+ ],
+ "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+ "head_sha": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
+ "base_sha": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
+ "builder_commit": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
+ "head_sha_note": "head_sha 是產生本檔時的 commit；本檔所在的文件提交會在其後（文件不改產品）。",
+ "auditor_last_reviewed_sha": {
+  "track_A": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+  "track_B": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+ },
+ "auditor_snapshot_sha256": "84137ee9ef477bc8c51f20af50d849754e5b47078ccef380b29801f5248402ab",
+ "ci": {},
+ "open_critical_high": [
+  "ASTRA-ROLL-001",
+  "ASTRA-ROLL-002",
+  "RG-001",
+  "RG-V5-01",
+  "RG-V5-06"
+ ],
+ "builder_status": "BUILDER_SUBMITTED",
+ "auditor_status": "ASTRA_REAUDIT_PENDING",
+ "ci_status": "CI_PENDING",
+ "human_decisions": {
+  "SEC-01": "PENDING",
+  "SEC-02": "PENDING",
+  "DEC-05": "PENDING",
+  "DEC-07": "PENDING",
+  "SC-OWNER": "PENDING",
+  "UAT-66": "PENDING",
+  "RD-002": "PENDING",
+  "RD-003": "PENDING",
+  "IP-AGPL-SDK-DAS": "PENDING",
+  "SOW-PRICING-EXPIRY-MAINTENANCE": "PENDING"
+ },
+ "evidence_fingerprint": "98f9072466515b6f7451d44fb1bfbb9d23ce155652f7b1d8a6fca7464ce8f8bc",
+ "last_updated_utc": "2026-11-07T05:30:20Z",
+ "next_safe_action": "Astra 以唯讀方式複驗固定 product_sha 與 CI 證據；Builder 在收到 Auditor 收據前不改判、不推 #10～#13",
+ "update_triggers": [
+  "PR push",
+  "workflow completion",
+  "明確人工 handoff"
+ ],
+ "no_background_poller": true
+}

@@ -40,6 +40,10 @@ jobs:
         run: python3 -B scripts/enterprise/ci/test_compare_known_failures.py
       - name: V5.2 閘門負向測試（新失敗／未處理例外／截斷／缺檔／新 skip／lint 範圍／checksum＋tee；每個 job 必須 shell bash）
         run: python3 -B scripts/enterprise/ci/test_gate.py
+      - name: V5.3 協作狀態 schema／Finding Ledger 一致性（Builder 不得標 AUDIT_VERIFIED；fingerprint 必須最新）
+        run: |
+          python3 -B scripts/enterprise/coordination/check_state.py
+          python3 -B scripts/enterprise/coordination/test_check_state.py
       - name: V5.2 ASTRA-ROLL-007 離線 image reference 一致性單元測試
         run: python3 -B deploy/ai-office/test_dhc_office_images.py
       - name: typecheck
