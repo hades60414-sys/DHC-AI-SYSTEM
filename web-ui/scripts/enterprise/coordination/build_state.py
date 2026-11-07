@@ -21,6 +21,8 @@ V51 = 'docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json'
 V52 = 'docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json'
 SNAP = 'docs/enterprise/coordination/AUDITOR_SNAPSHOT.json'
 SOURCES = 'docs/enterprise/coordination/EVIDENCE_SOURCES.json'
+# 里程碑固定的 PR #14 稽核快照 HEAD（與 check_state.py PINNED_PR14_HEAD 一致）
+PINNED_PR14_HEAD = '38c7293d3764f61a967b2bd2e90526e218b77793'
 CLOSURE_CLASSES = ['AUDITOR_VERIFIED', 'BUILDER_FIXED_PENDING_REAUDIT', 'NOT_IMPLEMENTED', 'HUMAN_DECISION_BLOCKED', 'EVIDENCE_MISSING', 'RETEST_REQUIRED']
 
 # Builder 對根因的簡述（Astra 原文在其報告中，這裡不改寫 Auditor 判定）
@@ -175,7 +177,7 @@ def main():
         'schema_version': 2, 'repo': 'hades60414-sys/DHC-AI-SYSTEM',
         'pr_stack': [{'pr': 10, 'head': '1e481e2fca812dcd2bfc45645623129bd7b54dea'}, {'pr': 11, 'head': '877525f27eed8d394f609d7ad7d2d8695be1035b'},
                      {'pr': 12, 'head': '2cc9e93e75133dc4247e7af3b959865cf8d9d05d'}, {'pr': 13, 'head': '601dbb3ee1d75f94ce75947af6e1cb2eea17661c'},
-                     {'pr': 14, 'branch': 'fix/ai-office-v53-closure', 'head': args.pr_head_sha, 'head_note': '產生本檔時的 HEAD；本檔所在的 commit 在其後'}],
+                     {'pr': 14, 'branch': 'fix/ai-office-v53-closure', 'head': PINNED_PR14_HEAD, 'head_note': '里程碑固定的 PR #14 稽核快照；shas.pr_head_sha 為產生本 STATE 的分支 HEAD（兩者語意不同）'}],
         'shas': {
             'product_sha': args.product_sha,
             'ci_evidence_sha': {name: src['sha'] for name, src in sources['evidence'].items()},
