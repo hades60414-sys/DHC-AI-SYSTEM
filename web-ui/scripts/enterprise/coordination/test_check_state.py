@@ -58,6 +58,42 @@ def resync(s, l):
     s['closure_counts'] = {c: sum(1 for f in l['findings'] if f['closure_class'] == c) for c in classes}
 
 
+def forge_snapshot_rewrite(s, l, e, coord):
+    """OCR-V531-D01：在既有 Auditor 報告內把 ROLL-001 改為 PASS（來源雜湊不變），並同步 ledger／STATE。"""
+    snap = json.loads((coord / 'AUDITOR_SNAPSHOT.json').read_text())
+    for report in snap['reports']:
+        for item in report['findings']:
+            if item['id'] == 'ASTRA-ROLL-001':
+                item.update(auditor_status='PASS', problem_state='AUDIT_VERIFIED')
+    (coord / 'AUDITOR_SNAPSHOT.json').write_text(json.dumps(snap, ensure_ascii=False, indent=1) + '\n')
+    first(l, id='ASTRA-ROLL-001').update(auditor_status='PASS', auditor_problem_state='AUDIT_VERIFIED', closure_class='AUDITOR_VERIFIED')
+    resync(s, l)
+
+
+def forge_fake_report(s, l, e, coord):
+    """OCR-V531-D02：附加一份虛構、日期較新的 Auditor 報告，把 ROLL-002 標為 PASS。"""
+    snap = json.loads((coord / 'AUDITOR_SNAPSHOT.json').read_text())
+    fake = {'report_id': 'FAKE', 'auditor': 'Astra（獨立 Auditor）', 'report_kind': 'X', 'generated_at': '2099-01-01T00:00:00+08:00', 'source_file': 'x', 'source_sha256': '1' * 64,
+            'reviewed_shas': {'snapshot': '2cc9e93e75133dc4247e7af3b959865cf8d9d05d'},
+            'findings': [{'id': 'ASTRA-ROLL-002', 'severity': 'HIGH', 'auditor_status': 'PASS', 'problem_state': 'AUDIT_VERIFIED', 'reviewed_sha': '2cc9e93e75133dc4247e7af3b959865cf8d9d05d'}],
+            'original_18': [], 'builder_tracker_items': []}
+    snap['reports'].append(fake)
+    (coord / 'AUDITOR_SNAPSHOT.json').write_text(json.dumps(snap, ensure_ascii=False, indent=1) + '\n')
+    item = first(l, id='ASTRA-ROLL-002')
+    item.update(auditor_status='PASS', auditor_problem_state='AUDIT_VERIFIED', closure_class='AUDITOR_VERIFIED')
+    item['auditor_receipt'] = dict(item['auditor_receipt'], source_sha256='1' * 64, report_id='FAKE')
+    resync(s, l)
+
+
+def relabel_human_blocked(s, l, e):
+    """OCR-V531-D03：把 BLOCKED_DECISION 的 RG-001 改標為 Builder 已修。"""
+    first(l, id='RG-001').update(builder_status='FIXED_PENDING_REAUDIT', closure_class='RETEST_REQUIRED', verification_sha='d38afd88d9630a9390785ae35b745a8ad91e6c6a')
+    resync(s, l)
+
+
+CASES['forged_snapshot_rewrite'] = (False, forge_snapshot_rewrite)
+CASES['forged_fake_auditor_report'] = (False, forge_fake_report)
+CASES['relabel_human_blocked_as_fixed'] = (False, relabel_human_blocked)
 CASES['forged_auditor_pass_full_resync'] = (False, forge_pass)
 CASES['severity_downgrade_full_resync'] = (False, downgrade)
 GIT_CASES = {
@@ -78,7 +114,10 @@ def run_case(mutate, refingerprint, git_mode):
         state = json.loads((coord / 'STATE.json').read_text())
         ledger = json.loads((coord / 'FINDING_LEDGER.json').read_text())
         sources = json.loads((coord / 'EVIDENCE_SOURCES.json').read_text())
-        mutate(state, ledger, sources)
+        if mutate.__code__.co_argcount == 4:
+            mutate(state, ledger, sources, coord)
+        else:
+            mutate(state, ledger, sources)
         text = json.dumps(ledger, ensure_ascii=False, indent=1) + '\n'
         (coord / 'FINDING_LEDGER.json').write_text(text)
         if refingerprint and 'evidence_fingerprint' in state and state['evidence_fingerprint'] != '0' * 64:

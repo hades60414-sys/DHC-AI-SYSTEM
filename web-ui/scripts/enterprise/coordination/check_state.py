@@ -34,6 +34,19 @@ UNRATED = ('UNRATED_IN_SNAPSHOT', 'UNRATED_IN_REGISTRY')
 # V5.1 registry 沒有嚴重度欄位；以下為 Builder 指派的值，釘在檢查器中（與 build_state.py 必須同時修改才能變更）
 BUILDER_ASSIGNED_SEVERITY = {'RG-V5-01': 'HIGH', 'RG-V5-02': 'MEDIUM', 'RG-V5-03': 'LOW', 'RG-V5-04': 'MEDIUM', 'RG-V5-05': 'LOW', 'RG-V5-06': 'HIGH', 'RG-V5-07': 'MEDIUM'}
 FIXTURES = ['web-ui/docs/enterprise/scenarios/*']  # golden／測試資料：永遠不視為「文件」
+# OCR-V531-D01／D02：已抄錄的 Auditor 報告釘選（來源雜湊＋抄錄內容雜湊）。新增或修改報告必須同時修改本檢查器，PR diff 可見；
+# Astra 可用自己的原始報告跑 sync_auditor_snapshot.py 重算 content_sha256 獨立核對。此機制不能取代 Auditor 控制的錨點（見 FINAL_CLOSURE_REPORT 的殘餘風險）。
+PINNED_AUDITOR_REPORTS = {
+ "ASTRA-INTERIM-20261106": {
+  "source_sha256": "84137ee9ef477bc8c51f20af50d849754e5b47078ccef380b29801f5248402ab",
+  "content_sha256": "8c2f5089cc2967fa84f71a2c3db2a5088b27c7c9aa9438b1f1291bccab3728e8"
+ },
+ "ASTRA-CONTINUATION-V4-20261107": {
+  "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b",
+  "content_sha256": "bed12085fe01415085e4789d7ce8900b5fe6bc7daa9929a92c0217328bba1e0c"
+ }
+}
+V51_STATUS_MAP = {'FIXED': 'FIXED_PENDING_REAUDIT', 'MEASURED': 'FIXED_PENDING_REAUDIT', 'FAILED': 'OPEN', 'NOT_RUN': 'OPEN', 'WORK_ORDER_ISSUED': 'WORK_ORDER_ISSUED', 'BLOCKED_DECISION': 'BLOCKED_DECISION', 'PARTIAL': 'OPEN'}
 SHA_ROLES = ['product_sha', 'ci_evidence_sha', 'documentation_head_sha', 'pr_head_sha', 'base_sha', 'auditor_last_reviewed_sha', 'artifact_source_sha']
 STATE_KEYS = ['schema_version', 'repo', 'pr_stack', 'shas', 'evidence_sources', 'auditor_reports', 'open_critical_high', 'open_unrated_historical', 'closure_counts',
               'builder_status', 'auditor_status', 'ci_status', 'release_gates', 'human_decisions', 'evidence_fingerprint', 'last_updated_utc', 'next_safe_action']
@@ -50,6 +63,16 @@ snapshot = json.loads((COORD / 'AUDITOR_SNAPSHOT.json').read_text())
 report_hashes = {r['source_sha256'] for r in snapshot.get('reports', []) if re.match(r'^[0-9a-f]{64}$', str(r.get('source_sha256', '')))}
 if len(report_hashes) != len(snapshot.get('reports', [])):
     problems.append('AUDITOR_SNAPSHOT 有報告缺少有效 source_sha256')
+actual_reports = {r.get('report_id'): r for r in snapshot.get('reports', [])}
+if set(actual_reports) != set(PINNED_AUDITOR_REPORTS) or len(actual_reports) != len(snapshot.get('reports', [])):
+    problems.append(f'AUDITOR_SNAPSHOT 報告集合 {sorted(map(str, actual_reports))} 與釘選 {sorted(PINNED_AUDITOR_REPORTS)} 不符（新增／刪除報告需同步修改檢查器）')
+for report_id, pin in PINNED_AUDITOR_REPORTS.items():
+    report = actual_reports.get(report_id)
+    if report is None:
+        continue
+    content = hashlib.sha256(json.dumps(report, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    if report.get('source_sha256') != pin['source_sha256'] or content != pin['content_sha256']:
+        problems.append(f'AUDITOR_SNAPSHOT 報告 {report_id} 的抄錄內容或來源雜湊被改動（content {content[:12]}≠釘選 {pin["content_sha256"][:12]}）')
 
 for key in STATE_KEYS:
     if key not in state:
@@ -137,7 +160,14 @@ for report in sorted(snapshot.get('reports', []), key=lambda r: r['generated_at'
             status = item.get('auditor_status') or item.get('current_verdict') or (f"track_B {item.get('track_B_verdict')}（track_A {item.get('track_A_verdict')}）" if item.get('track_B_verdict') else None)
             derived_auditor[item['id']] = {'status': status, 'problem_state': item.get('problem_state'), 'reviewed_sha': item.get('reviewed_sha') or item.get('track_B_sha'),
                                            'severity': item.get('severity'), 'source_sha256': report['source_sha256']}
-registry_severity = {f['id']: f.get('severity') for f in json.loads((ROOT / 'docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json').read_text())['findings']}
+v52_registry = json.loads((ROOT / 'docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json').read_text())['findings']
+registry_severity = {f['id']: f.get('severity') for f in v52_registry}
+# OCR-V531-D03：builder_status 必須等於 registry 的狀態（V5.1 依固定對照）
+registry_status = {f['id']: f['status'] for f in v52_registry}
+registry_status.update({f['id']: V51_STATUS_MAP.get(f['status'], 'OPEN') for f in json.loads((ROOT / 'docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json').read_text())['findings']})
+state_reports = [(r.get('report_id'), r.get('source_sha256')) for r in state.get('auditor_reports', [])]
+if sorted(state_reports) != sorted((r.get('report_id'), r.get('source_sha256')) for r in snapshot.get('reports', [])):
+    problems.append('STATE.auditor_reports 與 AUDITOR_SNAPSHOT 報告清單不一致')
 
 
 def auditor_pass(record):
@@ -176,6 +206,9 @@ for finding in ledger['findings']:
     if finding.get('closure_class') == 'AUDITOR_VERIFIED' and not (truth and auditor_pass(truth)):
         problems.append(f'{fid}: AUDITOR_VERIFIED 但 AUDITOR_SNAPSHOT 的最新判定不是 PASS')
     builder_status = finding.get('builder_status')
+    want_status = registry_status.get(fid, 'FIXED_PENDING_REAUDIT' if fid not in registry_status else None)
+    if builder_status != want_status:
+        problems.append(f'{fid}: builder_status {builder_status} 與 registry 狀態 {want_status} 不符')
     expected_class = {'BLOCKED_DECISION': 'HUMAN_DECISION_BLOCKED', 'HUMAN_DECISION_REQUIRED': 'HUMAN_DECISION_BLOCKED', 'WORK_ORDER_ISSUED': 'NOT_IMPLEMENTED', 'OPEN': 'NOT_IMPLEMENTED'}.get(builder_status)
     if expected_class and finding.get('closure_class') != expected_class:
         problems.append(f'{fid}: builder_status {builder_status} 應對應 closure_class {expected_class}')
