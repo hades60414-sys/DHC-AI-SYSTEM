@@ -29,7 +29,9 @@
    ],
    "depends_on_exclude": [
     "web-ui/server/*/tests/*"
-   ]
+   ],
+   "pending_rerun": true,
+   "pending_reason": "OCR-V531-05：E2E driver／harness 加入攔截命中與 driver 退出碼檢查，需在新 SHA 重跑"
   },
   "negative_gate_evidence": {
    "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
@@ -38,7 +40,7 @@
    "attempt": 1,
    "expected_conclusion": "failure（負向 job 預期失敗；collect success＋all_match）",
    "pending_rerun": true,
-   "pending_reason": "V5.3.1 強化 collector（785485e）後需在新 SHA 重跑",
+   "pending_reason": "V5.3.1 強化 collector；cb19d46 已重跑（run 42347191391），待最終 SHA 一併記錄",
    "depends_on": [
     ".github/workflows/negative-gate-evidence.yml",
     "web-ui/scripts/enterprise/ci/negative_gate_case.py",

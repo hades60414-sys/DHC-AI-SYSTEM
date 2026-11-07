@@ -21,7 +21,7 @@
   {
    "pr": 14,
    "branch": "fix/ai-office-v53-closure",
-   "head": "d23bddd21df40cc2b0cefa0fd4fe6e41de483b3b",
+   "head": "e71725b356ac1291e31c295f34dd64f35675230f",
    "head_note": "產生本檔時的 HEAD；本檔所在的 commit 在其後"
   }
  ],
@@ -34,8 +34,8 @@
    "image_build": "45713dce4a272cd9303478ffe56ac8c732eacd23",
    "repo_coverage": "45713dce4a272cd9303478ffe56ac8c732eacd23"
   },
-  "documentation_head_sha": "d23bddd21df40cc2b0cefa0fd4fe6e41de483b3b",
-  "pr_head_sha": "d23bddd21df40cc2b0cefa0fd4fe6e41de483b3b",
+  "documentation_head_sha": "e71725b356ac1291e31c295f34dd64f35675230f",
+  "pr_head_sha": "e71725b356ac1291e31c295f34dd64f35675230f",
   "base_sha": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
   "auditor_last_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
   "artifact_source_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23"
@@ -101,7 +101,13 @@
   "ASTRA-015",
   "ASTRA-016",
   "ASTRA-017",
-  "ASTRA-018"
+  "ASTRA-018",
+  "BD-BLOB",
+  "BD-FLAKE",
+  "BD-PERF",
+  "BD-REJECTED",
+  "BD-REVOKE",
+  "BD-UPGRADE"
  ],
  "closure_counts": {
   "AUDITOR_VERIFIED": 1,
@@ -130,8 +136,8 @@
   "IP-AGPL-SDK-DAS": "PENDING",
   "SOW-PRICING-EXPIRY-MAINTENANCE": "PENDING"
  },
- "evidence_fingerprint": "5fd9394f5931fcc1c49bcf367f09e3a1fd8fe78066edc32c66cc900cef51034d",
- "last_updated_utc": "2026-11-07T06:28:34Z",
+ "evidence_fingerprint": "567ad888e383306cd7e8fca462352a4587bdbf46501ad47899f34fd5cce63314",
+ "last_updated_utc": "2026-11-07T06:40:27Z",
  "next_safe_action": "Astra 以唯讀方式複驗 product_sha 與 EVIDENCE_SOURCES 列出的 CI 證據；Builder 在收到 Auditor 收據前不改判、不推 #10～#13",
  "update_triggers": [
   "PR push",
