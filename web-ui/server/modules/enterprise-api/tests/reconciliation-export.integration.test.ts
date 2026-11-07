@@ -162,6 +162,32 @@ describe('V5 ACC-MATCH-v1 對帳匯出（實際 PostgreSQL、完整 HTTP 路由�
     assert.equal(await exportsOf(reconciliation.id), before + 1);
   });
 
+  test('V5.3 golden（跨側同列ID，人工手算）：真 PG 儲存結果與 JSON／CSV／Markdown 三種匯出一致', async () => {
+    const golden = path.join(FIXTURE, 'golden');
+    const expected = JSON.parse(readFileSync(path.join(golden, '跨側同列ID_預期.json'), 'utf8'));
+    const ledger = await upload('clerk', '金樣內部帳', readFileSync(path.join(golden, '跨側同列ID_內部帳.csv')));
+    const receipts = await upload('clerk', '金樣收款明細', readFileSync(path.join(golden, '跨側同列ID_收款明細.csv')));
+    const response = await call('POST', '/api/enterprise/v1/reconciliations', 'clerk', { ledger: { documentId: ledger.documentId, versionNumber: ledger.versionNumber },
+      receipts: { documentId: receipts.documentId, versionNumber: receipts.versionNumber }, ...expected.period });
+    assert.equal(response.status, 201, JSON.stringify(response.data));
+    const stored = (await call('GET', `/api/enterprise/v1/reconciliations/${response.data.reconciliation.id}`, 'clerk')).data;
+    const pick = (item: any) => ({ documentId: item.documentId, category: item.category, ledgerRowIds: item.ledgerRowIds, receiptRowIds: item.receiptRowIds, differenceMinor: item.differenceMinor, isolated: item.isolated });
+    assert.deepEqual(stored.result.cases.map(pick), expected.cases);
+    const strip = (rows: any[]) => rows.map(({ derivation: _d, ...rest }) => rest);
+    assert.deepEqual(stored.result.totals, strip(expected.totals));
+    for (const [key, value] of Object.entries(expected.counts)) assert.equal(stored.result.counts[key], value, key);
+    const json = (await download('clerk', stored.id, 'json')).json();
+    assert.deepEqual([json.totals, json.cases.map(pick)], [strip(expected.totals), expected.cases]);
+    const csvText = (await download('clerk', stored.id, 'csv')).body.toString('utf8').replace(/^\uFEFF/, '');
+    const [header, ...rows] = csvText.trim().split('\r\n').map(line => [...line.matchAll(/"((?:[^"]|"")*)"/g)].map(match => match[1].replace(/""/g, '"')));
+    assert.equal(rows.length, expected.cases.length);
+    const at = (name: string) => header.indexOf(name);
+    assert.deepEqual(rows.map(row => [row[at('單據ID')], row[at('分類代碼')], row[at('差額_最小單位')], row[at('隔離')]]),
+      expected.cases.map((item: any) => [item.documentId, item.category, item.differenceMinor ?? '', item.isolated ? 'Y' : 'N']));
+    const md = (await download('clerk', stored.id, 'markdown')).body.toString('utf8');
+    for (const total of expected.totals) assert.match(md, new RegExp(`\\| ${total.currency} \\| ${total.ledgerSourceMinor} \\| ${total.receiptSourceMinor} \\| ${total.isolatedLedgerMinor} \\| ${total.isolatedReceiptMinor} \\| ${total.exactMatchMinor} \\|`));
+  });
+
   test('訂閱到期：匯出屬資料取得，仍可執行', async () => {
     await admin.query("UPDATE enterprise.subscriptions SET status='expired' WHERE organization_id=$1", [org.acc]);
     try {

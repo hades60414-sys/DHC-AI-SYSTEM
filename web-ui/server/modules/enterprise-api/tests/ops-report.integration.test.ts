@@ -286,6 +286,27 @@ describe('V5 OPS-REPORT-v1 營運週報（實際 PostgreSQL、完整 HTTP 路由
     assert.equal((await post('2026-W37')).status, 201);
   });
 
+  test('V5.3 WP3：用戶端在計算期間中止請求 → 伺服器不寫入（無結果列、無稽核），之後同請求可正常建立', async () => {
+    const controller = new AbortController();
+    const before = await count('SELECT count(*)::int AS n FROM enterprise.ops_reports');
+    const auditBefore = await count("SELECT count(*)::int AS n FROM enterprise.audit_events WHERE resource_type='ops_report'");
+    beforeCommit = async () => {
+      controller.abort();
+      await new Promise(resolve => setTimeout(resolve, 300)); // 讓伺服器收到連線關閉
+    };
+    try {
+      await assert.rejects(fetch(`${base}/api/enterprise/v1/ops-reports`, { method: 'POST', signal: controller.signal,
+        headers: { authorization: `Bearer ${token.clerk}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ sources: [ref(docs.ops)], week: '2026-W35', datasets: ['BASE'] }) }), /abort/i);
+      await new Promise(resolve => setTimeout(resolve, 500));
+    } finally {
+      beforeCommit = async () => undefined;
+    }
+    assert.equal(await count('SELECT count(*)::int AS n FROM enterprise.ops_reports'), before, '中止後沒有寫入結果');
+    assert.equal(await count("SELECT count(*)::int AS n FROM enterprise.audit_events WHERE resource_type='ops_report'"), auditBefore);
+    assert.equal((await report('clerk', [docs.ops], '2026-W35')).status, 201, '中止不留下半成品，之後可正常建立');
+  });
+
   test('訂閱到期：建立週報 402；讀取既有結果保留', async () => {
     await admin.query("UPDATE enterprise.subscriptions SET status='expired' WHERE organization_id=$1", [org.ops]);
     try {

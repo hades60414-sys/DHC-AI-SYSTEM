@@ -1,0 +1,18 @@
+{
+ "fixture": "跨側同列ID（ASTRA-ROLL-003 golden）",
+ "how_computed": "人工依 ACC-MATCH-v1 規格手算（不是由引擎輸出回填）：單據ID重複→整組隔離；差額＝收款合計−內部帳合計；隔離合計只計同側且屬隔離案件的列。",
+ "period": {"periodStart": "2026-10-01", "periodEnd": "2026-10-31"},
+ "cases": [
+  {"documentId": "D1", "category": "EXACT_MATCH", "ledgerRowIds": ["L1"], "receiptRowIds": ["R1"], "differenceMinor": "0", "isolated": false},
+  {"documentId": "D2", "category": "DUPLICATE_DOCUMENT_ID", "ledgerRowIds": ["L2", "L3"], "receiptRowIds": ["L1"], "differenceMinor": null, "isolated": true},
+  {"documentId": "D3", "category": "AMOUNT_DIFFERENCE", "ledgerRowIds": ["L4"], "receiptRowIds": ["L4"], "differenceMinor": "-500", "isolated": false}
+ ],
+ "counts": {"cases": 3, "ledgerRows": 4, "receiptRows": 3, "EXACT_MATCH": 1, "AMOUNT_DIFFERENCE": 1, "DUPLICATE_DOCUMENT_ID": 1, "CURRENCY_MISMATCH": 0, "MISSING_RECEIPT": 0, "MISSING_INTERNAL": 0, "DUPLICATE_RECEIPT_ID": 0, "UNSUPPORTED": 0},
+ "totals": [
+  {"currency": "TWD", "ledgerSourceMinor": "103000", "receiptSourceMinor": "103000", "isolatedLedgerMinor": "3000", "isolatedReceiptMinor": "3000", "exactMatchMinor": "100000",
+   "derivation": "內部帳 100000+1000+2000；收款 100000+3000；隔離內部帳 L2+L3=1000+2000；隔離收款 收款L1=3000（不得把內部帳 L1 的 100000 算入）；完全匹配 D1=100000"},
+  {"currency": "USD", "ledgerSourceMinor": "5000", "receiptSourceMinor": "4500", "isolatedLedgerMinor": "0", "isolatedReceiptMinor": "0", "exactMatchMinor": "0",
+   "derivation": "D3 不隔離（無重複）；差額 4500−5000＝−500，不計入完全匹配"}
+ ],
+ "pre_fix_wrong_value": {"TWD.isolatedLedgerMinor": "103000", "reason": "V5.1 以單一 Set 混合兩側列ID，收款列「L1」使內部帳 L1 被當成隔離"}
+}
