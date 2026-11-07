@@ -24,7 +24,7 @@
 |---|---|---|
 | S0 | Checkpoint | DONE |
 | S1 | Collector 合成負向測試（不信任 `matches`） | DONE：RED 9/14 失敗→GREEN 14/14；真實 run 42343824459 原始 artifact 以強化 collector 重評 all_match |
-| S2 | ROLL-002 逐項核對（RED 審批情境 timeout 不算已重現） | TODO |
+| S2 | ROLL-002 逐項核對（RED 審批情境 timeout 不算已重現） | DONE：OFFICE_E2E_VERIFICATION.md |
 | S3 | 獨立 OCR（隔離上下文 Reviewer）或 OCR_INDEPENDENT_NOT_RUN | TODO |
 | S4 | STATE SHA 角色分離、PR #14、Auditor snapshot 補 CONTINUATION_V4、CI 檢查 SHA 不混用 | TODO |
 | S5 | 有界整改（只處理新確認 Critical／High） | TODO |
