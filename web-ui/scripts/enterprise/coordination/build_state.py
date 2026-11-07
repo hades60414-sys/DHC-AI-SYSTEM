@@ -149,7 +149,7 @@ def main():
         fid = f['id']
         builder = status_map.get(f['status'], 'OPEN')
         auditor = auditor_fields(fid)
-        ledger.append({'id': fid, 'registry': V51, 'severity': severity_v51.get(fid, 'LOW'), 'severity_source': 'builder', 'builder_status': builder, 'closure_class': closure(builder, auditor, f.get('commits', [])), **auditor,
+        ledger.append({'id': fid, 'registry': V51, 'severity': severity_v51.get(fid, 'UNRATED_IN_REGISTRY'), 'severity_source': 'builder_assigned' if fid in severity_v51 else 'none_in_registry', 'builder_status': builder, 'closure_class': closure(builder, auditor, f.get('commits', [])), **auditor,
                        
                        'root_cause': f.get('root_cause') or f['title'], 'fix_commit': ', '.join(f.get('commits', [])) or None, 'regression': [e for e in f.get('evidence', []) if 'test' in e],
                        'verification_sha': v51['product_source_sha'] if builder == 'FIXED_PENDING_REAUDIT' else None, 'evidence': f.get('evidence', []),
@@ -169,7 +169,7 @@ def main():
     ledger_text = json.dumps(ledger_doc, ensure_ascii=False, indent=1) + '\n'
     (COORD / 'FINDING_LEDGER.json').write_text(ledger_text)
     high = sorted(f['id'] for f in ledger if f['severity'] in ('CRITICAL', 'HIGH') and f['closure_class'] != 'AUDITOR_VERIFIED')
-    unrated_open = sorted(f['id'] for f in ledger if f['severity'] == 'UNRATED_IN_SNAPSHOT' and f['closure_class'] != 'AUDITOR_VERIFIED')
+    unrated_open = sorted(f['id'] for f in ledger if f['severity'] in ('UNRATED_IN_SNAPSHOT', 'UNRATED_IN_REGISTRY') and f['closure_class'] != 'AUDITOR_VERIFIED')
     counts = {c: sum(1 for f in ledger if f['closure_class'] == c) for c in CLOSURE_CLASSES}
     state = {
         'schema_version': 2, 'repo': 'hades60414-sys/DHC-AI-SYSTEM',

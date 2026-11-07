@@ -39,6 +39,27 @@ CASES = {
     'pr14_missing_from_stack': (True, lambda s, l, e: s.update(pr_stack=[p for p in s['pr_stack'] if p.get('pr') != 14])),
     'builder_claims_auditor_status_verified': (True, lambda s, l, e: s.update(auditor_status='AUDIT_VERIFIED')),
 }
+def forge_pass(s, l, e):
+    """OCR-V531-01：把 Auditor 判定 FAIL 的 HIGH 偽造成 PASS，並同步 STATE 的推導欄位（完整偽造）。"""
+    item = first(l, id='ASTRA-ROLL-001')
+    item.update(auditor_status='PASS', auditor_problem_state='AUDIT_VERIFIED', closure_class='AUDITOR_VERIFIED')
+    resync(s, l)
+
+
+def downgrade(s, l, e):
+    """OCR-V531-02：把 HIGH 降為 LOW 以移出 open_critical_high。"""
+    first(l, id='ASTRA-ROLL-002').update(severity='LOW')
+    resync(s, l)
+
+
+def resync(s, l):
+    s['open_critical_high'] = sorted(f['id'] for f in l['findings'] if f['severity'] in ('CRITICAL', 'HIGH') and f['closure_class'] != 'AUDITOR_VERIFIED')
+    classes = sorted({f['closure_class'] for f in l['findings']} | set(s['closure_counts']))
+    s['closure_counts'] = {c: sum(1 for f in l['findings'] if f['closure_class'] == c) for c in classes}
+
+
+CASES['forged_auditor_pass_full_resync'] = (False, forge_pass)
+CASES['severity_downgrade_full_resync'] = (False, downgrade)
 GIT_CASES = {
     # 證據 SHA 早於 E2E driver 的建立 → depends_on 在其後有變更 → 證據過期
     'evidence_older_than_its_test_code': lambda s, l, e: (e['evidence']['office_e2e_evidence'].update(sha=OLD_PR13), s['shas']['ci_evidence_sha'].update(office_e2e_evidence=OLD_PR13)),
@@ -89,5 +110,33 @@ elif '--require-git' in sys.argv:
     failures.append('git history unavailable')
 else:
     print('SKIP git 案例：沒有完整 git 歷史（CI 必帶 --require-git）')
+
+
+def clone_case(name, rel_path, edit, expect_fail):
+    """OCR-V531-03：在暫存 clone 中真的 commit 一個變更，確認 pr_head 之後的『非文件』變更（含 golden fixture）會被擋，純文件變更不會。"""
+    with tempfile.TemporaryDirectory() as tmp:
+        clone = Path(tmp) / 'repo'
+        repo_root = ROOT.parent
+        subprocess.run(['git', 'clone', '-q', '--no-hardlinks', str(repo_root), str(clone)], check=True)
+        subprocess.run(['git', '-C', str(clone), 'checkout', '-q', subprocess.run(['git', '-C', str(repo_root), 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()], check=True)
+        target = clone / rel_path
+        before = target.read_text()
+        target.write_text(edit(before))
+        assert target.read_text() != before, f'{name}: 編輯沒有改到內容'
+        env = {'GIT_AUTHOR_NAME': 't', 'GIT_AUTHOR_EMAIL': 't@example.invalid', 'GIT_COMMITTER_NAME': 't', 'GIT_COMMITTER_EMAIL': 't@example.invalid', 'PATH': '/usr/bin:/bin:/usr/local/bin'}
+        subprocess.run(['git', '-C', str(clone), '-c', 'commit.gpgsign=false', 'commit', '-qam', name], check=True, env=env)
+        # 以「目前工作樹的檢查器」檢查 clone 的歷史與狀態檔
+        result = subprocess.run([sys.executable, '-B', str(CHECK), '--require-git', '--web-root', str(clone / 'web-ui')], capture_output=True, text=True)
+        ok = (result.returncode != 0) == expect_fail
+        print(f"{name}: exit={result.returncode} expect_fail={expect_fail} {result.stdout.strip()[:170]}")
+        return ok
+
+
+if git_available:
+    golden = 'web-ui/docs/enterprise/scenarios/會計對帳/golden/跨側同列ID_預期.json'
+    if not clone_case('golden_fixture_changed_after_pr_head', golden, lambda t: t.replace('"isolatedLedgerMinor": "3000"', '"isolatedLedgerMinor": "103000"', 1), True):
+        failures.append('golden_fixture_changed_after_pr_head')
+    if not clone_case('docs_only_change_after_pr_head_positive', 'web-ui/docs/enterprise/coordination/CHANGELOG.md', lambda t: t + '\n- test\n', False):
+        failures.append('docs_only_change_after_pr_head_positive')
 print('OK' if not failures else f'FAILED: {failures}')
 sys.exit(1 if failures else 0)

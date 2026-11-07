@@ -98,6 +98,9 @@ try:
     if args.expect == 'green':
         check('瀏覽器：沒有任何 violation（所有情境）', browser['status'] == 'PASS' and not browser['violations'])
         check('瀏覽器：每個情境都完整執行（沒有情境錯誤）', not browser.get('scenarioErrors'))
+        check('瀏覽器：每個負向情境的攔截都實際命中（未就緒視窗確實存在）', all(s.get('interceptedGets', 0) > 0 for s in browser['scenarios'] if 'interceptedGets' in s)
+              and sum(1 for s in browser['scenarios'] if 'interceptedGets' in s) == 4)
+        check('driver 退出碼 0', driver.returncode == 0)
         check('PG：B 沒有任何一版內容等於 A', not any(item['equals_A_body'] for item in db['draftB_revisions']))
         check('PG：B 只有第 1 版＋合法修改的第 2 版', [item['revision'] for item in db['draftB_revisions']] == [1, 2])
         check('PG：B 的 draft.revised 稽核恰 1 筆、draft.submitted 0 筆（與 revision 一致）', db['audit_draft.revised_B'] == 1 and db['audit_draft.submitted_B'] == 0)

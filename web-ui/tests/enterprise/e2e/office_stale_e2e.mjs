@@ -121,8 +121,10 @@ async function draftScenario(page, seeded, name, fromKey, toKey, mode) {
   if (!(await textareaValues(page)).includes(fromBody)) throw new Error(`${name}: 來源草稿內容未載入`);
   let release;
   const gate = new Promise(resolve => { release = resolve; });
+  record.interceptedGets = 0;
   const handler = async route => {
     if (route.request().method() !== 'GET') return route.continue();
+    record.interceptedGets += 1;
     if (mode === '503') return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'ENTERPRISE_INTERNAL', message: '暫時無法使用' } }) });
     await gate;
     return route.continue();
@@ -142,6 +144,8 @@ async function draftScenario(page, seeded, name, fromKey, toKey, mode) {
   release?.();
   await sleep(500);
   await page.unrouteAll({ behavior: 'ignoreErrors' });
+  // OCR-V531-05：攔截必須真的命中，否則情境沒有製造出「未就緒」視窗（GREEN 不可因此空轉通過）
+  if (record.interceptedGets === 0) violations.push({ scenario: name, code: 'ROUTE_NOT_HIT' });
   scenarios.push(record);
 }
 
@@ -150,8 +154,12 @@ async function approvalScenario(approverPage, seeded) {
   await approverPage.getByRole('button', { name: '審批', exact: true }).click();
   await approverPage.getByRole('button', { name: /審核C/ }).first().click();
   await approverPage.getByTestId('approval-revision').waitFor();
-  await approverPage.route(resourcePath('approvals', ids.approvalD), route => (route.request().method() !== 'GET' ? route.continue()
-    : route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'ENTERPRISE_INTERNAL' } }) })));
+  record.interceptedGets = 0;
+  await approverPage.route(resourcePath('approvals', ids.approvalD), route => {
+    if (route.request().method() !== 'GET') return route.continue();
+    record.interceptedGets += 1;
+    return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'ENTERPRISE_INTERNAL' } }) });
+  });
   const before = writes.length;
   await approverPage.getByRole('button', { name: /審核D/ }).first().click();
   await sleep(1500);
@@ -161,6 +169,7 @@ async function approvalScenario(approverPage, seeded) {
   record.decisionsWhileNotReady = decisions;
   for (const item of decisions) violations.push({ scenario: record.name, code: 'DECISION_WHILE_NOT_READY', url: item.url, body: item.body });
   await approverPage.unrouteAll({ behavior: 'ignoreErrors' });
+  if (record.interceptedGets === 0) violations.push({ scenario: record.name, code: 'ROUTE_NOT_HIT' });
   scenarios.push(record);
 
   // 正向：D 正常載入後核准，送出的 id／版號／hash 必須是 D 自己的

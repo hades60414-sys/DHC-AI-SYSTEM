@@ -18,16 +18,22 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[3]
 parser = argparse.ArgumentParser()
 parser.add_argument('--require-git', action='store_true')
-parser.add_argument('--coord', type=Path, default=ROOT / 'docs/enterprise/coordination')
+parser.add_argument('--web-root', type=Path, default=Path(__file__).resolve().parents[3], help='web-ui 目錄（測試用：指向暫存 clone）')
+parser.add_argument('--coord', type=Path)
 args = parser.parse_args()
+ROOT = args.web_root.resolve()
+args.coord = args.coord or ROOT / 'docs/enterprise/coordination'
 COORD = args.coord
 SHA = re.compile(r'^[0-9a-f]{40}$')
 BUILDER = {'FIXED_PENDING_REAUDIT', 'WORK_ORDER_ISSUED', 'HUMAN_DECISION_REQUIRED', 'BLOCKED_DECISION', 'OPEN', 'ACCEPTED', 'DEFERRED'}
 CLOSURE = {'AUDITOR_VERIFIED', 'BUILDER_FIXED_PENDING_REAUDIT', 'NOT_IMPLEMENTED', 'HUMAN_DECISION_BLOCKED', 'EVIDENCE_MISSING', 'RETEST_REQUIRED'}
-SEVERITY = {'CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'UNRATED_IN_SNAPSHOT'}
+SEVERITY = {'CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'UNRATED_IN_SNAPSHOT', 'UNRATED_IN_REGISTRY'}
+UNRATED = ('UNRATED_IN_SNAPSHOT', 'UNRATED_IN_REGISTRY')
+# V5.1 registry 沒有嚴重度欄位；以下為 Builder 指派的值，釘在檢查器中（與 build_state.py 必須同時修改才能變更）
+BUILDER_ASSIGNED_SEVERITY = {'RG-V5-01': 'HIGH', 'RG-V5-02': 'MEDIUM', 'RG-V5-03': 'LOW', 'RG-V5-04': 'MEDIUM', 'RG-V5-05': 'LOW', 'RG-V5-06': 'HIGH', 'RG-V5-07': 'MEDIUM'}
+FIXTURES = ['web-ui/docs/enterprise/scenarios/*']  # golden／測試資料：永遠不視為「文件」
 SHA_ROLES = ['product_sha', 'ci_evidence_sha', 'documentation_head_sha', 'pr_head_sha', 'base_sha', 'auditor_last_reviewed_sha', 'artifact_source_sha']
 STATE_KEYS = ['schema_version', 'repo', 'pr_stack', 'shas', 'evidence_sources', 'auditor_reports', 'open_critical_high', 'open_unrated_historical', 'closure_counts',
               'builder_status', 'auditor_status', 'ci_status', 'release_gates', 'human_decisions', 'evidence_fingerprint', 'last_updated_utc', 'next_safe_action']
@@ -90,7 +96,8 @@ def changed(old, patterns, exclude=()):
     if result.returncode != 0:
         problems.append(f'git diff {old[:7]}..HEAD 失敗：{result.stderr.strip()[:120]}')
         return []
-    return [p for p in result.stdout.split() if any(fnmatch.fnmatch(p, g) or p == g.rstrip('*').rstrip('/') for g in patterns) and not any(fnmatch.fnmatch(p, e) for e in exclude)]
+    return [p for p in result.stdout.split() if any(fnmatch.fnmatch(p, g) or p == g.rstrip('*').rstrip('/') for g in patterns)
+            and (any(fnmatch.fnmatch(p, f) for f in FIXTURES) or not any(fnmatch.fnmatch(p, e) for e in exclude))]
 
 
 git_checked = False
@@ -117,9 +124,26 @@ if inside and args.require_git:
         if git('merge-base', '--is-ancestor', head, 'HEAD').returncode != 0:
             problems.append('pr_head_sha 不是 HEAD 的祖先')
         else:
-            after = [p for p in git('diff', '--name-only', f'{head}..HEAD').stdout.split() if not p.startswith('web-ui/docs/enterprise/')]
+            after = [p for p in git('diff', '--name-only', f'{head}..HEAD').stdout.split()
+                     if not p.startswith('web-ui/docs/enterprise/') or any(fnmatch.fnmatch(p, f) for f in FIXTURES)]
             if after:
                 problems.append(f'pr_head_sha 之後有非文件變更（文件版本與證據 SHA 混用）：{after[:5]}')
+
+# OCR-V531-01：Auditor 判定由 AUDITOR_SNAPSHOT 重新推導（不信任 ledger 自述）
+derived_auditor = {}
+for report in sorted(snapshot.get('reports', []), key=lambda r: r['generated_at']):
+    for group in ('findings', 'builder_tracker_items', 'original_18'):
+        for item in report.get(group, []):
+            status = item.get('auditor_status') or item.get('current_verdict') or (f"track_B {item.get('track_B_verdict')}（track_A {item.get('track_A_verdict')}）" if item.get('track_B_verdict') else None)
+            derived_auditor[item['id']] = {'status': status, 'problem_state': item.get('problem_state'), 'reviewed_sha': item.get('reviewed_sha') or item.get('track_B_sha'),
+                                           'severity': item.get('severity'), 'source_sha256': report['source_sha256']}
+registry_severity = {f['id']: f.get('severity') for f in json.loads((ROOT / 'docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json').read_text())['findings']}
+
+
+def auditor_pass(record):
+    status, problem = str(record.get('status')), str(record.get('problem_state'))
+    return problem == 'AUDIT_VERIFIED' or status.startswith('PASS') or 'track_B PASS' in status
+
 
 registries, seen = {}, set()
 for finding in ledger['findings']:
@@ -139,10 +163,30 @@ for finding in ledger['findings']:
     receipt = finding.get('auditor_receipt') or {}
     if finding.get('auditor_status') not in (None, 'NOT_YET_REVIEWED') and receipt.get('source_sha256') not in report_hashes:
         problems.append(f'{fid}: Auditor 判定的來源雜湊不在 AUDITOR_SNAPSHOT 報告中')
-    if finding.get('closure_class') == 'AUDITOR_VERIFIED':
-        status, problem = str(finding.get('auditor_status')), str(finding.get('auditor_problem_state'))
-        if receipt.get('source_sha256') not in report_hashes or not (problem == 'AUDIT_VERIFIED' or status.startswith('PASS') or 'track_B PASS' in status):
-            problems.append(f'{fid}: AUDITOR_VERIFIED 沒有可校驗的 Auditor PASS 收據')
+    truth = derived_auditor.get(fid)
+    if truth is None:
+        if finding.get('auditor_status') != 'NOT_YET_REVIEWED':
+            problems.append(f'{fid}: AUDITOR_SNAPSHOT 沒有此 ID，auditor_status 只能是 NOT_YET_REVIEWED')
+    else:
+        for key, value in (('auditor_status', truth['status']), ('auditor_problem_state', truth['problem_state']), ('auditor_reviewed_sha', truth['reviewed_sha'])):
+            if finding.get(key) != value:
+                problems.append(f'{fid}: {key}＝{finding.get(key)!r} 與 AUDITOR_SNAPSHOT 最新報告 {value!r} 不符（不得改判）')
+        if receipt.get('source_sha256') != truth['source_sha256']:
+            problems.append(f'{fid}: auditor_receipt 不是最新含此 ID 的 Auditor 報告')
+    if finding.get('closure_class') == 'AUDITOR_VERIFIED' and not (truth and auditor_pass(truth)):
+        problems.append(f'{fid}: AUDITOR_VERIFIED 但 AUDITOR_SNAPSHOT 的最新判定不是 PASS')
+    builder_status = finding.get('builder_status')
+    expected_class = {'BLOCKED_DECISION': 'HUMAN_DECISION_BLOCKED', 'HUMAN_DECISION_REQUIRED': 'HUMAN_DECISION_BLOCKED', 'WORK_ORDER_ISSUED': 'NOT_IMPLEMENTED', 'OPEN': 'NOT_IMPLEMENTED'}.get(builder_status)
+    if expected_class and finding.get('closure_class') != expected_class:
+        problems.append(f'{fid}: builder_status {builder_status} 應對應 closure_class {expected_class}')
+    # OCR-V531-02：嚴重度以 snapshot／registry／釘選值為準
+    want = (truth or {}).get('severity') or registry_severity.get(fid) or BUILDER_ASSIGNED_SEVERITY.get(fid)
+    if str(finding.get('registry', '')).endswith('（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）'):
+        want = 'UNRATED_IN_SNAPSHOT'
+    if want is None:
+        want = 'UNRATED_IN_REGISTRY'
+    if finding.get('severity') != want:
+        problems.append(f"{fid}: severity {finding.get('severity')} 與來源 {want} 不符")
     if finding.get('builder_status') == 'FIXED_PENDING_REAUDIT' and not SHA.match(str(finding.get('verification_sha') or '')):
         problems.append(f'{fid}: FIXED_PENDING_REAUDIT 需要 verification_sha')
     registry = str(finding.get('registry', '')).split('#')[0]
@@ -159,7 +203,7 @@ for finding in ledger['findings']:
 derived = sorted(f['id'] for f in ledger['findings'] if f['severity'] in ('CRITICAL', 'HIGH') and f.get('closure_class') != 'AUDITOR_VERIFIED')
 if sorted(state.get('open_critical_high', [])) != derived:
     problems.append(f'STATE.open_critical_high 與 ledger 推導不一致：{derived}')
-unrated = sorted(f['id'] for f in ledger['findings'] if f['severity'] == 'UNRATED_IN_SNAPSHOT' and f.get('closure_class') != 'AUDITOR_VERIFIED')
+unrated = sorted(f['id'] for f in ledger['findings'] if f['severity'] in UNRATED and f.get('closure_class') != 'AUDITOR_VERIFIED')
 if sorted(state.get('open_unrated_historical', [])) != unrated:
     problems.append('STATE.open_unrated_historical 與 ledger 推導不一致')
 counts = {c: sum(1 for f in ledger['findings'] if f.get('closure_class') == c) for c in sorted(CLOSURE)}
