@@ -25,9 +25,9 @@
 | S0 | Checkpoint | DONE |
 | S1 | Collector 合成負向測試（不信任 `matches`） | DONE：RED 9/14 失敗→GREEN 14/14；真實 run 42343824459 原始 artifact 以強化 collector 重評 all_match |
 | S2 | ROLL-002 逐項核對（RED 審批情境 timeout 不算已重現） | DONE：OFFICE_E2E_VERIFICATION.md |
-| S3 | 獨立 OCR（隔離上下文 Reviewer）或 OCR_INDEPENDENT_NOT_RUN | TODO |
+| S3 | 獨立 OCR（隔離上下文 Reviewer）或 OCR_INDEPENDENT_NOT_RUN | DONE：601dbb3..cb19d46，10 findings（1 High）
 | S4 | STATE SHA 角色分離、PR #14、Auditor snapshot 補 CONTINUATION_V4、CI 檢查 SHA 不混用 | DONE：d23bddd（程式）＋本 docs commit；closure：Auditor 驗證 1／待複驗 12／未實作 4／人類 5／缺證據 2／需重測 27 |
-| S5 | 有界整改（只處理新確認 Critical／High） | TODO |
+| S5 | 有界整改（只處理新確認 Critical／High） | DONE：OCR-V531-01 High＋02／03／05／09 修正（e71725b）；04／06／10 記錄不改 |
 | S6 | FINAL_CLOSURE_REPORT＋交接文件＋SHA256SUMS＋最終 HEAD CI | TODO |
 
 ## 尚未提交的修改
