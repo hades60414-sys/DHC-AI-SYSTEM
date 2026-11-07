@@ -1,0 +1,77 @@
+# V5.3 WP2：CI 閘門的跨層負向證據（ASTRA-ROLL-001／008／009）。只由 ci-evidence/** 分支 push 或手動觸發，不是 PR 必要檢查、不阻塞主驗證。
+# 每個案例 job 以與正式 CI 相同的 shell: bash（pipefail）＋gate.sh 執行，**不使用 continue-on-error**：負向案例的 job 預期 failure。
+# collect job 以唯讀 actions 權限讀回本次 run 每個 job 的 conclusion 與 step outcome，對照預期後上傳證據；整個 workflow 預期 conclusion＝failure。
+name: negative-gate-evidence
+on:
+  push:
+    branches: ['ci-evidence/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+defaults:
+  run:
+    shell: bash
+    working-directory: web-ui
+jobs:
+  case:
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [positive_control, tool_nonzero_output_all_pass, comparator_nonzero_new_fail, wrong_sha256, new_skip, new_todo, missing_output, truncated_report, frontend_exit1_all_pass, build_failure, smoke_failure]
+    name: case-${{ matrix.case }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+        if: matrix.case == 'build_failure'
+      - name: 產生案例輸入與閘門指令
+        id: prepare
+        run: |
+          mkdir -p ../ci-out
+          cmd=$(python3 -B scripts/enterprise/ci/negative_gate_case.py "${{ matrix.case }}" "$RUNNER_TEMP/case")
+          printf '%s\n' "$cmd" | tee ../ci-out/command.txt
+          printf 'cmd<<EOF\n%s\nEOF\n' "$cmd" >> "$GITHUB_OUTPUT"
+      - name: gate（與正式 CI 相同的 shell 與閘門；不容錯）
+        id: gate
+        run: ${{ steps.prepare.outputs.cmd }}
+      - name: 保存退出碼收據
+        if: always()
+        run: |
+          cp "$RUNNER_TEMP"/case/*-exit.json ../ci-out/ 2>/dev/null || true
+          printf '{"case":"%s","gate_step_outcome":"%s"}\n' "${{ matrix.case }}" "${{ steps.gate.outcome }}" > ../ci-out/step-outcome.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: negative-case-${{ matrix.case }}
+          path: ci-out/
+          retention-days: 14
+  collect:
+    needs: case
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: negative-case-*
+          path: cases
+      - name: 讀回每個 job 的 conclusion 與 step outcome，對照預期
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p ../ci-out
+          gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}/jobs?per_page=100" > ../ci-out/jobs.json
+          python3 -B scripts/enterprise/ci/collect_negative_gate.py ../ci-out/jobs.json ../cases ../ci-out/NEGATIVE_GATE_EVIDENCE.json "${{ github.run_id }}" "${{ github.run_attempt }}" "${{ github.sha }}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: negative-gate-evidence
+          path: ci-out/
+          retention-days: 30

@@ -110,7 +110,7 @@ class Shell(unittest.TestCase):
 
     def test_every_workflow_job_declares_bash(self):
         import yaml
-        for name in ['enterprise-verify.yml', 'enterprise-image-build.yml', 'enterprise-delivery-smoke.yml', 'repo-coverage.yml']:
+        for name in ['enterprise-verify.yml', 'enterprise-image-build.yml', 'enterprise-delivery-smoke.yml', 'repo-coverage.yml', 'negative-gate-evidence.yml', 'office-e2e-evidence.yml']:
             workflow = yaml.safe_load((REPO_ROOT / '.github/workflows' / name).read_text())
             top = ((workflow.get('defaults') or {}).get('run') or {}).get('shell')
             for job_name, job in workflow['jobs'].items():
