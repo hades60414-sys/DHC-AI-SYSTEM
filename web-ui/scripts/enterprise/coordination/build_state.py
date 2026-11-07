@@ -4,13 +4,15 @@
 - docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json（ASTRA-ROLL-*、RG-001..008）
 - docs/enterprise/coordination/AUDITOR_SNAPSHOT.json（Astra 判定抄錄，含來源 SHA-256；Builder 不改判）
 - 本檔的 V53_UPDATES（V5.3 新增的證據）與 --ci 參數。
-用法：python3 -B scripts/enterprise/coordination/build_state.py --product-sha SHA --head-sha SHA --base-sha SHA [--ci name=run:attempt:artifact,...]
+用法：python3 -B scripts/enterprise/coordination/build_state.py --product-sha SHA --base-sha SHA --pr-head-sha <產生時 HEAD>（證據來源見 EVIDENCE_SOURCES.json）
 輸出：docs/enterprise/coordination/FINDING_LEDGER.json、STATE.json（evidence_fingerprint＝FINDING_LEDGER.json 的 SHA-256）。
 """
 import argparse
 import datetime
 import hashlib
 import json
+import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -18,6 +20,8 @@ COORD = ROOT / 'docs/enterprise/coordination'
 V51 = 'docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json'
 V52 = 'docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json'
 SNAP = 'docs/enterprise/coordination/AUDITOR_SNAPSHOT.json'
+SOURCES = 'docs/enterprise/coordination/EVIDENCE_SOURCES.json'
+CLOSURE_CLASSES = ['AUDITOR_VERIFIED', 'BUILDER_FIXED_PENDING_REAUDIT', 'NOT_IMPLEMENTED', 'HUMAN_DECISION_BLOCKED', 'EVIDENCE_MISSING', 'RETEST_REQUIRED']
 
 # Builder 對根因的簡述（Astra 原文在其報告中，這裡不改寫 Auditor 判定）
 ROOT_CAUSE = {
@@ -56,37 +60,86 @@ def load(path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--product-sha', required=True)
-    parser.add_argument('--head-sha', required=True)
     parser.add_argument('--base-sha', required=True)
-    parser.add_argument('--ci', default='')
+    parser.add_argument('--pr-head-sha', required=True, help='產生本檔時 PR #14 的 HEAD（本檔所在 commit 之前）')
     args = parser.parse_args()
-    ci = {}
-    for item in filter(None, args.ci.split(',')):
-        name, rest = item.split('=', 1)
-        run, attempt, artifact = (rest.split(':') + ['', ''])[:3]
-        ci[name] = {'run_id': run, 'attempt': attempt or None, 'artifact': artifact or None, 'url': f'https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/{run}'}
     v51, v52, snap = load(V51), load(V52), load(SNAP)
-    auditor = {f['id']: f for f in snap['findings']}
-    original = {f['id']: f for f in snap['original_18']}
-    provenance = {'auditor': snap['auditor'], 'source_file': snap['source_file'], 'source_sha256': snap['source_sha256'], 'generated_at': snap['generated_at'], 'report_kind': snap['report_kind']}
-    ledger = []
+    sources = load(SOURCES)
+    assert snap['schema_version'] == 2, 'AUDITOR_SNAPSHOT 必須是 schema 2（多報告）'
+    reports = sorted(snap['reports'], key=lambda r: r['generated_at'])
+
+    def receipt(report):
+        return {'report_id': report['report_id'], 'auditor': report['auditor'], 'report_kind': report['report_kind'], 'generated_at': report['generated_at'],
+                'source_file': report['source_file'], 'source_sha256': report['source_sha256']}
+
+    latest = {}
+    for report in reports:  # 後面的報告覆蓋前面的；歷史另存 auditor_history
+        for group in ('findings', 'builder_tracker_items', 'original_18'):
+            for item in report.get(group, []):
+                status = item.get('auditor_status') or item.get('current_verdict') or (f"track_B {item.get('track_B_verdict')}（track_A {item.get('track_A_verdict')}）" if item.get('track_B_verdict') else None)
+                latest.setdefault(item['id'], []).append({'status': status, 'problem_state': item.get('problem_state'), 'reviewed_sha': item.get('reviewed_sha') or item.get('track_B_sha'),
+                                                          'severity': item.get('severity'), 'fix_commit_in_DAS': item.get('fix_commit_in_DAS'), 'receipt': receipt(report)})
 
     def auditor_fields(fid):
-        if fid in auditor:
-            a = auditor[fid]
-            return {'auditor_status': a['auditor_status'], 'auditor_reviewed_sha': a['reviewed_sha'], 'auditor_receipt': provenance}
-        if fid in original:
-            o = original[fid]
-            return {'auditor_status': f"track_B {o['track_B_verdict']}（track_A {o['track_A_verdict']}）", 'auditor_reviewed_sha': o['track_B_sha'], 'auditor_receipt': provenance}
-        return {'auditor_status': 'NOT_YET_REVIEWED', 'auditor_reviewed_sha': None, 'auditor_receipt': None}
+        history = latest.get(fid)
+        if not history:
+            return {'auditor_status': 'NOT_YET_REVIEWED', 'auditor_problem_state': None, 'auditor_reviewed_sha': None, 'auditor_receipt': None, 'auditor_history': []}
+        last = history[-1]
+        return {'auditor_status': last['status'], 'auditor_problem_state': last['problem_state'], 'auditor_reviewed_sha': last['reviewed_sha'], 'auditor_receipt': last['receipt'],
+                'auditor_history': [{'report_id': h['receipt']['report_id'], 'status': h['status'], 'reviewed_sha': h['reviewed_sha']} for h in history]}
 
+    def after_review(commits, reviewed_sha):
+        """True＝修正 commit 不在 Auditor 審過的 SHA 之內（審核之後才修）。"""
+        if not commits or not reviewed_sha:
+            return None
+        for commit in commits:
+            if subprocess.run(['git', '-c', 'core.quotepath=false', 'merge-base', '--is-ancestor', commit, reviewed_sha], cwd=ROOT, capture_output=True).returncode != 0:
+                return True
+        return False
+
+    def touched_after(commits, reviewed_sha):
+        """Auditor PASS 之後，修正 commit 碰過的檔案是否又在 reviewed_sha..product_sha 被改（是＝PASS 不再直接適用）。"""
+        if not commits or not reviewed_sha:
+            return []
+        files = set()
+        for commit in commits:
+            files |= set(subprocess.run(['git', '-c', 'core.quotepath=false', 'show', '--name-only', '--format=', commit], cwd=ROOT, capture_output=True, text=True).stdout.split())
+        later = set(subprocess.run(['git', '-c', 'core.quotepath=false', 'diff', '--name-only', f'{reviewed_sha}..{args.product_sha}'], cwd=ROOT, capture_output=True, text=True).stdout.split())
+        return sorted(f for f in files & later if not f.startswith('web-ui/docs/'))
+
+    def closure(builder_status, auditor, commits):
+        status, problem = str(auditor['auditor_status']), str(auditor['auditor_problem_state'])
+        if builder_status in ('BLOCKED_DECISION', 'HUMAN_DECISION_REQUIRED'):
+            return 'HUMAN_DECISION_BLOCKED'
+        if builder_status in ('WORK_ORDER_ISSUED', 'OPEN'):
+            return 'NOT_IMPLEMENTED'
+        later = after_review(commits, auditor['auditor_reviewed_sha'])
+        if later:
+            return 'BUILDER_FIXED_PENDING_REAUDIT'
+        if problem == 'AUDIT_VERIFIED' or status.startswith('PASS') or 'track_B PASS' in status:
+            touched = touched_after(commits, auditor['auditor_reviewed_sha'])
+            if touched:
+                auditor['auditor_pass_invalidated_by'] = touched[:8]
+                return 'RETEST_REQUIRED'
+            return 'AUDITOR_VERIFIED'
+        if 'NOT_RUN' in status:
+            return 'EVIDENCE_MISSING'
+        if auditor['auditor_status'] == 'NOT_YET_REVIEWED':
+            return 'BUILDER_FIXED_PENDING_REAUDIT'
+        return 'RETEST_REQUIRED'
+
+    def short(value):
+        return [c for c in re.findall(r'\b[0-9a-f]{7,40}\b', str(value or ''))]
+
+    ledger = []
     for f in v52['findings']:
         fid = f['id']
         update = V53_UPDATES.get(fid, {})
         evidence = [e for e in [f.get('red'), f.get('evidence'), (f.get('ci') or {}).get('run')] if e] + update.get('evidence_add', [])
-        ledger.append({'id': fid, 'registry': V52, 'severity': f['severity'], 'severity_source': 'auditor' if fid in auditor else 'builder',
-                       'builder_status': f['status'], **auditor_fields(fid), 'root_cause': ROOT_CAUSE.get(fid, f.get('note')),
-                       'fix_commit': f.get('commit'), 'regression': list(f.get('tests', [])) + update.get('regression_add', []),
+        auditor = auditor_fields(fid)
+        ledger.append({'id': fid, 'registry': V52, 'severity': f['severity'], 'severity_source': 'auditor' if fid in latest else 'builder',
+                       'builder_status': f['status'], 'closure_class': closure(f['status'], auditor, short(f.get('commit'))), **auditor,
+                       'root_cause': ROOT_CAUSE.get(fid, f.get('note')), 'fix_commit': f.get('commit'), 'regression': list(f.get('tests', [])) + update.get('regression_add', []),
                        'verification_sha': v52['product_source_sha'] if f['status'] == 'FIXED_PENDING_REAUDIT' else None, 'evidence': evidence,
                        'owner': 'TAS Team' if fid in ('ASTRA-ROLL-012', 'ASTRA-ROLL-013', 'RG-002') else ('RD／Security owner' if fid == 'RG-001' else ('人類 owner（Security／Legal／Business）' if fid in ('RG-005', 'RG-008') else 'Builder')),
                        'recheck_trigger': '受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據'})
@@ -95,37 +148,59 @@ def main():
     for f in v51['findings']:
         fid = f['id']
         builder = status_map.get(f['status'], 'OPEN')
-        ledger.append({'id': fid, 'registry': V51, 'severity': severity_v51.get(fid, 'LOW'), 'severity_source': 'builder', 'builder_status': builder, **auditor_fields(fid),
+        auditor = auditor_fields(fid)
+        ledger.append({'id': fid, 'registry': V51, 'severity': severity_v51.get(fid, 'LOW'), 'severity_source': 'builder', 'builder_status': builder, 'closure_class': closure(builder, auditor, f.get('commits', [])), **auditor,
+                       
                        'root_cause': f.get('root_cause') or f['title'], 'fix_commit': ', '.join(f.get('commits', [])) or None, 'regression': [e for e in f.get('evidence', []) if 'test' in e],
                        'verification_sha': v51['product_source_sha'] if builder == 'FIXED_PENDING_REAUDIT' else None, 'evidence': f.get('evidence', []),
                        'owner': 'TAS Team' if fid in ('RG-V5-06', 'RG-V5-07') else ('人類 owner' if builder == 'BLOCKED_DECISION' else 'Builder'),
                        'recheck_trigger': '受影響程式／CI 變更或新的固定 HEAD'})
-    for fid, o in original.items():
-        ledger.append({'id': fid, 'registry': SNAP + '#original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）', 'severity': 'UNRATED_IN_SNAPSHOT', 'severity_source': 'auditor',
-                       'builder_status': 'FIXED_PENDING_REAUDIT', **auditor_fields(fid), 'root_cause': None, 'fix_commit': None, 'regression': [],
-                       'verification_sha': o['track_B_sha'], 'evidence': [SNAP], 'owner': 'Builder', 'recheck_trigger': 'Astra 下一輪 track 複驗'})
-    ledger_doc = {'schema_version': 1, 'rules': ['Builder 最高只能標 FIXED_PENDING_REAUDIT', 'AUDIT_VERIFIED 只能來自 Astra 獨立收據（auditor_receipt.source_sha256 必填）',
-                                                 'Finding ID 沿用各 registry，不另立 ID'], 'findings': ledger}
+    for o in reports[-1]['original_18']:
+        fid = o['id']
+        auditor = auditor_fields(fid)
+        commits = short(o.get('fix_commit_in_DAS'))
+        ledger.append({'id': fid, 'registry': SNAP + '#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）', 'severity': 'UNRATED_IN_SNAPSHOT',
+                       'severity_note': '歷史報告未給嚴重度；保留未知，不推定為 LOW', 'severity_source': 'auditor', 'builder_status': 'FIXED_PENDING_REAUDIT', 'closure_class': closure('FIXED_PENDING_REAUDIT', auditor, commits), **auditor,
+                        'root_cause': None, 'fix_commit': o.get('fix_commit_in_DAS'), 'regression': [],
+                       'verification_sha': o.get('track_B_sha'), 'evidence': [SNAP], 'owner': 'Builder', 'recheck_trigger': 'Astra 下一輪 track 複驗'})
+    ledger_doc = {'schema_version': 2, 'rules': ['Builder 最高只能標 FIXED_PENDING_REAUDIT', 'AUDITOR_VERIFIED 只能來自 Astra 報告（auditor_receipt.source_sha256 必填）',
+                                                 'Finding ID 沿用各 registry，不另立 ID', 'closure_class 由 builder_status＋最新 Auditor 判定＋修正 commit 是否晚於審核 SHA 機械推導'],
+                  'closure_classes': CLOSURE_CLASSES, 'findings': ledger}
     ledger_text = json.dumps(ledger_doc, ensure_ascii=False, indent=1) + '\n'
     (COORD / 'FINDING_LEDGER.json').write_text(ledger_text)
-    high = [f['id'] for f in ledger if f['severity'] in ('CRITICAL', 'HIGH') and 'AUDIT_VERIFIED' not in str(f['auditor_status'])]
+    high = sorted(f['id'] for f in ledger if f['severity'] in ('CRITICAL', 'HIGH') and f['closure_class'] != 'AUDITOR_VERIFIED')
+    unrated_open = sorted(f['id'] for f in ledger if f['severity'] == 'UNRATED_IN_SNAPSHOT' and f['closure_class'] != 'AUDITOR_VERIFIED')
+    counts = {c: sum(1 for f in ledger if f['closure_class'] == c) for c in CLOSURE_CLASSES}
     state = {
-        'schema_version': 1, 'repo': 'hades60414-sys/DHC-AI-SYSTEM',
+        'schema_version': 2, 'repo': 'hades60414-sys/DHC-AI-SYSTEM',
         'pr_stack': [{'pr': 10, 'head': '1e481e2fca812dcd2bfc45645623129bd7b54dea'}, {'pr': 11, 'head': '877525f27eed8d394f609d7ad7d2d8695be1035b'},
-                     {'pr': 12, 'head': '2cc9e93e75133dc4247e7af3b959865cf8d9d05d'}, {'pr': 13, 'head': '601dbb3ee1d75f94ce75947af6e1cb2eea17661c'}, {'pr': 'V5.3', 'head': args.head_sha}],
-        'product_sha': args.product_sha, 'head_sha': args.head_sha, 'base_sha': args.base_sha, 'builder_commit': args.head_sha,
-        'head_sha_note': 'head_sha 是產生本檔時的 commit；本檔所在的文件提交會在其後（文件不改產品）。',
-        'auditor_last_reviewed_sha': snap['reviewed_shas'], 'auditor_snapshot_sha256': snap['source_sha256'],
-        'ci': ci, 'open_critical_high': high,
-        'builder_status': 'BUILDER_SUBMITTED', 'auditor_status': 'ASTRA_REAUDIT_PENDING', 'ci_status': 'CI_EVIDENCE_READY' if ci else 'CI_PENDING',
+                     {'pr': 12, 'head': '2cc9e93e75133dc4247e7af3b959865cf8d9d05d'}, {'pr': 13, 'head': '601dbb3ee1d75f94ce75947af6e1cb2eea17661c'},
+                     {'pr': 14, 'branch': 'fix/ai-office-v53-closure', 'head': args.pr_head_sha, 'head_note': '產生本檔時的 HEAD；本檔所在的 commit 在其後'}],
+        'shas': {
+            'product_sha': args.product_sha,
+            'ci_evidence_sha': {name: src['sha'] for name, src in sources['evidence'].items()},
+            'documentation_head_sha': args.pr_head_sha,
+            'pr_head_sha': args.pr_head_sha,
+            'base_sha': args.base_sha,
+            'auditor_last_reviewed_sha': snap['latest_reviewed_sha'],
+            'artifact_source_sha': sources['artifact_source_sha'],
+        },
+        'sha_rules': ['product_sha..HEAD 不得改產品路徑', '每個 ci_evidence_sha..HEAD 不得改該證據 depends_on 的路徑', 'pr_head_sha 必須是 HEAD 的祖先（或等於 HEAD）且其後只改文件／狀態',
+                      'artifact_source_sha＝image label revision（CI_MATRIX／SUPPLY_CHAIN_PROVENANCE）'],
+        'evidence_sources': 'EVIDENCE_SOURCES.json',
+        'auditor_reports': [{'report_id': r['report_id'], 'generated_at': r['generated_at'], 'source_sha256': r['source_sha256'], 'reviewed_shas': r['reviewed_shas']} for r in reports],
+        'auditor_coverage': snap['not_reviewed_by_auditor'],
+        'open_critical_high': high, 'open_unrated_historical': unrated_open, 'closure_counts': counts,
+        'builder_status': 'BUILDER_SUBMITTED', 'auditor_status': 'ASTRA_INDEPENDENT_REAUDIT_PENDING', 'ci_status': 'CI_PENDING' if any(src.get('pending_rerun') for src in sources['evidence'].values()) else 'CI_EVIDENCE_READY',
+        'release_gates': {'customer_uat': 'CUSTOMER_UAT_NOT_APPROVED', 'commercial_release': 'COMMERCIAL_RELEASE_NO_GO'},
         'human_decisions': {key: 'PENDING' for key in ['SEC-01', 'SEC-02', 'DEC-05', 'DEC-07', 'SC-OWNER', 'UAT-66', 'RD-002', 'RD-003', 'IP-AGPL-SDK-DAS', 'SOW-PRICING-EXPIRY-MAINTENANCE']},
         'evidence_fingerprint': hashlib.sha256(ledger_text.encode()).hexdigest(),
         'last_updated_utc': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'next_safe_action': 'Astra 以唯讀方式複驗固定 product_sha 與 CI 證據；Builder 在收到 Auditor 收據前不改判、不推 #10～#13',
+        'next_safe_action': 'Astra 以唯讀方式複驗 product_sha 與 EVIDENCE_SOURCES 列出的 CI 證據；Builder 在收到 Auditor 收據前不改判、不推 #10～#13',
         'update_triggers': ['PR push', 'workflow completion', '明確人工 handoff'], 'no_background_poller': True,
     }
     (COORD / 'STATE.json').write_text(json.dumps(state, ensure_ascii=False, indent=1) + '\n')
-    print(json.dumps({'findings': len(ledger), 'open_high': high, 'fingerprint': state['evidence_fingerprint'][:16]}, ensure_ascii=False))
+    print(json.dumps({'findings': len(ledger), 'open_high': high, 'counts': counts, 'fingerprint': state['evidence_fingerprint'][:16]}, ensure_ascii=False))
 
 
 if __name__ == '__main__':

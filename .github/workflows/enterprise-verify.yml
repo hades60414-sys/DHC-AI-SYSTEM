@@ -25,6 +25,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          # V5.3.1：協作狀態檢查以 git 歷史驗證 SHA 角色（需完整歷史）
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -40,10 +42,10 @@ jobs:
         run: python3 -B scripts/enterprise/ci/test_compare_known_failures.py
       - name: V5.2 閘門負向測試（新失敗／未處理例外／截斷／缺檔／新 skip／lint 範圍／checksum＋tee；每個 job 必須 shell bash）
         run: python3 -B scripts/enterprise/ci/test_gate.py
-      - name: V5.3 協作狀態 schema／Finding Ledger 一致性（Builder 不得標 AUDIT_VERIFIED；fingerprint 必須最新）
+      - name: V5.3.1 協作狀態 schema 2／Finding Ledger／SHA 角色不混用（Builder 不得標 AUDIT_VERIFIED；fingerprint 必須最新）
         run: |
-          python3 -B scripts/enterprise/coordination/check_state.py
-          python3 -B scripts/enterprise/coordination/test_check_state.py
+          python3 -B scripts/enterprise/coordination/check_state.py --require-git
+          python3 -B scripts/enterprise/coordination/test_check_state.py --require-git
       - name: V5.3.1 負向閘門 collector 的合成負向測試（缺 job／重複／收據竄改／continue-on-error）
         run: python3 -B scripts/enterprise/ci/test_collect_negative_gate.py
       - name: V5.2 ASTRA-ROLL-007 離線 image reference 一致性單元測試
