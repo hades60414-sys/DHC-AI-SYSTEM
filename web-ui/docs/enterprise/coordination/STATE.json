@@ -21,8 +21,8 @@
   {
    "pr": 14,
    "branch": "fix/ai-office-v53-closure",
-   "head": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
-   "head_note": "產生本檔時的 HEAD；本檔所在的 commit 在其後"
+   "head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+   "head_note": "里程碑固定的 PR #14 稽核快照；shas.pr_head_sha 為產生本 STATE 的分支 HEAD（兩者語意不同）"
   }
  ],
  "shas": {
@@ -34,8 +34,8 @@
    "image_build": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
    "repo_coverage": "0e5b470776c38c44e322057ed3bbae132fa2cce6"
   },
-  "documentation_head_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
-  "pr_head_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+  "documentation_head_sha": "7dfd7c75118f10361c3cff029b3a21884c65fab5",
+  "pr_head_sha": "7dfd7c75118f10361c3cff029b3a21884c65fab5",
   "base_sha": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
   "auditor_last_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
   "artifact_source_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6"
@@ -119,7 +119,7 @@
  },
  "builder_status": "BUILDER_SUBMITTED",
  "auditor_status": "ASTRA_INDEPENDENT_REAUDIT_PENDING",
- "ci_status": "CI_EVIDENCE_READY",
+ "ci_status": "CI_PENDING",
  "release_gates": {
   "customer_uat": "CUSTOMER_UAT_NOT_APPROVED",
   "commercial_release": "COMMERCIAL_RELEASE_NO_GO"
@@ -137,7 +137,7 @@
   "SOW-PRICING-EXPIRY-MAINTENANCE": "PENDING"
  },
  "evidence_fingerprint": "567ad888e383306cd7e8fca462352a4587bdbf46501ad47899f34fd5cce63314",
- "last_updated_utc": "2026-11-07T07:04:39Z",
+ "last_updated_utc": "2026-11-07T09:43:08Z",
  "next_safe_action": "Astra 以唯讀方式複驗 product_sha 與 EVIDENCE_SOURCES 列出的 CI 證據；Builder 在收到 Auditor 收據前不改判、不推 #10～#13",
  "update_triggers": [
   "PR push",

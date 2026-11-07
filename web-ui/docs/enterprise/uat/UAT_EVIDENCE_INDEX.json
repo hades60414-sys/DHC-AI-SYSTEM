@@ -70,7 +70,10 @@
   "FILE_LEVEL：只有檔案層級對應（舊矩陣代號）",
   "EVIDENCE_MISSING：無證據或狀態為 NOT_IMPLEMENTED／CUSTOMER_UAT_PENDING",
   "local-harness（SEC）不在 CI 執行；其證據為 V4 RC 本機歷史",
-  "builder_status 是 Builder 工程驗證，不是客戶 UAT；pass 一律 false"
+  "builder_status 是 Builder 工程驗證，不是客戶 UAT；pass 一律 false",
+  "current_evidence：當前（V5.3.1／PR #14 HEAD 38c7293）CI 連結；EVIDENCE_MISSING 列為空且不得推定通過",
+  "local-harness（SEC）不在 CI 執行，current_evidence.ci_run 一律為 null",
+  "歷史頂層欄位（product_sha／verify_run／image_run）保留不替換；本檔沒有全表 SHA 替換"
  ],
  "rows": [
   {
@@ -100,7 +103,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-02",
@@ -144,7 +162,32 @@
      "ci_run": null,
      "ci_run_url": null
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "historical_ci_run": null,
+     "ci_run": null,
+     "ci_run_url": null,
+     "job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI 執行）",
+     "note": "SEC（local-harness）不在 CI 執行；無當前 CI 連結，維持歷史證據，不得宣稱通過"
+    }
+   ],
+   "current_evidence_note": "SEC（local-harness）條目不在 CI；其餘條目連結至 PR #14 HEAD（38c7293）之 F2 CI"
   },
   {
    "id": "OP-UAT-03",
@@ -203,7 +246,46 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/entitlements.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-04",
@@ -262,7 +344,46 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-05",
@@ -291,7 +412,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-06",
@@ -335,7 +471,32 @@
      "ci_run": null,
      "ci_run_url": null
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "historical_ci_run": null,
+     "ci_run": null,
+     "ci_run_url": null,
+     "job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI 執行）",
+     "note": "SEC（local-harness）不在 CI 執行；無當前 CI 連結，維持歷史證據，不得宣稱通過"
+    }
+   ],
+   "current_evidence_note": "SEC（local-harness）條目不在 CI；其餘條目連結至 PR #14 HEAD（38c7293）之 F2 CI"
   },
   {
    "id": "OP-UAT-07",
@@ -379,7 +540,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-08",
@@ -408,7 +596,20 @@
      "ci_run": null,
      "ci_run_url": null
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "historical_ci_run": null,
+     "ci_run": null,
+     "ci_run_url": null,
+     "job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI 執行）",
+     "note": "SEC（local-harness）不在 CI 執行；無當前 CI 連結，維持歷史證據，不得宣稱通過"
+    }
+   ],
+   "current_evidence_note": "SEC（local-harness）條目不在 CI；其餘條目連結至 PR #14 HEAD（38c7293）之 F2 CI"
   },
   {
    "id": "OP-UAT-09",
@@ -446,7 +647,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-10",
@@ -490,7 +718,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-11",
@@ -528,7 +783,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-12",
@@ -572,7 +854,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-13",
@@ -601,7 +910,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-14",
@@ -640,7 +964,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-15",
@@ -676,7 +1027,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-16",
@@ -718,7 +1096,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "src/modules/office/tests/OfficeApp.test.tsx",
+     "runner": "vitest",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-17",
@@ -756,7 +1161,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-18",
@@ -782,7 +1214,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-19",
@@ -806,7 +1253,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/citation-integrity.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-20",
@@ -835,7 +1297,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-21",
@@ -861,7 +1338,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-22",
@@ -900,7 +1392,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "src/modules/office/tests/OfficeApp.test.tsx",
+     "runner": "vitest",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/citation-integrity.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-23",
@@ -929,7 +1448,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-24",
@@ -958,7 +1492,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-25",
@@ -987,7 +1536,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-26",
@@ -1000,7 +1564,9 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "新修訂必須重新送審（狀態機）；「V2 重新 PENDING」未有專門測試",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   },
   {
    "id": "OP-UAT-27",
@@ -1029,7 +1595,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-28",
@@ -1073,7 +1654,45 @@
      "ci_run": "42247102627",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "historical_ci_run": "42247102627",
+     "ci_run": "42349749608",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749608",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "jobs": [
+      "delivery-amd64",
+      "delivery-arm64"
+     ],
+     "artifacts": [
+      {
+       "name": "enterprise-delivery-amd64",
+       "id": 13565556119
+      },
+      {
+       "name": "enterprise-delivery-arm64",
+       "id": 13565570944
+      }
+     ],
+     "note": "交付驗證於 F2 image-build（38c7293）兩架構皆綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-29",
@@ -1102,7 +1721,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-30",
@@ -1146,7 +1780,45 @@
      "ci_run": "42247102627",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "historical_ci_run": "42247102627",
+     "ci_run": "42349749608",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749608",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "jobs": [
+      "delivery-amd64",
+      "delivery-arm64"
+     ],
+     "artifacts": [
+      {
+       "name": "enterprise-delivery-amd64",
+       "id": 13565556119
+      },
+      {
+       "name": "enterprise-delivery-arm64",
+       "id": 13565570944
+      }
+     ],
+     "note": "交付驗證於 F2 image-build（38c7293）兩架構皆綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-31",
@@ -1175,7 +1847,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/enterprise.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-32",
@@ -1219,7 +1906,45 @@
      "ci_run": "42247102627",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "historical_ci_run": "42247102627",
+     "ci_run": "42349749608",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749608",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "jobs": [
+      "delivery-amd64",
+      "delivery-arm64"
+     ],
+     "artifacts": [
+      {
+       "name": "enterprise-delivery-amd64",
+       "id": 13565556119
+      },
+      {
+       "name": "enterprise-delivery-arm64",
+       "id": 13565570944
+      }
+     ],
+     "note": "交付驗證於 F2 image-build（38c7293）兩架構皆綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-33",
@@ -1232,7 +1957,9 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "完成率／修正率／工時量測",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   },
   {
    "id": "OP-UAT-34",
@@ -1245,7 +1972,9 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "需真人操作與回饋",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   },
   {
    "id": "OP-UAT-35",
@@ -1284,7 +2013,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/ops-report-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "OP-UAT-36",
@@ -1297,7 +2053,9 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "本矩陣與 GATE_BOARD 區分 fixture／系統／歷史",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   },
   {
    "id": "ACC-UAT-01",
@@ -1323,7 +2081,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-02",
@@ -1361,7 +2134,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-03",
@@ -1407,7 +2207,54 @@
      "ci_run": "42247102627",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "tests/enterprise/e2e/office_e2e.mjs",
+     "runner": "delivery",
+     "historical_ci_run": "42247102627",
+     "ci_run": "42348102966",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42348102966",
+     "ci_head": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+     "job": "office-stale-green-current",
+     "artifacts": [
+      {
+       "name": "office-stale-red-v51",
+       "id": 13564188633
+      },
+      {
+       "name": "office-stale-green-current",
+       "id": 13564651319
+      }
+     ],
+     "note": "office E2E 證據跑於 c2ae88b；c2ae88b..HEAD 僅 docs 變更，測試內容未變"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-04",
@@ -1443,7 +2290,42 @@
      "ci_run": "42247102627",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "tests/enterprise/e2e/office_e2e.mjs",
+     "runner": "delivery",
+     "historical_ci_run": "42247102627",
+     "ci_run": "42348102966",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42348102966",
+     "ci_head": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+     "job": "office-stale-green-current",
+     "artifacts": [
+      {
+       "name": "office-stale-red-v51",
+       "id": 13564188633
+      },
+      {
+       "name": "office-stale-green-current",
+       "id": 13564651319
+      }
+     ],
+     "note": "office E2E 證據跑於 c2ae88b；c2ae88b..HEAD 僅 docs 變更，測試內容未變"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-05",
@@ -1489,7 +2371,54 @@
      "ci_run": "42247102627",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "tests/enterprise/e2e/office_e2e.mjs",
+     "runner": "delivery",
+     "historical_ci_run": "42247102627",
+     "ci_run": "42348102966",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42348102966",
+     "ci_head": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+     "job": "office-stale-green-current",
+     "artifacts": [
+      {
+       "name": "office-stale-red-v51",
+       "id": 13564188633
+      },
+      {
+       "name": "office-stale-green-current",
+       "id": 13564651319
+      }
+     ],
+     "note": "office E2E 證據跑於 c2ae88b；c2ae88b..HEAD 僅 docs 變更，測試內容未變"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-06",
@@ -1516,7 +2445,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-07",
@@ -1552,7 +2496,42 @@
      "ci_run": "42247102627",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "tests/enterprise/e2e/office_e2e.mjs",
+     "runner": "delivery",
+     "historical_ci_run": "42247102627",
+     "ci_run": "42348102966",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42348102966",
+     "ci_head": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+     "job": "office-stale-green-current",
+     "artifacts": [
+      {
+       "name": "office-stale-red-v51",
+       "id": 13564188633
+      },
+      {
+       "name": "office-stale-green-current",
+       "id": 13564651319
+      }
+     ],
+     "note": "office E2E 證據跑於 c2ae88b；c2ae88b..HEAD 僅 docs 變更，測試內容未變"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-08",
@@ -1596,7 +2575,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-09",
@@ -1622,7 +2628,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/reconciliation-acc-match-v1.test.ts",
+     "runner": "node-test",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "static-and-unit",
+     "artifact": "enterprise-verify-static-unit",
+     "artifact_id": 13565815049,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-10",
@@ -1651,7 +2672,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-11",
@@ -1664,7 +2700,9 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "修訂需重新送審；「改版使舊簽認失效」未專測",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   },
   {
    "id": "ACC-UAT-12",
@@ -1693,7 +2731,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-13",
@@ -1764,7 +2817,56 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "historical_ci_run": null,
+     "ci_run": null,
+     "ci_run_url": null,
+     "job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI 執行）",
+     "note": "SEC（local-harness）不在 CI 執行；無當前 CI 連結，維持歷史證據，不得宣稱通過"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "SEC（local-harness）條目不在 CI；其餘條目連結至 PR #14 HEAD（38c7293）之 F2 CI"
   },
   {
    "id": "ACC-UAT-14",
@@ -1805,7 +2907,45 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "historical_ci_run": "42247102627",
+     "ci_run": "42349749608",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749608",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "jobs": [
+      "delivery-amd64",
+      "delivery-arm64"
+     ],
+     "artifacts": [
+      {
+       "name": "enterprise-delivery-amd64",
+       "id": 13565556119
+      },
+      {
+       "name": "enterprise-delivery-arm64",
+       "id": 13565570944
+      }
+     ],
+     "note": "交付驗證於 F2 image-build（38c7293）兩架構皆綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/reconciliation-export.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "ACC-UAT-15",
@@ -1818,7 +2958,9 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "KPI 計算",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   },
   {
    "id": "UAT-L01",
@@ -1862,7 +3004,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L02",
@@ -1891,7 +3060,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L03",
@@ -1904,7 +3088,9 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "條款逐條比對：DEC-W6-SCOPE-01 使用者決定本輪不做（BLOCKED_PRODUCT_DECISION）",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   },
   {
    "id": "UAT-L04",
@@ -1933,7 +3119,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/document-search.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L05",
@@ -1946,7 +3147,9 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "矛盾標記阻止輸出：DEC-W6-SCOPE-01 本輪不做（BLOCKED_PRODUCT_DECISION）",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   },
   {
    "id": "UAT-L06",
@@ -1990,7 +3193,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-persistence/tests/document-versions.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L07",
@@ -2014,7 +3244,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/citation-integrity.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L08",
@@ -2038,7 +3283,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/citation-integrity.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L09",
@@ -2082,7 +3342,32 @@
      "ci_run": null,
      "ci_run_url": null
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "tests/enterprise/sec01/run_sec01.py",
+     "runner": "local-harness",
+     "historical_ci_run": null,
+     "ci_run": null,
+     "ci_run_url": null,
+     "job": "NOT_IN_CI",
+     "artifact": "V4 RC 本機證據（不在 CI 執行）",
+     "note": "SEC（local-harness）不在 CI 執行；無當前 CI 連結，維持歷史證據，不得宣稱通過"
+    }
+   ],
+   "current_evidence_note": "SEC（local-harness）條目不在 CI；其餘條目連結至 PR #14 HEAD（38c7293）之 F2 CI"
   },
   {
    "id": "UAT-L10",
@@ -2111,7 +3396,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L11",
@@ -2124,7 +3424,9 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "真人逐條覆核",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   },
   {
    "id": "UAT-L12",
@@ -2153,7 +3455,22 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L13",
@@ -2197,7 +3514,34 @@
      "ci_run": "42247102617",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102617"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/enterprise-api.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L14",
@@ -2241,7 +3585,45 @@
      "ci_run": "42247102627",
      "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42247102627"
     }
-   ]
+   ],
+   "current_evidence": [
+    {
+     "path": "server/modules/enterprise-api/tests/workflow.integration.test.ts",
+     "runner": "pg-integration",
+     "historical_ci_run": "42247102617",
+     "ci_run": "42349749547",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749547",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "job": "postgres-integration",
+     "artifact": "enterprise-verify-postgres",
+     "artifact_id": 13564832885,
+     "note": "同一測試內容（F2 相對 F1 僅 docs 變更）；F2 於 38c7293 重跑 verify 全綠"
+    },
+    {
+     "path": "scripts/enterprise/驗證AI_Office交付.py",
+     "runner": "delivery",
+     "historical_ci_run": "42247102627",
+     "ci_run": "42349749608",
+     "ci_run_url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349749608",
+     "ci_head": "38c7293d3764f61a967b2bd2e90526e218b77793",
+     "jobs": [
+      "delivery-amd64",
+      "delivery-arm64"
+     ],
+     "artifacts": [
+      {
+       "name": "enterprise-delivery-amd64",
+       "id": 13565556119
+      },
+      {
+       "name": "enterprise-delivery-arm64",
+       "id": 13565570944
+      }
+     ],
+     "note": "交付驗證於 F2 image-build（38c7293）兩架構皆綠"
+    }
+   ],
+   "current_evidence_note": "連結至 PR #14 HEAD（38c7293）之 F2 CI；pass 一律 false"
   },
   {
    "id": "UAT-L15",
@@ -2254,7 +3636,23 @@
    "missing_reason": "NO_EVIDENCE_REFERENCE",
    "source_version": "6933d5e17f1120d87126df598c594c31b4e474ed",
    "note": "非技術 reviewer 獨立完成與簽認",
-   "evidence": []
+   "evidence": [],
+   "current_evidence": [],
+   "current_evidence_note": "維持 EVIDENCE_MISSING：無當前 CI 證據，不得以檔頭 SHA 替換或推定通過"
   }
- ]
+ ],
+ "current": {
+  "head_sha": "38c7293d3764f61a967b2bd2e90526e218b77793",
+  "generated_utc": "2026-11-07T09:38:40Z",
+  "note": "保留頂層 product_sha／verify_run／image_run（6933d5e、42247102617／42247102627）作為歷史來源；current／current_evidence 為 V5.3.1 本里程碑各列的當前證據連結。沒有 current_evidence 的列（EVIDENCE_MISSING）不得視為通過。",
+  "runs": {
+   "enterprise_verify": 42349749547,
+   "enterprise_image_build": 42349749608,
+   "repo_coverage": 42349749548,
+   "office_e2e_evidence": 42348102966,
+   "negative_gate_evidence": 42348102897
+  },
+  "method": "F1 0e5b470..F2 38c7293 僅 web-ui/docs 變更（git diff --name-only 驗證為空）；F2 於 38c7293 重跑 enterprise-verify（42349749547）／enterprise-image-build（42349749608）／repo-coverage（42349749548）皆 success。e2e 證據 42348102966（c2ae88b）之測試內容未變。",
+  "pass": false
+ }
 }

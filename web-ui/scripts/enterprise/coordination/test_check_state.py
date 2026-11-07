@@ -38,6 +38,11 @@ CASES = {
     'pending_rerun_but_ready': (True, lambda s, l, e: (e['evidence']['negative_gate_evidence'].update(pending_rerun=True), s.update(ci_status='CI_EVIDENCE_READY'))),
     'pr14_missing_from_stack': (True, lambda s, l, e: s.update(pr_stack=[p for p in s['pr_stack'] if p.get('pr') != 14])),
     'builder_claims_auditor_status_verified': (True, lambda s, l, e: s.update(auditor_status='AUDIT_VERIFIED')),
+    # OCR-V531-D04：非 PASS 項的 closure_class 不得在非驗證類別間互換
+    'closure_swapped_fixed_to_evidence_missing': (False, lambda s, l, e: first(l, id='ASTRA-ROLL-001').update(closure_class='EVIDENCE_MISSING')),
+    'closure_swapped_fixed_to_not_implemented': (False, lambda s, l, e: first(l, id='ASTRA-ROLL-001').update(closure_class='NOT_IMPLEMENTED')),
+    'closure_swapped_human_blocked_to_not_implemented': (False, lambda s, l, e: first(l, id='RG-001').update(closure_class='NOT_IMPLEMENTED')),
+    'closure_swapped_evidence_missing_to_retest': (False, lambda s, l, e: first(l, id='ASTRA-ROLL-012').update(closure_class='RETEST_REQUIRED')),
 }
 def forge_pass(s, l, e):
     """OCR-V531-01：把 Auditor 判定 FAIL 的 HIGH 偽造成 PASS，並同步 STATE 的推導欄位（完整偽造）。"""
@@ -104,6 +109,8 @@ GIT_CASES = {
     # 文件 head 指向 #13，之後有程式／workflow 變更 → 文件版本與證據 SHA 混用
     'doc_head_before_code_changes': lambda s, l, e: (s['shas'].update(pr_head_sha=OLD_PR13, documentation_head_sha=OLD_PR13),
                                                      [p.update(head=OLD_PR13) for p in s['pr_stack'] if p.get('pr') == 14]),
+    # OCR-V531-D05：checker 實際讀取的輸入（UAT Index 等）在本分支已於證據 SHA 之後變更；清掉 pending_rerun 後必須判定證據過期
+    'checker_inputs_changed_after_evidence_sha': lambda s, l, e: [(src.update(pending_rerun=False), src.pop('pending_note', None)) for src in e['evidence'].values()],
 }
 
 
@@ -151,17 +158,29 @@ else:
     print('SKIP git 案例：沒有完整 git 歷史（CI 必帶 --require-git）')
 
 
-def clone_case(name, rel_path, edit, expect_fail):
-    """OCR-V531-03：在暫存 clone 中真的 commit 一個變更，確認 pr_head 之後的『非文件』變更（含 golden fixture）會被擋，純文件變更不會。"""
+def clear_pending_rerun(text):
+    """把 EVIDENCE_SOURCES.json 的 pending_rerun 全部清掉（模擬「證據未標待重跑」的狀態），供 D05 證據過期案例使用。"""
+    import json as _json
+    data = _json.loads(text)
+    for src in data['evidence'].values():
+        src.pop('pending_rerun', None)
+        src.pop('pending_note', None)
+    return _json.dumps(data, ensure_ascii=False, indent=1) + '\n'
+
+
+def clone_case(name, rel_path, edit, expect_fail, extra=None):
+    """OCR-V531-03：在暫存 clone 中真的 commit 一個變更，確認 pr_head 之後的『非文件』變更（含 golden fixture）會被擋，純文件變更不會。
+    extra＝(rel_path, edit)：同一個 commit 內的第二個檔案變更（例如順便清掉 pending_rerun）。"""
     with tempfile.TemporaryDirectory() as tmp:
         clone = Path(tmp) / 'repo'
         repo_root = ROOT.parent
         subprocess.run(['git', 'clone', '-q', '--no-hardlinks', str(repo_root), str(clone)], check=True)
         subprocess.run(['git', '-C', str(clone), 'checkout', '-q', subprocess.run(['git', '-C', str(repo_root), 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()], check=True)
-        target = clone / rel_path
-        before = target.read_text()
-        target.write_text(edit(before))
-        assert target.read_text() != before, f'{name}: 編輯沒有改到內容'
+        targets = [(clone / rel_path, edit)] + ([(clone / extra[0], extra[1])] if extra else [])
+        for target, func in targets:
+            before = target.read_text()
+            target.write_text(func(before))
+            assert target.read_text() != before, f'{name}: 編輯沒有改到內容 {target}'
         env = {'GIT_AUTHOR_NAME': 't', 'GIT_AUTHOR_EMAIL': 't@example.invalid', 'GIT_COMMITTER_NAME': 't', 'GIT_COMMITTER_EMAIL': 't@example.invalid', 'PATH': '/usr/bin:/bin:/usr/local/bin'}
         subprocess.run(['git', '-C', str(clone), '-c', 'commit.gpgsign=false', 'commit', '-qam', name], check=True, env=env)
         # 以「目前工作樹的檢查器」檢查 clone 的歷史與狀態檔
@@ -175,6 +194,13 @@ if git_available:
     golden = 'web-ui/docs/enterprise/scenarios/會計對帳/golden/跨側同列ID_預期.json'
     if not clone_case('golden_fixture_changed_after_pr_head', golden, lambda t: t.replace('"isolatedLedgerMinor": "3000"', '"isolatedLedgerMinor": "103000"', 1), True):
         failures.append('golden_fixture_changed_after_pr_head')
+    # OCR-V531-D05：roadmap source（CI 讀取的 JSON，非 .md 文件）在證據 SHA 之後變更 → 證據過期（即使 pending_rerun 已清掉且 depends_on 未覆蓋 docs/）
+    sources_rel = 'web-ui/docs/enterprise/coordination/EVIDENCE_SOURCES.json'
+    if not clone_case('roadmap_source_changed_after_evidence_sha', 'web-ui/docs/enterprise/architecture/roadmap.json', lambda t: t + '\n', True, extra=(sources_rel, clear_pending_rerun)):
+        failures.append('roadmap_source_changed_after_evidence_sha')
+    # OCR-V531-D05：UAT 證據索引（checker 實際讀取）在證據 SHA 之後變更 → 證據過期
+    if not clone_case('uat_index_changed_after_evidence_sha', 'web-ui/docs/enterprise/uat/UAT_EVIDENCE_INDEX.json', lambda t: t + '\n', True, extra=(sources_rel, clear_pending_rerun)):
+        failures.append('uat_index_changed_after_evidence_sha')
     if not clone_case('docs_only_change_after_pr_head_positive', 'web-ui/docs/enterprise/coordination/CHANGELOG.md', lambda t: t + '\n- test\n', False):
         failures.append('docs_only_change_after_pr_head_positive')
 print('OK' if not failures else f'FAILED: {failures}')

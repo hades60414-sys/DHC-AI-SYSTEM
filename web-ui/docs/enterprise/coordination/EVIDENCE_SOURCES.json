@@ -9,6 +9,8 @@
    "run_id": 42348102966,
    "attempt": 1,
    "expected_conclusion": "success",
+   "pending_rerun": true,
+   "pending_note": "AUDIT-STATE-D04/D05：checker 實際讀取的輸入（uat/UAT_EVIDENCE_INDEX.json 等 CHECKER_INPUTS）在證據 SHA 之後有變更；需以最新 HEAD 重跑證據後移除此旗標。",
    "jobs": {
     "office-stale-red-v51": 128330146126,
     "office-stale-green-current": 128330145971
@@ -44,6 +46,8 @@
    "run_id": 42348102897,
    "attempt": 1,
    "expected_conclusion": "failure（負向 job 預期失敗；collect success＋all_match）",
+   "pending_rerun": true,
+   "pending_note": "AUDIT-STATE-D04/D05：checker 實際讀取的輸入（uat/UAT_EVIDENCE_INDEX.json 等 CHECKER_INPUTS）在證據 SHA 之後有變更；需以最新 HEAD 重跑證據後移除此旗標。",
    "depends_on": [
     ".github/workflows/negative-gate-evidence.yml",
     "web-ui/scripts/enterprise/ci/negative_gate_case.py",
@@ -71,6 +75,8 @@
    "run_id": 42349084781,
    "attempt": 1,
    "expected_conclusion": "success",
+   "pending_rerun": true,
+   "pending_note": "AUDIT-STATE-D04/D05：checker 實際讀取的輸入（uat/UAT_EVIDENCE_INDEX.json 等 CHECKER_INPUTS）在證據 SHA 之後有變更；需以最新 HEAD 重跑證據後移除此旗標。",
    "depends_on": [
     "web-ui/*",
     ".github/workflows/enterprise-verify.yml"
@@ -102,6 +108,8 @@
    "run_id": 42349084776,
    "attempt": 1,
    "expected_conclusion": "success",
+   "pending_rerun": true,
+   "pending_note": "AUDIT-STATE-D04/D05：checker 實際讀取的輸入（uat/UAT_EVIDENCE_INDEX.json 等 CHECKER_INPUTS）在證據 SHA 之後有變更；需以最新 HEAD 重跑證據後移除此旗標。",
    "depends_on": [
     "web-ui/src/*",
     "web-ui/server/*",
@@ -145,6 +153,8 @@
    "run_id": 42349084813,
    "attempt": 1,
    "expected_conclusion": "success",
+   "pending_rerun": true,
+   "pending_note": "AUDIT-STATE-D04/D05：checker 實際讀取的輸入（uat/UAT_EVIDENCE_INDEX.json 等 CHECKER_INPUTS）在證據 SHA 之後有變更；需以最新 HEAD 重跑證據後移除此旗標。",
    "depends_on": [
     "*"
    ],

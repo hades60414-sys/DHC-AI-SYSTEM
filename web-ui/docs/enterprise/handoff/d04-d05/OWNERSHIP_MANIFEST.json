@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "work_package": "AUDIT-STATE-D04/D05（OCR-V531-D04、OCR-V531-D05）",
+  "branch": "fix/ai-office-state-freshness",
+  "base_sha": "38c7293d3764f61a967b2bd2e90526e218b77793",
+  "commits": ["7dfd7c75118f10361c3cff029b3a21884c65fab5", "d27a37f12d51984b0631bd83965dbc137b5970a4"],
+  "owner": "OpenCode Builder B（juhjuhx）",
+  "reviewer": "Astra（獨立 Auditor，待複驗）",
+  "writer_scope": [
+    "web-ui/scripts/enterprise/coordination/check_state.py",
+    "web-ui/scripts/enterprise/coordination/build_state.py",
+    "web-ui/scripts/enterprise/coordination/test_check_state.py",
+    "web-ui/docs/enterprise/coordination/EVIDENCE_SOURCES.json",
+    "web-ui/docs/enterprise/coordination/STATE.json",
+    "web-ui/docs/enterprise/uat/UAT_EVIDENCE_INDEX.json",
+    "web-ui/docs/enterprise/handoff/d04-d05/**"
+  ],
+  "explicitly_not_touched": [
+    "web-ui/server/**（產品程式）",
+    "web-ui/src/**",
+    "web-ui/tests/**",
+    "web-ui/deploy/**",
+    ".github/workflows/**",
+    "web-ui/docs/enterprise/coordination/FINDING_LEDGER.json（bytes 零變更）",
+    "web-ui/docs/enterprise/coordination/AUDITOR_SNAPSHOT.json（Astra 抄錄，Builder 不改判）",
+    "web-ui/docs/enterprise/scenarios/**（golden fixtures）"
+  ],
+  "shared_file_conflict_check": "未與 DSH Builder A 的範圍（.github/workflows/enterprise-pgdr-evidence.yml、scripts/enterprise/dr/**、recovery.integration.test.ts）重疊；未修改 .github/workflows/enterprise-verify.yml、FINDING_LEDGER.json、check_state.py 以外的共享檔僅能由本分支改動。",
+  "co_writer_files": [],
+  "notes": "FINDING_LEDGER.json 由 build_state.py 重產後 byte-level 零變更（git diff 確認）；STATE.json 只改 4 類欄位（pr_stack[#14].head 固定 38c7293、shas.pr_head_sha/documentation_head_sha、ci_status=CI_PENDING、last_updated_utc）。"
+}

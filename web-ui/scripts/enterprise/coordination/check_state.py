@@ -4,8 +4,11 @@
 - --require-git（CI 必帶）：以 git 歷史確認
   * product_sha..HEAD 沒有改產品路徑；
   * 每個證據 sha..HEAD 沒有改該證據 depends_on 的路徑（否則證據過期，除非標 pending_rerun 且 ci_status＝CI_PENDING）；
-  * pr_head_sha 是 HEAD 的祖先，且 pr_head_sha..HEAD 只改 docs/enterprise/（文件版本與證據 SHA 不混用）。
-- Builder 狀態不得為 AUDIT_VERIFIED；closure_class＝AUDITOR_VERIFIED 必須有 AUDITOR_SNAPSHOT 內存在的 Auditor 報告雜湊。
+  * 每個證據 sha..HEAD 沒有改 CHECKER_INPUTS（check_state 實際讀取的 UAT Index／Golden／Rules／Baseline／Registry／Roadmap source／Schema／Snapshot，.md 敘述除外）（D05）；
+  * pr_head_sha 是 HEAD 的祖先，且 pr_head_sha..HEAD 只改 docs/enterprise/（文件版本與證據 SHA 不混用）；
+  * pr_stack[PR #14].head 必須等於固定稽核快照 PINNED_PR14_HEAD。
+- Builder 狀態不得為 AUDIT_VERIFIED；closure_class 由 builder_status＋最新 Auditor 判定＋修正 commit 是否晚於審核 SHA 機械推導，git 可用時要求精確一致，否則要求落在候選集合內（D04）；
+  closure_class＝AUDITOR_VERIFIED 必須有 AUDITOR_SNAPSHOT 內存在的 Auditor 報告雜湊。
 - 每個 Finding 的 ID 必須存在於其 registry；evidence_fingerprint＝FINDING_LEDGER.json 的 SHA-256；open_critical_high 由 ledger 推導。
 用法：python3 -B scripts/enterprise/coordination/check_state.py [--require-git] [--coord <目錄>]
 """
@@ -46,6 +49,30 @@ PINNED_AUDITOR_REPORTS = {
   "content_sha256": "bed12085fe01415085e4789d7ce8900b5fe6bc7daa9929a92c0217328bba1e0c"
  }
 }
+# OCR-V531-D05：里程碑固定的 PR #14 稽核快照 HEAD。平行 Builder 分支不再以自己的 pr_head_sha 冒充 PR #14 的 head；
+# 任何分支產生的 STATE.json 其 pr_stack[PR #14].head 必須等於此值（否則 38c7293 之後的平行變更會偽裝成「PR #14 的產生 HEAD」）。
+PINNED_PR14_HEAD = '38c7293d3764f61a967b2bd2e90526e218b77793'
+# OCR-V531-D05：check_state 實際讀取的輸入（schema／registry／snapshot／索引／golden／rules／baseline／roadmap source）。
+# 這些路徑在證據 SHA 之後變更 → 該證據對「目前的判定」不再新鮮（Stale／Recheck）；.md 敘述性文件不受此限。
+CHECKER_INPUTS = [
+    'web-ui/docs/enterprise/uat/UAT_EVIDENCE_INDEX.json',
+    'web-ui/docs/enterprise/uat/UAT_TRACEABILITY_V5.json',
+    'web-ui/docs/enterprise/architecture/roadmap.json',
+    'web-ui/docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json',
+    'web-ui/docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json',
+    'web-ui/docs/enterprise/coordination/AUDITOR_SNAPSHOT.json',
+    'web-ui/docs/enterprise/coordination/EVIDENCE_SOURCES.json',
+    'web-ui/docs/enterprise/scenarios/*',
+    'web-ui/scripts/enterprise/ci/gate.sh',
+    'web-ui/scripts/enterprise/ci/compare_known_failures.py',
+    'web-ui/scripts/enterprise/ci/known-v32-baseline-failures.json',
+    'web-ui/scripts/enterprise/ci/collect_negative_gate.py',
+    'web-ui/scripts/enterprise/ci/negative_gate_case.py',
+    'web-ui/scripts/enterprise/ci/test_gate.py',
+    'web-ui/scripts/enterprise/ci/office_e2e_redgreen.py',
+    'web-ui/scripts/enterprise/uat_evidence_index.py',
+    'web-ui/scripts/enterprise/render_roadmap.py',
+]
 V51_STATUS_MAP = {'FIXED': 'FIXED_PENDING_REAUDIT', 'MEASURED': 'FIXED_PENDING_REAUDIT', 'FAILED': 'OPEN', 'NOT_RUN': 'OPEN', 'WORK_ORDER_ISSUED': 'WORK_ORDER_ISSUED', 'BLOCKED_DECISION': 'BLOCKED_DECISION', 'PARTIAL': 'OPEN'}
 SHA_ROLES = ['product_sha', 'ci_evidence_sha', 'documentation_head_sha', 'pr_head_sha', 'base_sha', 'auditor_last_reviewed_sha', 'artifact_source_sha']
 STATE_KEYS = ['schema_version', 'repo', 'pr_stack', 'shas', 'evidence_sources', 'auditor_reports', 'open_critical_high', 'open_unrated_historical', 'closure_counts',
@@ -86,8 +113,8 @@ for role in SHA_ROLES:
 if shas.get('documentation_head_sha') != shas.get('pr_head_sha'):
     problems.append('documentation_head_sha 與 pr_head_sha 應為同一個產生時 HEAD')
 pr14 = [p for p in state.get('pr_stack', []) if p.get('pr') == 14]
-if len(pr14) != 1 or pr14[0].get('head') != shas.get('pr_head_sha'):
-    problems.append('pr_stack 必須含 PR #14 且 head＝shas.pr_head_sha')
+if len(pr14) != 1 or pr14[0].get('head') != PINNED_PR14_HEAD:
+    problems.append(f'pr_stack PR #14 head 必須為固定稽核快照 {PINNED_PR14_HEAD}（里程碑交接固定，不隨分支產生時 HEAD 改寫）')
 if state.get('builder_status') not in ('BUILDER_IN_PROGRESS', 'BUILDER_SUBMITTED'):
     problems.append('STATE.builder_status 非法')
 if 'VERIFIED' in str(state.get('auditor_status')):
@@ -142,6 +169,10 @@ if inside and args.require_git:
             moved = changed(src['sha'], src.get('depends_on', []), src.get('depends_on_exclude', []))
             if moved:
                 problems.append(f'證據 {name}（{src["sha"][:7]}）之後其依賴路徑有變更，證據過期：{moved[:5]}')
+            # OCR-V531-D05：check_state 實際讀取的輸入（schema／registry／snapshot／索引／golden／rules／baseline／roadmap source）變更也使證據過期
+            moved_inputs = changed(src['sha'], CHECKER_INPUTS)
+            if moved_inputs:
+                problems.append(f'證據 {name}（{src["sha"][:7]}）之後 Checker 實際讀取的輸入有變更，證據過期（需 Recheck，pending_rerun 除外）：{moved_inputs[:5]}')
     head = shas.get('pr_head_sha')
     if SHA.match(str(head)):
         if git('merge-base', '--is-ancestor', head, 'HEAD').returncode != 0:
@@ -160,11 +191,22 @@ for report in sorted(snapshot.get('reports', []), key=lambda r: r['generated_at'
             status = item.get('auditor_status') or item.get('current_verdict') or (f"track_B {item.get('track_B_verdict')}（track_A {item.get('track_A_verdict')}）" if item.get('track_B_verdict') else None)
             derived_auditor[item['id']] = {'status': status, 'problem_state': item.get('problem_state'), 'reviewed_sha': item.get('reviewed_sha') or item.get('track_B_sha'),
                                            'severity': item.get('severity'), 'source_sha256': report['source_sha256']}
-v52_registry = json.loads((ROOT / 'docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json').read_text())['findings']
+v52_doc = json.loads((ROOT / 'docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json').read_text())
+v51_doc = json.loads((ROOT / 'docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json').read_text())
+v52_registry = v52_doc['findings']
 registry_severity = {f['id']: f.get('severity') for f in v52_registry}
 # OCR-V531-D03：builder_status 必須等於 registry 的狀態（V5.1 依固定對照）
 registry_status = {f['id']: f['status'] for f in v52_registry}
-registry_status.update({f['id']: V51_STATUS_MAP.get(f['status'], 'OPEN') for f in json.loads((ROOT / 'docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json').read_text())['findings']})
+registry_status.update({f['id']: V51_STATUS_MAP.get(f['status'], 'OPEN') for f in v51_doc['findings']})
+# v52/v51 用 registry；original_18 與 build_state.py 一致，只取最新一份報告（last one wins）
+commits_map = {}
+for f in v52_registry:
+    commits_map[f['id']] = re.findall(r'\b[0-9a-f]{7,40}\b', str(f.get('commit') or ''))
+for f in v51_doc['findings']:
+    commits_map[f['id']] = [str(c) for c in f.get('commits', []) if re.match(r'^[0-9a-f]{7,40}$', str(c))]
+for report in sorted(snapshot.get('reports', []), key=lambda r: r['generated_at']):
+    for item in report.get('original_18', []):
+        commits_map[item['id']] = re.findall(r'\b[0-9a-f]{7,40}\b', str(item.get('fix_commit_in_DAS') or ''))
 state_reports = [(r.get('report_id'), r.get('source_sha256')) for r in state.get('auditor_reports', [])]
 if sorted(state_reports) != sorted((r.get('report_id'), r.get('source_sha256')) for r in snapshot.get('reports', [])):
     problems.append('STATE.auditor_reports 與 AUDITOR_SNAPSHOT 報告清單不一致')
@@ -173,6 +215,68 @@ if sorted(state_reports) != sorted((r.get('report_id'), r.get('source_sha256')) 
 def auditor_pass(record):
     status, problem = str(record.get('status')), str(record.get('problem_state'))
     return problem == 'AUDIT_VERIFIED' or status.startswith('PASS') or 'track_B PASS' in status
+
+
+# OCR-V531-D04：closure_class 的完整機械推導（與 build_state.py 同規則）。git 歷史可用時要求精確等於推導值；
+# 否則（無 git）至少要求 closure_class 落在該 builder_status＋Auditor 判定下可能的候選集合內。
+def after_review(commits, reviewed_sha):
+    """True＝有修正 commit 不在 Auditor 審過的 SHA 之內（審核之後才修）。"""
+    if not commits or not reviewed_sha:
+        return None
+    for commit in commits:
+        if git('merge-base', '--is-ancestor', commit, reviewed_sha).returncode != 0:
+            return True
+    return False
+
+
+def touched_after(commits, reviewed_sha):
+    """Auditor PASS 之後，修正 commit 碰過的檔案是否又在 reviewed_sha..product_sha 被改。"""
+    if not commits or not reviewed_sha:
+        return []
+    files = set()
+    for commit in commits:
+        result = git('show', '--name-only', '--format=', commit)
+        if result.returncode == 0:
+            files |= set(result.stdout.split())
+    product_sha = shas.get('product_sha')
+    result = git('diff', '--name-only', f'{reviewed_sha}..{product_sha}')
+    later = set(result.stdout.split()) if result.returncode == 0 else set()
+    return sorted(f for f in files & later if not f.startswith('web-ui/docs/'))
+
+
+def derive_closure_class(builder_status, truth, commits):
+    status = str(truth['status']) if truth else 'NOT_YET_REVIEWED'
+    problem = str(truth['problem_state']) if truth else ''
+    if builder_status in ('BLOCKED_DECISION', 'HUMAN_DECISION_REQUIRED'):
+        return 'HUMAN_DECISION_BLOCKED'
+    if builder_status in ('WORK_ORDER_ISSUED', 'OPEN'):
+        return 'NOT_IMPLEMENTED'
+    later = after_review(commits, truth['reviewed_sha'] if truth else None)
+    if later:
+        return 'BUILDER_FIXED_PENDING_REAUDIT'
+    if truth and auditor_pass(truth):
+        return 'RETEST_REQUIRED' if touched_after(commits, truth['reviewed_sha']) else 'AUDITOR_VERIFIED'
+    if 'NOT_RUN' in status:
+        return 'EVIDENCE_MISSING'
+    if status == 'NOT_YET_REVIEWED':
+        return 'BUILDER_FIXED_PENDING_REAUDIT'
+    return 'RETEST_REQUIRED'
+
+
+def closure_candidates(builder_status, truth):
+    """無 git 歷史時的候選集合（保守：不排除需要 commit 祖先資訊才能區分的類別）。"""
+    status = str(truth['status']) if truth else 'NOT_YET_REVIEWED'
+    if builder_status in ('BLOCKED_DECISION', 'HUMAN_DECISION_REQUIRED'):
+        return {'HUMAN_DECISION_BLOCKED'}
+    if builder_status in ('WORK_ORDER_ISSUED', 'OPEN'):
+        return {'NOT_IMPLEMENTED'}
+    if truth and auditor_pass(truth):
+        return {'AUDITOR_VERIFIED', 'RETEST_REQUIRED', 'BUILDER_FIXED_PENDING_REAUDIT'}
+    if 'NOT_RUN' in status:
+        return {'EVIDENCE_MISSING', 'BUILDER_FIXED_PENDING_REAUDIT'}
+    if status == 'NOT_YET_REVIEWED':
+        return {'BUILDER_FIXED_PENDING_REAUDIT'}
+    return {'RETEST_REQUIRED', 'BUILDER_FIXED_PENDING_REAUDIT'}
 
 
 registries, seen = {}, set()
@@ -209,9 +313,16 @@ for finding in ledger['findings']:
     want_status = registry_status.get(fid, 'FIXED_PENDING_REAUDIT' if fid not in registry_status else None)
     if builder_status != want_status:
         problems.append(f'{fid}: builder_status {builder_status} 與 registry 狀態 {want_status} 不符')
-    expected_class = {'BLOCKED_DECISION': 'HUMAN_DECISION_BLOCKED', 'HUMAN_DECISION_REQUIRED': 'HUMAN_DECISION_BLOCKED', 'WORK_ORDER_ISSUED': 'NOT_IMPLEMENTED', 'OPEN': 'NOT_IMPLEMENTED'}.get(builder_status)
-    if expected_class and finding.get('closure_class') != expected_class:
-        problems.append(f'{fid}: builder_status {builder_status} 應對應 closure_class {expected_class}')
+    # OCR-V531-D04：closure_class 完整機械推導（不只 AUDITOR_VERIFIED 與 BLOCKED 類）
+    commits = commits_map.get(fid, [])
+    if git_checked:
+        expected = derive_closure_class(builder_status, truth, commits)
+        if finding.get('closure_class') != expected:
+            problems.append(f"{fid}: closure_class {finding.get('closure_class')} 與機械推導 {expected} 不符（D04：非驗證類別也不得互換）")
+    else:
+        cands = closure_candidates(builder_status, truth)
+        if finding.get('closure_class') not in cands:
+            problems.append(f"{fid}: closure_class {finding.get('closure_class')} 不在候選集合 {sorted(cands)} 內（D04）")
     # OCR-V531-02：嚴重度以 snapshot／registry／釘選值為準
     want = (truth or {}).get('severity') or registry_severity.get(fid) or BUILDER_ASSIGNED_SEVERITY.get(fid)
     if str(finding.get('registry', '')).endswith('（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）'):
