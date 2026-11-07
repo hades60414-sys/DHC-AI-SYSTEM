@@ -181,39 +181,47 @@ async function approvalScenario(approverPage, seeded) {
 }
 
 let seeded;
+const scenarioErrors = [];
+// 每個情境獨立執行：舊版（RED）在某情境卡住時，不影響其他情境與 PostgreSQL 交叉核對；GREEN 要求 scenarioErrors 為空
+async function isolated(name, fn) {
+  try { await fn(); } catch (error) { scenarioErrors.push({ scenario: name, error: String(error).slice(0, 600) }); }
+}
 try {
   seeded = await seed();
   const staff = await session(`staff@${slug}.example.invalid`);
-  await draftScenario(staff.page, seeded, '草稿：A 已載入、B GET 延遲（同作者同版號）', 'draftA', 'draftB', 'pending');
-  await draftScenario(staff.page, seeded, '草稿：A 已載入、B GET 503（同作者同版號）', 'draftA', 'draftB', '503');
-  await draftScenario(staff.page, seeded, '草稿：A 已載入、丁 GET 503（不同版號）', 'draftA', 'draftDiff', '503');
-  // 正向：B 正常載入後合法修改並儲存，PUT 只帶 B 的版號與新內容
-  const positive = { name: '草稿正向：B 正常載入後儲存' };
-  await staff.page.getByRole('button', { name: /乙稿/ }).first().click();
-  const area = staff.page.locator('textarea').first();
-  await area.waitFor();
-  for (let i = 0; i < 20 && !(await textareaValues(staff.page)).includes(seeded.bodies.draftB); i += 1) await sleep(300);
-  const edited = `${seeded.bodies.draftB}\n（E2E 合法修改）`;
-  await area.fill(edited);
-  const start = writes.length;
-  await staff.page.getByRole('button', { name: '儲存修改', exact: true }).click();
-  await staff.page.getByRole('status').filter({ hasText: '已儲存修改' }).waitFor();
-  const sent = writes.slice(start).find(item => item.url.endsWith(`/drafts/${ids.draftB}`));
-  positive.ok = Boolean(sent && JSON.parse(sent.body).expectedRevision === seeded.revisions.draftB && JSON.parse(sent.body).body === edited);
-  positive.sent = sent;
-  if (!positive.ok) violations.push({ scenario: positive.name, code: 'POSITIVE_SAVE_MISMATCH', sent });
-  scenarios.push(positive);
-  ids.editedBodyB = edited;
+  await isolated('草稿：A 已載入、B GET 延遲（同作者同版號）', () => draftScenario(staff.page, seeded, '草稿：A 已載入、B GET 延遲（同作者同版號）', 'draftA', 'draftB', 'pending'));
+  await isolated('草稿：A 已載入、B GET 503（同作者同版號）', () => draftScenario(staff.page, seeded, '草稿：A 已載入、B GET 503（同作者同版號）', 'draftA', 'draftB', '503'));
+  await isolated('草稿：A 已載入、丁 GET 503（不同版號）', () => draftScenario(staff.page, seeded, '草稿：A 已載入、丁 GET 503（不同版號）', 'draftA', 'draftDiff', '503'));
+  await staff.page.unrouteAll({ behavior: 'ignoreErrors' });
+  await isolated('草稿正向：B 正常載入後儲存', async () => {
+    // 正向：B 正常載入後合法修改並儲存，PUT 只帶 B 的版號與新內容
+    const positive = { name: '草稿正向：B 正常載入後儲存' };
+    await staff.page.getByRole('button', { name: /乙稿/ }).first().click();
+    const area = staff.page.locator('textarea').first();
+    await area.waitFor();
+    for (let i = 0; i < 20 && !(await textareaValues(staff.page)).includes(seeded.bodies.draftB); i += 1) await sleep(300);
+    const edited = `${seeded.bodies.draftB}\n（E2E 合法修改）`;
+    await area.fill(edited);
+    const start = writes.length;
+    await staff.page.getByRole('button', { name: '儲存修改', exact: true }).click();
+    await staff.page.getByRole('status').filter({ hasText: '已儲存修改' }).waitFor();
+    const sent = writes.slice(start).find(item => item.url.endsWith(`/drafts/${ids.draftB}`));
+    positive.ok = Boolean(sent && JSON.parse(sent.body).expectedRevision === seeded.revisions.draftB && JSON.parse(sent.body).body === edited);
+    positive.sent = sent;
+    if (!positive.ok) violations.push({ scenario: positive.name, code: 'POSITIVE_SAVE_MISMATCH', sent });
+    scenarios.push(positive);
+    ids.editedBodyB = edited;
+  });
   await staff.context.close();
   const approver = await session(`approver@${slug}.example.invalid`);
-  await approvalScenario(approver.page, seeded);
+  await isolated('審批情境', () => approvalScenario(approver.page, seeded));
   await approver.context.close();
 } catch (error) {
   fatal = String(error).slice(0, 800);
 } finally {
   await browser.close();
-  const status = fatal ? 'ERROR' : violations.length ? 'VIOLATIONS' : 'PASS';
-  writeFileSync(path.join(outDir, 'RESULT.json'), `${JSON.stringify({ status, fatal, base, ids, seeded, scenarios, violations, writes }, null, 1)}\n`);
-  console.log(JSON.stringify({ status, fatal, violations: violations.length, scenarios: scenarios.length }));
+  const status = fatal ? 'ERROR' : violations.length ? 'VIOLATIONS' : scenarioErrors.length ? 'ERROR' : 'PASS';
+  writeFileSync(path.join(outDir, 'RESULT.json'), `${JSON.stringify({ status, fatal, base, ids, seeded, scenarios, scenarioErrors, violations, writes }, null, 1)}\n`);
+  console.log(JSON.stringify({ status, fatal, violations: violations.length, scenarios: scenarios.length, scenarioErrors: scenarioErrors.length }));
   process.exit(status === 'PASS' ? 0 : status === 'VIOLATIONS' ? 3 : 1);
 }

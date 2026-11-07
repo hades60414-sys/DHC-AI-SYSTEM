@@ -75,8 +75,9 @@ try:
                             cwd=ROOT, env={**env, 'DHC_E2E_PASSWORD': password}, capture_output=True, text=True)
     (out / '05-browser.txt').write_text(f'exit={driver.returncode}\n{driver.stdout[-4000:]}\n{driver.stderr[-4000:]}\n')
     browser = json.loads((out / 'browser' / 'RESULT.json').read_text())
-    if browser['status'] == 'ERROR':
+    if browser.get('fatal'):
         raise RuntimeError(f"browser driver error: {browser['fatal']}")
+    db['browser_scenario_errors'] = browser.get('scenarioErrors', [])
     ids, bodies = browser['ids'], browser['seeded']['bodies']
     revisions_b = [line.split('|', 1) for line in psql(f"SELECT revision, md5(body) FROM enterprise.draft_revisions WHERE draft_id={q(ids['draftB'])} ORDER BY revision").splitlines() if line]
     md5 = lambda text: subprocess.run(['python3', '-c', 'import hashlib,sys;print(hashlib.md5(sys.stdin.read().encode()).hexdigest())'], input=text, capture_output=True, text=True).stdout.strip()
@@ -96,6 +97,7 @@ try:
         checks.append({'name': name, 'passed': bool(condition)})
     if args.expect == 'green':
         check('瀏覽器：沒有任何 violation（所有情境）', browser['status'] == 'PASS' and not browser['violations'])
+        check('瀏覽器：每個情境都完整執行（沒有情境錯誤）', not browser.get('scenarioErrors'))
         check('PG：B 沒有任何一版內容等於 A', not any(item['equals_A_body'] for item in db['draftB_revisions']))
         check('PG：B 只有第 1 版＋合法修改的第 2 版', [item['revision'] for item in db['draftB_revisions']] == [1, 2])
         check('PG：B 的 draft.revised 稽核恰 1 筆、draft.submitted 0 筆（與 revision 一致）', db['audit_draft.revised_B'] == 1 and db['audit_draft.submitted_B'] == 0)
