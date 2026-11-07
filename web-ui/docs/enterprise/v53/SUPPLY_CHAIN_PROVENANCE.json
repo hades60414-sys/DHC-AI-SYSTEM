@@ -1,0 +1,50 @@
+{
+ "head_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+ "runs": {
+  "image_build": 42343825894
+ },
+ "images": [
+  {
+   "arch": "amd64",
+   "image_id": "sha256:16f1a64ccdf005ad983e772193d9b0cc9f8436335352d279023a5b3b8950b5d1",
+   "source_revision": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "runtime_base": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+   "license": "AGPL-3.0-or-later",
+   "oci_manifest_digest": null,
+   "image_archive_sha256": "d8ef922d83a5640e81fae8905065d623e2489d5c379ae7c0ed31626c4c0cb45c",
+   "trivy": {
+    "os-pkgs": {
+     "CRITICAL": 1,
+     "HIGH": 34
+    },
+    "lang-pkgs": {
+     "CRITICAL": 0,
+     "HIGH": 0
+    }
+   },
+   "sbom": "sbom/sbom.cdx.json（artifact enterprise-image-report-amd64）"
+  },
+  {
+   "arch": "arm64",
+   "image_id": "sha256:72e7b2e8667ccb4b808a5f3507371e5e2c319cf0a767c948a9d3ab397ac89b6c",
+   "source_revision": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "runtime_base": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+   "license": "AGPL-3.0-or-later",
+   "oci_manifest_digest": null,
+   "image_archive_sha256": "0ecde6c223185f898fbc8ba5dd846574783bb1539c13e225f52c9a580ad1cb7f",
+   "trivy": {
+    "os-pkgs": {
+     "CRITICAL": 1,
+     "HIGH": 34
+    },
+    "lang-pkgs": {
+     "CRITICAL": 0,
+     "HIGH": 0
+    }
+   },
+   "sbom": "sbom/sbom.cdx.json（artifact enterprise-image-report-arm64）"
+  }
+ ],
+ "delta_vs_v52": "Trivy 計數與 V5.2（d38afd8）相同：OS CRITICAL 1（zlib1g CVE-2023-45853，will_not_fix）、OS HIGH 34、lang 0／0；仍屬 SC-OWNER 待決。",
+ "not_claimed": "未推 registry、無簽章／provenance attestation、非正式 release。"
+}

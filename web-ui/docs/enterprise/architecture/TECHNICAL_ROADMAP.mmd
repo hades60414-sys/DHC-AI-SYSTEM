@@ -4,6 +4,7 @@ flowchart LR
   classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
   classDef newv51 fill:#e9e6f6,stroke:#5a4a9a,color:#2A2A2A
   classDef newv52 fill:#f6e9df,stroke:#9a5a2a,color:#2A2A2A
+  classDef newv53 fill:#e3f1f1,stroke:#2a7a7a,color:#2A2A2A
   classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
   classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2
   subgraph S0["CURRENT"]
@@ -38,7 +39,14 @@ flowchart LR
     V52_DEPLOY["V52-DEPLOY<br/>ROLL-007／RG-007：離線 image reference 一致、OCI source 指實際建置 repo"]:::newv52
     V52_REPO["V52-REPO<br/>RG-003：全 repository 覆蓋契約與靜態語法 job"]:::newv52
   end
-  subgraph S4["PLANNED"]
+  subgraph S4["NEW_IN_V53"]
+    V53_E2E["V53-E2E<br/>ROLL-002 真 Chromium＋PostgreSQL 切換 E2E：RED（V5.1）／GREEN（本次）＋delivery 兩架構"]:::newv53
+    V53_NEG["V53-NEG<br/>ROLL-001／008／009 GitHub 負向閘門證據：11 案例、無 continue-on-error、API 核對 job／step conclusion"]:::newv53
+    V53_ACC["V53-ACC<br/>跨側同列 ID 手算 golden＋真 PG JSON／CSV／Markdown 一致"]:::newv53
+    V53_OPS["V53-OPS<br/>用戶端中止請求不寫入；5 萬列同站衝突 CPU／RSS／延遲量測"]:::newv53
+    V53_COORD["V53-COORD<br/>Builder／Auditor 共享狀態：STATE／FINDING_LEDGER＋CI schema 檢查（Builder 不得標 AUDIT_VERIFIED）"]:::newv53
+  end
+  subgraph S5["PLANNED"]
     OPS_03["OPS-03<br/>週報敘述生成（模型只寫文字）"]:::planned
     OPS_04["OPS-04<br/>週報送審／簽認／正式匯出（沿用草稿審批鏈）"]:::planned
     OBS_02["OBS-02<br/>OpenTelemetry 追蹤、告警與 SLO（需實測流量基線）"]:::planned
@@ -46,7 +54,7 @@ flowchart LR
     UAT_01["UAT-01<br/>66 項 UAT 實際執行（目前 PASS 0）"]:::planned
     PERF_02["PERF-02<br/>多用戶併發負載、長時間 soak、arm64 升級回退"]:::planned
   end
-  subgraph S5["BLOCKED_DECISION"]
+  subgraph S6["BLOCKED_DECISION"]
     DEC_01["DEC-01<br/>條款比對功能（BLOCKED_PRODUCT_DECISION）"]:::blocked
     DEC_02["DEC-02<br/>RD-002／RD-003 契約、IP／著作權、價格與 SOW"]:::blocked
     DEC_03["DEC-03<br/>正式映像發布（GHCR）與客戶正式部署"]:::blocked
@@ -55,5 +63,5 @@ flowchart LR
     SEC_02["SEC-02<br/>deid-proxy／codex-deid：大小／逾時／背壓／斷線／路徑（RG-002）＋KEEP 規則穿透 arguments（ROLL-012）＋未知 block 原樣外送（ROLL-013）（owner 工單）"]:::blocked
     DEC_05["DEC-05<br/>OPS-REPORT 多來源合計列數的業務契約（目前工程上限 5 萬）"]:::blocked
   end
-  S0 --> S1 --> S2 --> S3 --> S4
-  S5 -.->|"人類決策後才排入"| S4
+  S0 --> S1 --> S2 --> S3 --> S4 --> S5
+  S6 -.->|"人類決策後才排入"| S5

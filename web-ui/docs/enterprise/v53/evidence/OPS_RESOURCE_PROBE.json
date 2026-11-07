@@ -1,0 +1,107 @@
+{
+ "node": "v22.23.4",
+ "arch": "x64",
+ "expected": {
+  "single_50k": "completed",
+  "same_site_conflict_50k": "completed",
+  "five_x_10k_legal_aggregate": "completed",
+  "five_x_50k": "TOTAL_ROWS_EXCEEDED",
+  "five_x_25MiB": "TOTAL_BYTES_EXCEEDED",
+  "one_huge_line_25MiB": "TOTAL_BYTES_EXCEEDED",
+  "one_huge_line_20MiB": "LINE_TOO_LONG",
+  "long_field_1MiB": "LINE_TOO_LONG"
+ },
+ "violations": [],
+ "results": [
+  {
+   "name": "single_50k",
+   "input_bytes": 4216855,
+   "status": "completed",
+   "rows": 50000,
+   "result_json_mb": 0.4,
+   "ms": 625,
+   "cpu_ms": 757,
+   "max_rss_mb": 209
+  },
+  {
+   "name": "five_x_10k_legal_aggregate",
+   "input_bytes": 4134275,
+   "status": "completed",
+   "rows": 50000,
+   "result_json_mb": 0.4,
+   "ms": 644,
+   "cpu_ms": 821,
+   "max_rss_mb": 168
+  },
+  {
+   "name": "one_huge_line_20MiB",
+   "input_bytes": 20971706,
+   "status": "rejected",
+   "codes": [
+    "LINE_TOO_LONG"
+   ],
+   "result_json_mb": 0,
+   "ms": 2,
+   "cpu_ms": 3,
+   "max_rss_mb": 129
+  },
+  {
+   "name": "same_site_conflict_50k",
+   "input_bytes": 3689075,
+   "status": "completed",
+   "rows": 50000,
+   "result_json_mb": 6.4,
+   "ms": 542,
+   "cpu_ms": 640,
+   "max_rss_mb": 201
+  },
+  {
+   "name": "five_x_50k",
+   "input_bytes": 21084275,
+   "status": "rejected",
+   "codes": [
+    "TOTAL_ROWS_EXCEEDED"
+   ],
+   "result_json_mb": 0,
+   "ms": 352,
+   "cpu_ms": 421,
+   "max_rss_mb": 297
+  },
+  {
+   "name": "five_x_25MiB",
+   "input_bytes": 69659275,
+   "status": "rejected",
+   "codes": [
+    "TOTAL_BYTES_EXCEEDED"
+   ],
+   "result_json_mb": 0,
+   "ms": 451,
+   "cpu_ms": 529,
+   "max_rss_mb": 323
+  },
+  {
+   "name": "one_huge_line_25MiB",
+   "input_bytes": 26214506,
+   "status": "rejected",
+   "codes": [
+    "TOTAL_BYTES_EXCEEDED"
+   ],
+   "result_json_mb": 0,
+   "ms": 1,
+   "cpu_ms": 2,
+   "max_rss_mb": 136
+  },
+  {
+   "name": "long_field_1MiB",
+   "input_bytes": 1048828,
+   "status": "rejected",
+   "codes": [
+    "LINE_TOO_LONG"
+   ],
+   "result_json_mb": 0,
+   "ms": 1,
+   "cpu_ms": 1,
+   "max_rss_mb": 89
+  }
+ ]
+}

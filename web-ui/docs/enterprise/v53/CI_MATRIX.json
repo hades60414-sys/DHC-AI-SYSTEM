@@ -1,0 +1,347 @@
+{
+ "head_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+ "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+ "note": "V5.3 未改產品程式（src／server 非測試／deploy／package 對 d38afd8 diff 為空）；image 以 head_sha 建置。",
+ "runs": [
+  {
+   "workflow": "enterprise-verify",
+   "run_id": 42343825984,
+   "attempt": 1,
+   "event": "pull_request",
+   "branch": "fix/ai-office-v53-closure",
+   "head_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "conclusion": "success",
+   "expected_conclusion": "success",
+   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343825984",
+   "jobs": [
+    {
+     "id": 128317130277,
+     "name": "postgres-integration",
+     "conclusion": "success"
+    },
+    {
+     "id": 128317130410,
+     "name": "static-and-unit",
+     "conclusion": "success"
+    },
+    {
+     "id": 128318023665,
+     "name": "csv-spreadsheet-safety",
+     "conclusion": "success"
+    }
+   ],
+   "artifacts": [
+    {
+     "id": 13562699147,
+     "name": "enterprise-verify-static-unit",
+     "size": 124169,
+     "digest": "sha256:54fd1b470a78499079d201210adec0beb780920f7767af9ce6cf09db96a7d212"
+    },
+    {
+     "id": 13562499596,
+     "name": "enterprise-verify-csv-spreadsheet",
+     "size": 686,
+     "digest": "sha256:24e3ea11ea91948e77855380d014ce5bd94ecfddc105b154f703d50a62277ff5"
+    },
+    {
+     "id": 13562048165,
+     "name": "enterprise-verify-postgres",
+     "size": 29928,
+     "digest": "sha256:d0bd1b0246b98f518b2aefd8ca6bb019b234dd86c3b238c1408238e283bd1794"
+    }
+   ]
+  },
+  {
+   "workflow": "enterprise-image-build",
+   "run_id": 42343825894,
+   "attempt": 1,
+   "event": "pull_request",
+   "branch": "fix/ai-office-v53-closure",
+   "head_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "conclusion": "success",
+   "expected_conclusion": "success",
+   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343825894",
+   "jobs": [
+    {
+     "id": 128317202921,
+     "name": "build-amd64",
+     "conclusion": "success"
+    },
+    {
+     "id": 128317203188,
+     "name": "build-arm64",
+     "conclusion": "success"
+    },
+    {
+     "id": 128317861625,
+     "name": "delivery-amd64 / delivery",
+     "conclusion": "success"
+    },
+    {
+     "id": 128317861647,
+     "name": "upgrade-rollback-amd64",
+     "conclusion": "success"
+    },
+    {
+     "id": 128317903000,
+     "name": "delivery-arm64 / delivery",
+     "conclusion": "success"
+    }
+   ],
+   "artifacts": [
+    {
+     "id": 13562942018,
+     "name": "enterprise-delivery-arm64",
+     "size": 33138,
+     "digest": "sha256:1472ac07adeb07073e2d51a705309c64a829909fd9f1e651eb8872b95c202a7a"
+    },
+    {
+     "id": 13562602980,
+     "name": "enterprise-delivery-amd64",
+     "size": 33129,
+     "digest": "sha256:f832015c17a337f7f4856efc7f390df7604485e79cde6f4195f768c6eb369d6a"
+    },
+    {
+     "id": 13562459864,
+     "name": "enterprise-upgrade-rollback-amd64",
+     "size": 14629,
+     "digest": "sha256:7f3ad3d3c255404a451a3c3dd802c0863b9015682b98314ae7c5e621ea980ee7"
+    },
+    {
+     "id": 13562339457,
+     "name": "enterprise-image-report-arm64",
+     "size": 161573,
+     "digest": "sha256:ebfd3a8fe10b062e18709e3b68c22577b86d6801ba2c3f4b7fb71b4a1df5e766"
+    },
+    {
+     "id": 13562294417,
+     "name": "enterprise-image-archive-amd64",
+     "size": 286022601,
+     "digest": "sha256:82d1b1e5a56e635884ef53f89b7cbf727821c7e4e68cb6bf7bd42ccc826673b3"
+    },
+    {
+     "id": 13562279628,
+     "name": "enterprise-image-archive-arm64",
+     "size": 284571264,
+     "digest": "sha256:7c678beec2b9e90cecb48a03d3e8d07c18bf9b909162fa2383a8d7e2a0977f8b"
+    },
+    {
+     "id": 13562234612,
+     "name": "enterprise-image-report-amd64",
+     "size": 161408,
+     "digest": "sha256:4402cd8c4f21b69add7973c6a5958ffadfa41684f8f8746e0a325d7b34ef782e"
+    }
+   ]
+  },
+  {
+   "workflow": "repo-coverage",
+   "run_id": 42343825939,
+   "attempt": 1,
+   "event": "pull_request",
+   "branch": "fix/ai-office-v53-closure",
+   "head_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "conclusion": "success",
+   "expected_conclusion": "success",
+   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343825939",
+   "jobs": [
+    {
+     "id": 128317130427,
+     "name": "coverage-contract",
+     "conclusion": "success"
+    }
+   ],
+   "artifacts": [
+    {
+     "id": 13562527346,
+     "name": "repo-coverage",
+     "size": 915,
+     "digest": "sha256:74d0ac6e33adba4959d0a43f213e0575f487d54ba7beea1504715dbf95bc1516"
+    }
+   ]
+  },
+  {
+   "workflow": "negative-gate-evidence",
+   "run_id": 42343824459,
+   "attempt": 1,
+   "event": "push",
+   "branch": "ci-evidence/v53-closure",
+   "head_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "conclusion": "failure",
+   "expected_conclusion": "failure（負向案例 job 預期失敗；collect=success 代表全部符合預期）",
+   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343824459",
+   "jobs": [
+    {
+     "id": 128317125238,
+     "name": "case-positive_control",
+     "conclusion": "success"
+    },
+    {
+     "id": 128317125248,
+     "name": "case-truncated_report",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317125267,
+     "name": "case-build_failure",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317125274,
+     "name": "case-frontend_exit1_all_pass",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317125293,
+     "name": "case-smoke_failure",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317125301,
+     "name": "case-tool_nonzero_output_all_pass",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317125307,
+     "name": "case-new_skip",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317125331,
+     "name": "case-missing_output",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317125356,
+     "name": "case-wrong_sha256",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317125365,
+     "name": "case-new_todo",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317125443,
+     "name": "case-comparator_nonzero_new_fail",
+     "conclusion": "failure"
+    },
+    {
+     "id": 128317177605,
+     "name": "collect",
+     "conclusion": "success"
+    }
+   ],
+   "artifacts": [
+    {
+     "id": 13562663449,
+     "name": "negative-case-missing_output",
+     "size": 623,
+     "digest": "sha256:c9d9d6dfd19cf399211524f8d8297b6796e11e13d9b2d26de5adefb8225f4ac9"
+    },
+    {
+     "id": 13562513828,
+     "name": "negative-case-comparator_nonzero_new_fail",
+     "size": 632,
+     "digest": "sha256:8372a4bff2e2fa58bcd0a1287572e7946b43fea25ccef97f51d4bd9650db84a0"
+    },
+    {
+     "id": 13562503796,
+     "name": "negative-case-smoke_failure",
+     "size": 420,
+     "digest": "sha256:8acb1164f2f8b99c5b06052bbd0df5c7ef074d427a2bff8d9965b4796c807687"
+    },
+    {
+     "id": 13562298996,
+     "name": "negative-case-frontend_exit1_all_pass",
+     "size": 636,
+     "digest": "sha256:2a344643b094ee47fc1ac48287d0baeb4a6f91cefb94ef315e68c2c23959ec81"
+    },
+    {
+     "id": 13562298995,
+     "name": "negative-case-positive_control",
+     "size": 624,
+     "digest": "sha256:0aee748d7b790b1960043dd3d529be4c772524ecea8a74c57965bbdcdf60d93f"
+    },
+    {
+     "id": 13562274113,
+     "name": "negative-case-new_skip",
+     "size": 619,
+     "digest": "sha256:44e180803de16bdb277d044533ac11f372e4c584993fc5107c05f4c32a116976"
+    },
+    {
+     "id": 13562179135,
+     "name": "negative-case-new_todo",
+     "size": 619,
+     "digest": "sha256:9f2741cc963f8ff49b758461907c578c1d2330390f455112c6265490aa2c6dd6"
+    },
+    {
+     "id": 13562013046,
+     "name": "negative-case-wrong_sha256",
+     "size": 401,
+     "digest": "sha256:bba033de4d017e6b4af86a7fbb1ce90f98d9914a2361a2a9a8232a3bd79aed8b"
+    },
+    {
+     "id": 13561734722,
+     "name": "negative-case-truncated_report",
+     "size": 627,
+     "digest": "sha256:bc39a6831315302af733e79264f896c1a4607684440ab08aae82faaab675cc05"
+    },
+    {
+     "id": 13561729806,
+     "name": "negative-case-build_failure",
+     "size": 406,
+     "digest": "sha256:baddd334463648b634110c5b4339e5823a33088aad50593dbc8739824214ee26"
+    },
+    {
+     "id": 13561699794,
+     "name": "negative-gate-evidence",
+     "size": 2862,
+     "digest": "sha256:8fb4d99208083e275d5fba6437d73ebf29e9a2b2935b3d50cd8790f87b3d9de3"
+    },
+    {
+     "id": 13561699776,
+     "name": "negative-case-tool_nonzero_output_all_pass",
+     "size": 632,
+     "digest": "sha256:b10c25d17da0882bd0886ced91776f5ee1ee4f84ea84f29ec11b8033d55d9456"
+    }
+   ]
+  },
+  {
+   "workflow": "office-e2e-evidence",
+   "run_id": 42343824443,
+   "attempt": 1,
+   "event": "push",
+   "branch": "ci-evidence/v53-closure",
+   "head_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "conclusion": "success",
+   "expected_conclusion": "success",
+   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343824443",
+   "jobs": [
+    {
+     "id": 128317125119,
+     "name": "office-stale-green-current",
+     "conclusion": "success"
+    },
+    {
+     "id": 128317125314,
+     "name": "office-stale-red-v51",
+     "conclusion": "success"
+    }
+   ],
+   "artifacts": [
+    {
+     "id": 13562971307,
+     "name": "office-stale-red-v51",
+     "size": 5688,
+     "digest": "sha256:2ee6d10b0d80eea73480aefb953d3b4518a6474ee5baea2556000c75f61fd931"
+    },
+    {
+     "id": 13562439293,
+     "name": "office-stale-green-current",
+     "size": 5220,
+     "digest": "sha256:0b4549d849da78b91800d04db61167870420e843a6909594bc9e6f53bb87e300"
+    }
+   ]
+  }
+ ]
+}

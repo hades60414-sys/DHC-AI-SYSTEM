@@ -4,3 +4,4 @@
 - 新增 `AUDITOR_SNAPSHOT.json`：抄錄 Astra INTERIM_AUDIT（20 項 rolling findings＋原始 18 項 track 判定），來源 SHA-256 `84137ee9ef477bc8c51f20af50d849754e5b47078ccef380b29801f5248402ab`。
 - 新增 `FINDING_LEDGER.json`／`STATE.json`（由 `build_state.py` 產生）與 `check_state.py`／`test_check_state.py`（CI static-and-unit 執行）。
 - Builder 狀態：BUILDER_SUBMITTED；Auditor 狀態：ASTRA_REAUDIT_PENDING。沒有任何項目被 Builder 標為 AUDIT_VERIFIED。
+- CI 證據（head `45713dce4a272cd9303478ffe56ac8c732eacd23`）：enterprise-verify 42343825984、enterprise-image-build 42343825894、repo-coverage 42343825939、negative-gate-evidence 42343824459（預期 failure，all_match）、office-e2e-evidence 42343824443。STATE 已帶入 run／attempt／artifact ID。

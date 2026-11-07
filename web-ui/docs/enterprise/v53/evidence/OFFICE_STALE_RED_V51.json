@@ -1,0 +1,299 @@
+{
+ "source_artifact": "42343824443/office-stale-red-v51",
+ "image": "sha256:ddaa5c5db0a4d45341fb4354f39029004354bd7e683ea8ff78abaa6a8e796e99 2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+ "harness": {
+  "status": "PASS",
+  "expect": "red",
+  "image": "dhc-ai-office:subject",
+  "error": null,
+  "steps": [
+   {
+    "name": "01-init-secrets",
+    "exit_code": 0
+   },
+   {
+    "name": "02-up",
+    "exit_code": 0
+   },
+   {
+    "name": "03-bootstrap",
+    "exit_code": 0
+   },
+   {
+    "name": "04-subscription",
+    "exit_code": 0
+   }
+  ],
+  "checks": [
+   {
+    "name": "瀏覽器：舊版確實出現 violation（A 內容顯示在 B 或寫入 B）",
+    "passed": true
+   },
+   {
+    "name": "PG：舊版實際把 A 的內容寫成 B 的新版本或錯誤送審 B",
+    "passed": true
+   }
+  ],
+  "db": {
+   "browser_scenario_errors": [
+    {
+     "scenario": "審批情境",
+     "error": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: /審核D/ }).first()\n"
+    }
+   ],
+   "draftB_revisions": [
+    {
+     "revision": 1,
+     "body_md5": "e2269e7849566ac6e180ea047876355d",
+     "equals_A_body": false
+    },
+    {
+     "revision": 2,
+     "body_md5": "84e4e0fafb03ddde5dbbb87da07557df",
+     "equals_A_body": true
+    },
+    {
+     "revision": 3,
+     "body_md5": "3b8141938be94a87fd5499b4c6072648",
+     "equals_A_body": false
+    }
+   ],
+   "draftB_status": "draft",
+   "audit_draft.revised_B": 2,
+   "audit_draft.submitted_B": 0,
+   "approval_C": "pending",
+   "audit_decided_C": 0,
+   "approval_D": "approved",
+   "audit_decided_D": 1,
+   "draftA_revisions": 1,
+   "citation_hashes_differ_A_B": true,
+   "approval_C_D_same_sha": true
+  },
+  "cleanup_exit_code": 0
+ },
+ "browser": {
+  "status": "VIOLATIONS",
+  "scenarios": [
+   {
+    "name": "草稿：A 已載入、B GET 延遲（同作者同版號）",
+    "mode": "pending",
+    "from": "draftA",
+    "to": "draftB",
+    "attempts": {
+     "儲存修改": "clicked",
+     "送審": "clicked"
+    },
+    "shownFromBodyUnderTo": true,
+    "writesToTarget": [
+     {
+      "who": "staff@stale-co.example.invalid",
+      "method": "PUT",
+      "url": "/api/enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc",
+      "body": "{\"expectedRevision\":1,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源甲 交付期限 2026/12/31 甲方承擔運費 [1]\"}"
+     },
+     {
+      "who": "staff@stale-co.example.invalid",
+      "method": "POST",
+      "url": "/api/enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc/submit",
+      "body": "{\"expectedRevision\":1}"
+     }
+    ]
+   },
+   {
+    "name": "草稿：A 已載入、B GET 503（同作者同版號）",
+    "mode": "503",
+    "from": "draftA",
+    "to": "draftB",
+    "attempts": {
+     "儲存修改": "clicked",
+     "送審": "clicked"
+    },
+    "shownFromBodyUnderTo": true,
+    "writesToTarget": [
+     {
+      "who": "staff@stale-co.example.invalid",
+      "method": "PUT",
+      "url": "/api/enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc",
+      "body": "{\"expectedRevision\":1,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源甲 交付期限 2026/12/31 甲方承擔運費 [1]\"}"
+     },
+     {
+      "who": "staff@stale-co.example.invalid",
+      "method": "POST",
+      "url": "/api/enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc/submit",
+      "body": "{\"expectedRevision\":1}"
+     }
+    ]
+   },
+   {
+    "name": "草稿：A 已載入、丁 GET 503（不同版號）",
+    "mode": "503",
+    "from": "draftA",
+    "to": "draftDiff",
+    "attempts": {
+     "儲存修改": "clicked",
+     "送審": "clicked"
+    },
+    "shownFromBodyUnderTo": true,
+    "writesToTarget": [
+     {
+      "who": "staff@stale-co.example.invalid",
+      "method": "PUT",
+      "url": "/api/enterprise/v1/drafts/dc65d4a1-9f5d-418b-9d0b-23695bed0507",
+      "body": "{\"expectedRevision\":1,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源甲 交付期限 2026/12/31 甲方承擔運費 [1]\"}"
+     },
+     {
+      "who": "staff@stale-co.example.invalid",
+      "method": "POST",
+      "url": "/api/enterprise/v1/drafts/dc65d4a1-9f5d-418b-9d0b-23695bed0507/submit",
+      "body": "{\"expectedRevision\":1}"
+     }
+    ]
+   },
+   {
+    "name": "草稿正向：B 正常載入後儲存",
+    "ok": false
+   },
+   {
+    "name": "審批：C 已載入、D 回 503（相同內容、不同 approval）",
+    "attempts": {
+     "核准": "clicked",
+     "退回": "absent"
+    },
+    "labelUnderD": "審核第 1 版（內容 SHA-256 e15ec8bef236…）",
+    "decisionsWhileNotReady": [
+     {
+      "who": "approver@stale-co.example.invalid",
+      "method": "POST",
+      "url": "/api/enterprise/v1/approvals/bb3d4ce3-8b0a-48e7-a8e0-a070048b7a60/decision",
+      "body": "{\"decision\":\"approve\",\"comment\":\"\",\"expectedRevision\":1,\"expectedSha256\":\"e15ec8bef23663cde9c6209ac471306cb70da96b893ab9846f7788f16ddaa7a6\"}"
+     }
+    ]
+   }
+  ],
+  "scenario_errors": [
+   {
+    "scenario": "審批情境",
+    "error": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: /審核D/ }).first()\n"
+   }
+  ],
+  "violation_counts": {
+   "FROM_BODY_SHOWN_UNDER_TO": 3,
+   "WROTE_FROM_BODY_TO_TARGET": 3,
+   "WROTE_TO_TARGET_WHILE_NOT_READY": 3,
+   "POSITIVE_SAVE_MISMATCH": 1,
+   "DECISION_WHILE_NOT_READY": 1
+  },
+  "violations": [
+   {
+    "scenario": "草稿：A 已載入、B GET 延遲（同作者同版號）",
+    "code": "FROM_BODY_SHOWN_UNDER_TO"
+   },
+   {
+    "scenario": "草稿：A 已載入、B GET 延遲（同作者同版號）",
+    "code": "WROTE_FROM_BODY_TO_TARGET",
+    "url": "/api/enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc"
+   },
+   {
+    "scenario": "草稿：A 已載入、B GET 延遲（同作者同版號）",
+    "code": "WROTE_TO_TARGET_WHILE_NOT_READY",
+    "url": "/api/enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc/submit"
+   },
+   {
+    "scenario": "草稿：A 已載入、B GET 503（同作者同版號）",
+    "code": "FROM_BODY_SHOWN_UNDER_TO"
+   },
+   {
+    "scenario": "草稿：A 已載入、B GET 503（同作者同版號）",
+    "code": "WROTE_FROM_BODY_TO_TARGET",
+    "url": "/api/enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc"
+   },
+   {
+    "scenario": "草稿：A 已載入、B GET 503（同作者同版號）",
+    "code": "WROTE_TO_TARGET_WHILE_NOT_READY",
+    "url": "/api/enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc/submit"
+   },
+   {
+    "scenario": "草稿：A 已載入、丁 GET 503（不同版號）",
+    "code": "FROM_BODY_SHOWN_UNDER_TO"
+   },
+   {
+    "scenario": "草稿：A 已載入、丁 GET 503（不同版號）",
+    "code": "WROTE_FROM_BODY_TO_TARGET",
+    "url": "/api/enterprise/v1/drafts/dc65d4a1-9f5d-418b-9d0b-23695bed0507"
+   },
+   {
+    "scenario": "草稿：A 已載入、丁 GET 503（不同版號）",
+    "code": "WROTE_TO_TARGET_WHILE_NOT_READY",
+    "url": "/api/enterprise/v1/drafts/dc65d4a1-9f5d-418b-9d0b-23695bed0507/submit"
+   },
+   {
+    "scenario": "草稿正向：B 正常載入後儲存",
+    "code": "POSITIVE_SAVE_MISMATCH",
+    "sent": {
+     "who": "staff@stale-co.example.invalid",
+     "method": "PUT",
+     "url": "/api/enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc",
+     "body": "{\"expectedRevision\":2,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源乙 預算上限 88,000 乙方負責驗收 [1]\\n（E2E 合法修改）\"}"
+    }
+   },
+   {
+    "scenario": "審批：C 已載入、D 回 503（相同內容、不同 approval）",
+    "code": "DECISION_WHILE_NOT_READY",
+    "url": "/api/enterprise/v1/approvals/bb3d4ce3-8b0a-48e7-a8e0-a070048b7a60/decision",
+    "body": "{\"decision\":\"approve\",\"comment\":\"\",\"expectedRevision\":1,\"expectedSha256\":\"e15ec8bef23663cde9c6209ac471306cb70da96b893ab9846f7788f16ddaa7a6\"}"
+   }
+  ],
+  "writes": [
+   {
+    "method": "PUT",
+    "url": "enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc",
+    "body": "{\"expectedRevision\":1,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源甲 交付期限 2026/12/31 甲方承擔運費 [1]\"}"
+   },
+   {
+    "method": "POST",
+    "url": "enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc/submit",
+    "body": "{\"expectedRevision\":1}"
+   },
+   {
+    "method": "PUT",
+    "url": "enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc",
+    "body": "{\"expectedRevision\":1,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源甲 交付期限 2026/12/31 甲方承擔運費 [1]\"}"
+   },
+   {
+    "method": "POST",
+    "url": "enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc/submit",
+    "body": "{\"expectedRevision\":1}"
+   },
+   {
+    "method": "PUT",
+    "url": "enterprise/v1/drafts/dc65d4a1-9f5d-418b-9d0b-23695bed0507",
+    "body": "{\"expectedRevision\":1,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源甲 交付期限 2026/12/31 甲方承擔運費 [1]\"}"
+   },
+   {
+    "method": "POST",
+    "url": "enterprise/v1/drafts/dc65d4a1-9f5d-418b-9d0b-23695bed0507/submit",
+    "body": "{\"expectedRevision\":1}"
+   },
+   {
+    "method": "PUT",
+    "url": "enterprise/v1/drafts/377e6013-3318-405c-9dd8-504b7618a1dc",
+    "body": "{\"expectedRevision\":2,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源乙 預算上限 88,000 乙方負責驗收 [1]\\n（E2E 合法修改）\"}"
+   },
+   {
+    "method": "POST",
+    "url": "enterprise/v1/approvals/bb3d4ce3-8b0a-48e7-a8e0-a070048b7a60/decision",
+    "body": "{\"decision\":\"approve\",\"comment\":\"\",\"expectedRevision\":1,\"expectedSha256\":\"e15ec8bef23663cde9c6209ac471306cb70da96b893ab9846f7788f16ddaa7a6\"}"
+   }
+  ],
+  "ids": {
+   "draftA": "a78b1b8c-2cb1-4051-9ee8-e018abeb5eb5",
+   "draftB": "377e6013-3318-405c-9dd8-504b7618a1dc",
+   "draftDiff": "dc65d4a1-9f5d-418b-9d0b-23695bed0507",
+   "draftC": "e055d5fb-1fb4-42b7-9c7e-47fe8ac07d03",
+   "draftD": "4c2a1f04-020a-491b-8422-016e2278e4fc",
+   "approvalC": "2172417d-23b4-46df-abb0-1330ee7148bb",
+   "approvalD": "bb3d4ce3-8b0a-48e7-a8e0-a070048b7a60",
+   "editedBodyB": "（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\n\n- 合成來源乙 預算上限 88,000 乙方負責驗收 [1]\n（E2E 合法修改）"
+  }
+ }
+}

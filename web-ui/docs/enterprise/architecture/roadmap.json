@@ -257,6 +257,54 @@
    ]
   },
   {
+   "id": "V53-E2E",
+   "track": "品質與 CI",
+   "title": "ROLL-002 真 Chromium＋PostgreSQL 切換 E2E：RED（V5.1）／GREEN（本次）＋delivery 兩架構",
+   "status": "NEW_IN_V53",
+   "evidence": [
+    "tests/enterprise/e2e/office_stale_e2e.mjs",
+    "scripts/enterprise/ci/office_e2e_redgreen.py"
+   ]
+  },
+  {
+   "id": "V53-NEG",
+   "track": "品質與 CI",
+   "title": "ROLL-001／008／009 GitHub 負向閘門證據：11 案例、無 continue-on-error、API 核對 job／step conclusion",
+   "status": "NEW_IN_V53",
+   "evidence": [
+    "scripts/enterprise/ci/negative_gate_case.py",
+    "scripts/enterprise/ci/collect_negative_gate.py"
+   ]
+  },
+  {
+   "id": "V53-ACC",
+   "track": "會計對帳",
+   "title": "跨側同列 ID 手算 golden＋真 PG JSON／CSV／Markdown 一致",
+   "status": "NEW_IN_V53",
+   "evidence": [
+    "docs/enterprise/scenarios/會計對帳/golden/跨側同列ID_預期.json"
+   ]
+  },
+  {
+   "id": "V53-OPS",
+   "track": "營運報表",
+   "title": "用戶端中止請求不寫入；5 萬列同站衝突 CPU／RSS／延遲量測",
+   "status": "NEW_IN_V53",
+   "evidence": [
+    "scripts/enterprise/ci/ops-resource-probe.ts"
+   ]
+  },
+  {
+   "id": "V53-COORD",
+   "track": "品質與 CI",
+   "title": "Builder／Auditor 共享狀態：STATE／FINDING_LEDGER＋CI schema 檢查（Builder 不得標 AUDIT_VERIFIED）",
+   "status": "NEW_IN_V53",
+   "evidence": [
+    "docs/enterprise/coordination/STATE.json",
+    "scripts/enterprise/coordination/check_state.py"
+   ]
+  },
+  {
    "id": "PERF-01",
    "track": "品質與 CI",
    "title": "CI 效能：端到端報表／匯出 p50／p95 已量（NEW_IN_V51）；多用戶負載與 soak 仍未做",
