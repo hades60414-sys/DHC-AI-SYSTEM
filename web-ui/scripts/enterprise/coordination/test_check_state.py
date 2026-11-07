@@ -62,7 +62,7 @@ CASES['forged_auditor_pass_full_resync'] = (False, forge_pass)
 CASES['severity_downgrade_full_resync'] = (False, downgrade)
 GIT_CASES = {
     # 證據 SHA 早於 E2E driver 的建立 → depends_on 在其後有變更 → 證據過期
-    'evidence_older_than_its_test_code': lambda s, l, e: (e['evidence']['office_e2e_evidence'].update(sha=OLD_PR13), s['shas']['ci_evidence_sha'].update(office_e2e_evidence=OLD_PR13)),
+    'evidence_older_than_its_test_code': lambda s, l, e: (e['evidence']['office_e2e_evidence'].update(sha=OLD_PR13, pending_rerun=False), s['shas']['ci_evidence_sha'].update(office_e2e_evidence=OLD_PR13)),
     # product_sha 指向 V5.1，之後產品程式有變更
     'product_sha_stale': lambda s, l, e: s['shas'].update(product_sha=OLD_PRODUCT),
     # 文件 head 指向 #13，之後有程式／workflow 變更 → 文件版本與證據 SHA 混用
