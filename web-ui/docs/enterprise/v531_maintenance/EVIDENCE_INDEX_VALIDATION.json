@@ -1,0 +1,14 @@
+{
+ "total": 51,
+ "with_current_evidence": 24,
+ "without_current_evidence": 27,
+ "artifact_expiry_at": "2026-11-07T07:53:06Z",
+ "artifact_expiry": {
+  "expired": [],
+  "expires_within_24h": [],
+  "ok": 40
+ },
+ "regenerated_identical": true,
+ "status": "PASS",
+ "problems": []
+}

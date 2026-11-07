@@ -101,3 +101,10 @@
 - 不碰本機 QA VM
 - Builder 不得標 AUDIT_VERIFIED
 - 不無限輪詢
+
+## 補充（Artifact Preservation Preflight，2026-11-07T07:50Z）
+- `ARTIFACT_PRESERVATION_PREFLIGHT.md`：8 個 image tar artifact 都還在、都**尚未封存**。
+  - V5.1 的 image 今天 15:57Z 到期，V5.2 的今天 19:08Z 到期，F1／F2 的 2026-11-08 到期。
+  - GHCR private 在技術上可行（預設就是 private），但需要帳號擁有者 `hades60414-sys` 先設定 environment／package 權限。目前的 Builder token 沒有 packages scope，也沒有 admin，所以本輪停止封存。
+- `ASTRA_INTAKE_INDEX.md`：給 Astra 的短入口。
+- `tools/validate_evidence_index.py`＋`EVIDENCE_INDEX_VALIDATION.json`：自我驗證 PASS。檢查內容包括：51 個 ID 不重複、24 項有逐項證據、27 項有限制說明、artifact 到期資訊與 API 一致、重產結果位元相同。竄改後的副本會被判為 FAIL。
