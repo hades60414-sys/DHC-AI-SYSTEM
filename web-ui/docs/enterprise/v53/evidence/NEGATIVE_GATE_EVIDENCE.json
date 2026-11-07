@@ -1,0 +1,240 @@
+{
+ "run_id": "42348102897",
+ "run_attempt": "1",
+ "sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+ "collector": "V5.3.1 fail-closed",
+ "cases": [
+  {
+   "case": "positive_control",
+   "expected_job_conclusion": "success",
+   "job_conclusion": "success",
+   "job_id": 128330146149,
+   "gate_step_conclusion": "success",
+   "gate_step_outcome_reported": "success",
+   "expected_exit_receipt": {
+    "kind": "backend",
+    "tool_exit": 0,
+    "comparator_exit": 0,
+    "gate_exit": 0
+   },
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 0,
+     "gate_exit": 0
+    }
+   },
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "tool_nonzero_output_all_pass",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330146202,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": {
+    "kind": "backend",
+    "tool_exit": 1,
+    "comparator_exit": 1,
+    "gate_exit": 1
+   },
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 1,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "comparator_nonzero_new_fail",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330146073,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": {
+    "kind": "backend",
+    "tool_exit": 1,
+    "comparator_exit": 1,
+    "gate_exit": 1
+   },
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 1,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "new_skip",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330146084,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": {
+    "kind": "backend",
+    "tool_exit": 0,
+    "comparator_exit": 1,
+    "gate_exit": 1
+   },
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "new_todo",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330146050,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": {
+    "kind": "backend",
+    "tool_exit": 0,
+    "comparator_exit": 1,
+    "gate_exit": 1
+   },
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "missing_output",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330145873,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": {
+    "kind": "backend",
+    "tool_exit": 0,
+    "comparator_exit": 1,
+    "gate_exit": 1
+   },
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "truncated_report",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330146194,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": {
+    "kind": "backend",
+    "tool_exit": 0,
+    "comparator_exit": 1,
+    "gate_exit": 1
+   },
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "frontend_exit1_all_pass",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330146160,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": {
+    "kind": "frontend",
+    "tool_exit": 1,
+    "comparator_exit": 1,
+    "gate_exit": 1
+   },
+   "exit_receipts": {
+    "frontend-exit.json": {
+     "kind": "frontend",
+     "tool_exit": 1,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "wrong_sha256",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330146077,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": null,
+   "exit_receipts": {},
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "build_failure",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330146064,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": null,
+   "exit_receipts": {},
+   "reasons": [],
+   "matches": true
+  },
+  {
+   "case": "smoke_failure",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128330146091,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "expected_exit_receipt": null,
+   "exit_receipts": {},
+   "reasons": [],
+   "matches": true
+  }
+ ],
+ "problems": [],
+ "continue_on_error_found": false,
+ "all_match": true,
+ "workflow_conclusion_expected": "failure（負向案例 job 預期失敗；本 collect job 只證明每個案例的失敗／成功符合預期）"
+}

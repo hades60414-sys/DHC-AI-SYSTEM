@@ -1,0 +1,826 @@
+{
+ "schema_version": 2,
+ "synced_by": "Builder（只抄錄、不改判）",
+ "rule": "每個 Finding 的 auditor 狀態取「最新一份含該 ID 的 Auditor 報告」；舊報告完整保留。沒有 Astra 報告的 SHA 記為 AUDITOR_REPORT_NOT_AVAILABLE。",
+ "latest_report_id": "ASTRA-CONTINUATION-V4-20261107",
+ "latest_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+ "not_reviewed_by_auditor": {
+  "shas": [
+   "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
+   "PR #14 全部 commit"
+  ],
+  "status": "AUDITOR_REPORT_NOT_AVAILABLE"
+ },
+ "reports": [
+  {
+   "report_id": "ASTRA-INTERIM-20261106",
+   "auditor": "Astra（獨立 Auditor）",
+   "report_kind": "INTERIM_AUDIT",
+   "generated_at": "2026-11-06T23:39:57.878381+08:00",
+   "source_file": "ASTRA_ROLLING_AUDIT_20261106/FINDINGS.json（受控交接位置，不在公開 repo）",
+   "source_sha256": "84137ee9ef477bc8c51f20af50d849754e5b47078ccef380b29801f5248402ab",
+   "reviewed_shas": {
+    "track_A": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+    "track_B": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+   },
+   "verdicts": {
+    "SPEC_VERDICT": "FAIL",
+    "ENGINEERING_VERDICT": "FAIL",
+    "SECURITY_VERDICT": "PARTIAL",
+    "ARCHITECTURE_VERDICT": "PARTIAL",
+    "CI_VERDICT": "FAIL",
+    "SUPPLY_CHAIN_VERDICT": "PARTIAL",
+    "PRODUCT_UAT_VERDICT": "PARTIAL",
+    "COMMERCIAL_READINESS": "FAIL",
+    "RELEASE_VERDICT": "FAIL"
+   },
+   "findings": [
+    {
+     "id": "ASTRA-ROLL-001",
+     "severity": "HIGH",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-002",
+     "severity": "HIGH",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-003",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-004",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-005",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-006",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-007",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-008",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-009",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-010",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-011",
+     "severity": "LOW",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-012",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "ASTRA-ROLL-013",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "RG-002",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "RG-003",
+     "severity": "MEDIUM",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "RG-005",
+     "severity": "MEDIUM",
+     "auditor_status": "CI_RECORD_REVIEWED",
+     "evidence_class": "CI_RECORD",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "RG-006",
+     "severity": "LOW",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "RG-007",
+     "severity": "MEDIUM",
+     "auditor_status": "CI_RECORD_REVIEWED",
+     "evidence_class": "CI_RECORD",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "RG-001",
+     "severity": "HIGH",
+     "auditor_status": "INFERRED_NOT_RUNTIME_VERIFIED",
+     "evidence_class": "INFERRED",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "id": "RG-008",
+     "severity": "LOW",
+     "auditor_status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "evidence_class": "CONFIRMED_STATIC",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    }
+   ],
+   "original_18": [
+    {
+     "id": "ASTRA-001",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-002",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-003",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-004",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS"
+    },
+    {
+     "id": "ASTRA-005",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS"
+    },
+    {
+     "id": "ASTRA-006",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS"
+    },
+    {
+     "id": "ASTRA-007",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-008",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-009",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-010",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-011",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-012",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "NOT_RUN",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "NOT_RUN"
+    },
+    {
+     "id": "ASTRA-013",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "NOT_RUN",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "NOT_RUN"
+    },
+    {
+     "id": "ASTRA-014",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-015",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-016",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS"
+    },
+    {
+     "id": "ASTRA-017",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL"
+    },
+    {
+     "id": "ASTRA-018",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS"
+    }
+   ],
+   "builder_tracker_items": [],
+   "v4_new_4": []
+  },
+  {
+   "report_id": "ASTRA-CONTINUATION-V4-20261107",
+   "auditor": "Astra（獨立 Auditor）",
+   "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+   "completion_state": "AUDIT_CONTINUATION_COMPLETE",
+   "generated_at": "2026-11-07T00:38:42.863123+08:00",
+   "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+   "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b",
+   "reviewed_shas": {
+    "snapshot": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+    "base": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+    "declared_product_source": "6933d5e17f1120d87126df598c594c31b4e474ed"
+   },
+   "verdicts": {
+    "ENGINEERING_PR_READINESS": "FAIL",
+    "SECURITY_READINESS": "PARTIAL",
+    "CUSTOMER_PILOT_READINESS": "FAIL",
+    "COMMERCIAL_RELEASE_READINESS": "FAIL"
+   },
+   "new_confirmed_critical_high": [],
+   "capability_limits": [
+    "RepoGuard MCP not exposed/not executed",
+    "No product code executed by Auditor",
+    "No Mac QA VM",
+    "3 read-only reviewers stopped on host usage limit; partial raw evidence retained, parent reviewed primary material",
+    "Mermaid renderer unavailable; NOT_RUN",
+    "CodeQL/Semgrep/Gitleaks NOT_RUN"
+   ],
+   "unavailable_named_inputs": {
+    "REPOGUARD_V5_001_008_RECHECK.md": "Resolved by historical manifest to ../RG_001_008_RECHECK.md",
+    "BUILDER_RG-V5-08": "Not present in supplied PR12 builder matrix; do not invent an eighth item",
+    "remote_controlled_full_report": "EVIDENCE_UNAVAILABLE; public summary only"
+   },
+   "findings": [
+    {
+     "id": "ASTRA-ROLL-001",
+     "severity": "HIGH",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "RUNTIME_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-002",
+     "severity": "HIGH",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-003",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-004",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-005",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-006",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-007",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-008",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-009",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-010",
+     "severity": "MEDIUM",
+     "auditor_status": "PARTIAL",
+     "problem_state": "BUILDER_FIXED_PENDING_REAUDIT",
+     "evidence_kind": "CI_RECORD",
+     "disposition": "FIXED_CODE_MISSING_TARGETED_RUNTIME",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-011",
+     "severity": "LOW",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-012",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "ASTRA-ROLL-013",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-002",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-003",
+     "severity": "MEDIUM",
+     "auditor_status": "PARTIAL",
+     "problem_state": "UNRESOLVED_OR_NOT_RUN",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-005",
+     "severity": "MEDIUM",
+     "auditor_status": "PARTIAL",
+     "problem_state": "UNRESOLVED_OR_NOT_RUN",
+     "evidence_kind": "CI_RECORD",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-006",
+     "severity": "LOW",
+     "auditor_status": "PASS",
+     "problem_state": "AUDIT_VERIFIED",
+     "evidence_kind": "CI_RECORD",
+     "disposition": "CLOSED_IN_DECLARED_PRODUCT_SOURCE_SCOPE",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-007",
+     "severity": "MEDIUM",
+     "auditor_status": "FAIL",
+     "problem_state": "CONFIRMED_DEFECT",
+     "evidence_kind": "CI_RECORD",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-001",
+     "severity": "HIGH",
+     "auditor_status": "PARTIAL",
+     "problem_state": "UNRESOLVED_OR_NOT_RUN",
+     "evidence_kind": "INFERRED",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-008",
+     "severity": "LOW",
+     "auditor_status": "NOT_RUN",
+     "problem_state": "UNRESOLVED_OR_NOT_RUN",
+     "evidence_kind": "NOT_APPLICABLE",
+     "disposition": "UNRESOLVED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "original_18": [
+    {
+     "id": "ASTRA-001",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-002",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-003",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-004",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS",
+     "current_verdict": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-005",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS",
+     "current_verdict": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-006",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS",
+     "current_verdict": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-007",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-008",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-009",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-010",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-011",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-012",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "NOT_RUN",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "NOT_RUN",
+     "current_verdict": "NOT_RUN",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-013",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "NOT_RUN",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "NOT_RUN",
+     "current_verdict": "NOT_RUN",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-014",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-015",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-016",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS",
+     "current_verdict": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-017",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PARTIAL",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PARTIAL",
+     "current_verdict": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    },
+    {
+     "id": "ASTRA-018",
+     "track_A_sha": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+     "track_A_verdict": "PASS",
+     "track_B_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+     "track_B_verdict": "PASS",
+     "current_verdict": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+     "fix_commit_in_DAS": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f"
+    }
+   ],
+   "builder_tracker_items": [
+    {
+     "id": "RG-V5-01",
+     "auditor_status": "PASS",
+     "problem_state": "AUDIT_VERIFIED",
+     "evidence_kind": "CI_RECORD",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-V5-02",
+     "auditor_status": "PARTIAL",
+     "problem_state": "BUILDER_FIXED_PENDING_REAUDIT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-V5-03",
+     "auditor_status": "PARTIAL",
+     "problem_state": "UNRESOLVED_OR_NOT_RUN",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-V5-04",
+     "auditor_status": "PASS",
+     "problem_state": "AUDIT_VERIFIED",
+     "evidence_kind": "CI_RECORD",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-V5-05",
+     "auditor_status": "PARTIAL",
+     "problem_state": "UNRESOLVED_OR_NOT_RUN",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-V5-06",
+     "auditor_status": "PARTIAL",
+     "problem_state": "UNRESOLVED_OR_NOT_RUN",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "RG-V5-07",
+     "auditor_status": "PARTIAL",
+     "problem_state": "UNRESOLVED_OR_NOT_RUN",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "BD-BLOB",
+     "auditor_status": "PASS",
+     "problem_state": "AUDIT_VERIFIED",
+     "evidence_kind": "CI_RECORD",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "BD-FLAKE",
+     "auditor_status": "PARTIAL",
+     "problem_state": "BUILDER_FIXED_PENDING_REAUDIT",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "BD-REJECTED",
+     "auditor_status": "NOT_RUN",
+     "problem_state": "UNRESOLVED_OR_NOT_RUN",
+     "evidence_kind": "STATIC_CONFIRMED",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "BD-UPGRADE",
+     "auditor_status": "PASS",
+     "problem_state": "AUDIT_VERIFIED",
+     "evidence_kind": "CI_RECORD",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "BD-REVOKE",
+     "auditor_status": "PASS",
+     "problem_state": "AUDIT_VERIFIED",
+     "evidence_kind": "CI_RECORD",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "BD-PERF",
+     "auditor_status": "PASS",
+     "problem_state": "AUDIT_VERIFIED",
+     "evidence_kind": "CI_RECORD",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "v4_new_4": [
+    {
+     "id": "NEW-001",
+     "auditor_status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "NEW-002",
+     "auditor_status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "NEW-003",
+     "auditor_status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    },
+    {
+     "id": "NEW-004",
+     "auditor_status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "state_file_sha256": "16d2e4109f2f9212c6398967f0f9fd8c8c1509cda534db4d3687baecf990c1ad"
+  }
+ ]
+}

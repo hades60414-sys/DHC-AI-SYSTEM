@@ -1,0 +1,175 @@
+{
+ "note": "每個證據的來源 SHA、run／attempt／artifact，以及「若其後這些路徑改變則證據過期」的 depends_on。check_state.py --require-git 以 git 歷史驗證。",
+ "artifact_source_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+ "artifact_source_note": "image 由 artifact_source_sha 建置（label revision）；之後若產品路徑未變，最新 HEAD 的 image-build 另以 CI_MATRIX 記錄。",
+ "evidence": {
+  "office_e2e_evidence": {
+   "sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+   "workflow": "office-e2e-evidence.yml",
+   "run_id": 42348102966,
+   "attempt": 1,
+   "expected_conclusion": "success",
+   "jobs": {
+    "office-stale-red-v51": 128330146126,
+    "office-stale-green-current": 128330145971
+   },
+   "artifacts": {
+    "office-stale-red-v51": 13564188633,
+    "office-stale-green-current": 13564651319
+   },
+   "depends_on": [
+    "web-ui/tests/enterprise/e2e/*",
+    "web-ui/scripts/enterprise/ci/office_e2e_redgreen.py",
+    ".github/workflows/office-e2e-evidence.yml",
+    "web-ui/src/*",
+    "web-ui/server/*",
+    "web-ui/deploy/*",
+    "web-ui/package.json",
+    "web-ui/package-lock.json"
+   ],
+   "depends_on_exclude": [
+    "web-ui/server/*/tests/*"
+   ],
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343824443,
+     "note": "route-hit 檢查加入前"
+    }
+   ]
+  },
+  "negative_gate_evidence": {
+   "sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+   "workflow": "negative-gate-evidence.yml",
+   "run_id": 42348102897,
+   "attempt": 1,
+   "expected_conclusion": "failure（負向 job 預期失敗；collect success＋all_match）",
+   "depends_on": [
+    ".github/workflows/negative-gate-evidence.yml",
+    "web-ui/scripts/enterprise/ci/negative_gate_case.py",
+    "web-ui/scripts/enterprise/ci/collect_negative_gate.py",
+    "web-ui/scripts/enterprise/ci/gate.sh",
+    "web-ui/scripts/enterprise/ci/compare_known_failures.py"
+   ],
+   "jobs": {
+    "collect": 128330204686
+   },
+   "artifacts": {
+    "negative-gate-evidence": 13564144115
+   },
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343824459,
+     "note": "collector 強化前"
+    }
+   ]
+  },
+  "enterprise_verify": {
+   "sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+   "workflow": "enterprise-verify.yml",
+   "run_id": 42349084781,
+   "attempt": 1,
+   "expected_conclusion": "success",
+   "depends_on": [
+    "web-ui/*",
+    ".github/workflows/enterprise-verify.yml"
+   ],
+   "depends_on_exclude": [
+    "web-ui/docs/enterprise/*"
+   ],
+   "jobs": {
+    "postgres-integration": 128333153403,
+    "static-and-unit": 128333153533,
+    "csv-spreadsheet-safety": 128334253438
+   },
+   "artifacts": {
+    "enterprise-verify-postgres": 13565136150,
+    "enterprise-verify-csv-spreadsheet": 13565111966,
+    "enterprise-verify-static-unit": 13564913305
+   },
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343825984,
+     "note": "V5.3"
+    }
+   ]
+  },
+  "image_build": {
+   "sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+   "workflow": "enterprise-image-build.yml",
+   "run_id": 42349084776,
+   "attempt": 1,
+   "expected_conclusion": "success",
+   "depends_on": [
+    "web-ui/src/*",
+    "web-ui/server/*",
+    "web-ui/deploy/*",
+    "web-ui/package.json",
+    "web-ui/package-lock.json",
+    ".github/workflows/enterprise-image-build.yml",
+    ".github/workflows/enterprise-delivery-smoke.yml",
+    "web-ui/scripts/enterprise/*"
+   ],
+   "depends_on_exclude": [
+    "web-ui/server/*/tests/*"
+   ],
+   "jobs": {
+    "build-arm64": 128333153616,
+    "build-amd64": 128333153833,
+    "delivery-arm64 / delivery": 128333817245,
+    "delivery-amd64 / delivery": 128333890302,
+    "upgrade-rollback-amd64": 128333890371
+   },
+   "artifacts": {
+    "enterprise-image-archive-arm64": 13565136328,
+    "enterprise-delivery-amd64": 13564976996,
+    "enterprise-image-report-amd64": 13564798331,
+    "enterprise-image-archive-amd64": 13564593892,
+    "enterprise-upgrade-rollback-amd64": 13564484354,
+    "enterprise-delivery-arm64": 13564439563,
+    "enterprise-image-report-arm64": 13564404185
+   },
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343825894,
+     "note": "V5.3"
+    }
+   ]
+  },
+  "repo_coverage": {
+   "sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+   "workflow": "repo-coverage.yml",
+   "run_id": 42349084813,
+   "attempt": 1,
+   "expected_conclusion": "success",
+   "depends_on": [
+    "*"
+   ],
+   "depends_on_exclude": [
+    "web-ui/docs/enterprise/*"
+   ],
+   "jobs": {
+    "coverage-contract": 128333153680
+   },
+   "artifacts": {
+    "repo-coverage": 13564408816
+   },
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343825939,
+     "note": "V5.3"
+    }
+   ]
+  }
+ },
+ "gate_self_evidence": {
+  "run_id": 42348453024,
+  "job": 128331283056,
+  "sha": "828a763681fc60c795df27733aaa5c1369be0571",
+  "conclusion": "failure（預期：只推程式 commit、STATE 仍指向舊 pr_head → 協作狀態閘門拒絕）"
+ }
+}

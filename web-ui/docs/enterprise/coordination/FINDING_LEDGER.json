@@ -1,0 +1,2153 @@
+{
+ "schema_version": 2,
+ "rules": [
+  "Builder 最高只能標 FIXED_PENDING_REAUDIT",
+  "AUDITOR_VERIFIED 只能來自 Astra 報告（auditor_receipt.source_sha256 必填）",
+  "Finding ID 沿用各 registry，不另立 ID",
+  "closure_class 由 builder_status＋最新 Auditor 判定＋修正 commit 是否晚於審核 SHA 機械推導"
+ ],
+ "closure_classes": [
+  "AUDITOR_VERIFIED",
+  "BUILDER_FIXED_PENDING_REAUDIT",
+  "NOT_IMPLEMENTED",
+  "HUMAN_DECISION_BLOCKED",
+  "EVIDENCE_MISSING",
+  "RETEST_REQUIRED"
+ ],
+ "findings": [
+  {
+   "id": "ASTRA-ROLL-001",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "HIGH",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "workflow 預設 bash -e 無 pipefail；品質 step 以 || true＋| tee 收尾",
+   "fix_commit": "6210554",
+   "regression": [
+    "scripts/enterprise/ci/test_gate.py",
+    ".github/workflows/negative-gate-evidence.yml",
+    "scripts/enterprise/ci/negative_gate_case.py"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "test_gate.py Shell 對照：無 pipefail 時 sha256sum -c | tee 回 0（原缺陷重現）",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "ci:negative_gate_evidence（NEGATIVE_GATE_EVIDENCE.json）"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-002",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "HIGH",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "useOfficeQuery 在 key 變更／失敗時仍回前一資源資料；動作以 selected id 搭配舊資料版號送出",
+   "fix_commit": "5138dd9",
+   "regression": [
+    "src/modules/office/tests/OfficeApp.test.tsx",
+    "tests/enterprise/e2e/office_stale_e2e.mjs",
+    "scripts/enterprise/ci/office_e2e_redgreen.py"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-002_RED_afbdea9.txt（4 失敗）",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "ci:office_e2e_evidence（RED V5.1 image／GREEN 本次 image，真 Chromium＋PostgreSQL）",
+    "ci:image_build（delivery 兩架構 office-stale GREEN）"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-003",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "隔離集合以裸 rowId 混合兩側",
+   "fix_commit": "afbdea9",
+   "regression": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts",
+    "docs/enterprise/scenarios/會計對帳/golden/跨側同列ID_預期.json",
+    "server/modules/enterprise-api/tests/reconciliation-export.integration.test.ts（golden 三格式）"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-004",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "CSV parser 離開引號狀態後直接接字元",
+   "fix_commit": "afbdea9",
+   "regression": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-005",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "幣別查表以 obj[key] 命中原型鍵",
+   "fix_commit": "afbdea9",
+   "regression": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-006",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "期間只驗格式，非法日期在 DB cast 才失敗",
+   "fix_commit": "afbdea9",
+   "regression": [
+    "server/modules/enterprise-api/tests/reconciliation.integration.test.ts"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "靜態推導（原 500）；修正後 PG 測試",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-007",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "selected_image 優先環境變數，與 assert_offline_images 驗證對象不同",
+   "fix_commit": "c75054f",
+   "regression": [
+    "deploy/ai-office/test_dhc_office_images.py",
+    "scripts/enterprise/驗證AI_Office交付.py 12d／13c"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "靜態推導（驗 A 啟 B）",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319770"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-008",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "vitest 退出碼被 || true 丟棄；JSON reporter 不含未處理例外",
+   "fix_commit": "6210554",
+   "regression": [
+    "scripts/enterprise/ci/test_gate.py"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "gate 首次本機執行即抓到既有 vitest 未處理例外（exit 1、測試全過）→ f4aab0f 修測試 mock",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "ci:negative_gate_evidence（frontend_exit1_all_pass、tool_nonzero_output_all_pass）"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-009",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "TAP skip／todo 計入 names；無 skip 許可清單",
+   "fix_commit": "6210554",
+   "regression": [
+    "scripts/enterprise/ci/test_gate.py"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "test_gate：新增 skip → 1",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "ci:negative_gate_evidence（new_skip、new_todo）"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-010",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "每列 spread 複製陣列＋Array.includes（V5.1 已改）",
+   "fix_commit": "11359bb（V5.1）",
+   "regression": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts（同站 5 萬列衝突）"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "V5.1 RG-V5-01 RED（五來源 65 s）",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689",
+    "scripts/enterprise/ci/ops-resource-probe.ts same_site_conflict_50k（ms／cpu_ms／maxRSS）"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-011",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "1970-W01 的前週超出 isoWeekRange 下限",
+   "fix_commit": "afbdea9",
+   "regression": [
+    "server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "web-ui/docs/enterprise/v52/evidence/ASTRA-ROLL-003-005-011_RED_6210554.tap",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319689"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-012",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "WORK_ORDER_ISSUED",
+   "closure_class": "NOT_IMPLEMENTED",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "TAS 模組，不在 enterprise image；依指示不重構",
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": null,
+   "evidence": [
+    "docs/enterprise/v52/DEID_WORK_ORDERS_ADDENDUM.md DEID-09"
+   ],
+   "owner": "TAS Team",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "ASTRA-ROLL-013",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "WORK_ORDER_ISSUED",
+   "closure_class": "NOT_IMPLEMENTED",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": null,
+   "evidence": [
+    "docs/enterprise/v52/DEID_WORK_ORDERS_ADDENDUM.md DEID-10"
+   ],
+   "owner": "TAS Team",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "RG-001",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "HIGH",
+   "severity_source": "auditor",
+   "builder_status": "BLOCKED_DECISION",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "UNRESOLVED_OR_NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "INFERRED_NOT_RUNTIME_VERIFIED",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "SEC-01 owner／RD 決策",
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": null,
+   "evidence": [
+    "docs/enterprise/v51/REMOTE_AGENT_THREAT_MODEL.md（完整版受控保存）"
+   ],
+   "owner": "RD／Security owner",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "RG-002",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "WORK_ORDER_ISSUED",
+   "closure_class": "NOT_IMPLEMENTED",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": null,
+   "evidence": [
+    "docs/enterprise/v51/DEID_PROXY_HARDENING_PLAN.md DEID-01..08"
+   ],
+   "owner": "TAS Team",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "RG-003",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "UNRESOLVED_OR_NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "workflow path filter／cwd 只涵蓋 web-ui",
+   "fix_commit": "d38afd8",
+   "regression": [
+    "scripts/enterprise/ci/check_repo_coverage.py"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "靜態：只改 remote-agent 不觸發任何 workflow",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319968"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "RG-005",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "HUMAN_DECISION_REQUIRED",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "UNRESOLVED_OR_NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "CI_RECORD_REVIEWED",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "剩餘 OS HIGH 全為無修補；需具名 owner＋期限（SC-OWNER）",
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": null,
+   "evidence": [
+    "docs/enterprise/v52/SUPPLY_CHAIN_FINAL_LEDGER.json"
+   ],
+   "owner": "人類 owner（Security／Legal／Business）",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "RG-006",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "AUDITOR_VERIFIED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": "AUDIT_VERIFIED",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "台帳 after 停在 369837b",
+   "fix_commit": "2cc9e93（V5.1）＋本輪",
+   "regression": [
+    "docs/enterprise/v52/SUPPLY_CHAIN_FINAL_LEDGER.json"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "—",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319770"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "RG-007",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "MEDIUM",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_status": "FAIL",
+   "auditor_problem_state": "CONFIRMED_DEFECT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "CI_RECORD_REVIEWED",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "FAIL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "Dockerfile 寫死上游 dhc-cli 為 source label",
+   "fix_commit": "7667822",
+   "regression": [
+    ".github/workflows/enterprise-image-build.yml 兩架構 assert"
+   ],
+   "verification_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "evidence": [
+    "V5.1 image label source=dhc-cli",
+    "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42276319770"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "RG-008",
+   "registry": "docs/enterprise/v52/ASTRA_ROLL_REMEDIATION_MATRIX.json",
+   "severity": "LOW",
+   "severity_source": "auditor",
+   "builder_status": "HUMAN_DECISION_REQUIRED",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "auditor_status": "NOT_RUN",
+   "auditor_problem_state": "UNRESOLVED_OR_NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "STATIC_CONFIRMED; RUNTIME_NEGATIVE_NOT_RUN",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "NOT_RUN",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "UAT／RD-002／003／IP／SOW／客戶簽認；PASS 0",
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": null,
+   "evidence": [],
+   "owner": "人類 owner（Security／Legal／Business）",
+   "recheck_trigger": "受影響程式／CI／fixture 變更，或新的固定 HEAD 有同 SHA CI 證據"
+  },
+  {
+   "id": "RG-V5-01",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "HIGH",
+   "severity_source": "builder_assigned",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": "AUDIT_VERIFIED",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    "web-ui/server/modules/enterprise-persistence/enterprise.service.ts",
+    "web-ui/server/modules/enterprise-persistence/ops-report-v1.ts"
+   ],
+   "root_cause": "OPS-REPORT 合計資源上限",
+   "fix_commit": "11359bb, 6933d5e",
+   "regression": [
+    "server/modules/enterprise-persistence/tests/ops-report-limits.test.ts",
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts"
+   ],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "docs/enterprise/v51/RESOURCE_BOUNDARY_REPORT.md",
+    "docs/enterprise/v51/evidence/RG-V5-01_RED_GREEN.md",
+    "server/modules/enterprise-persistence/tests/ops-report-limits.test.ts",
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "RG-V5-02",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "MEDIUM",
+   "severity_source": "builder_assigned",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "CSV Formula Guard（拒收 rowId 可達）",
+   "fix_commit": "49c4017, 7679748",
+   "regression": [
+    "server/modules/enterprise-persistence/tests/reconciliation-export.test.ts"
+   ],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "docs/enterprise/v51/CSV_SECURITY_REPORT.md",
+    "server/modules/enterprise-persistence/tests/reconciliation-export.test.ts"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "RG-V5-03",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "LOW",
+   "severity_source": "builder_assigned",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "UNRESOLVED_OR_NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "OpenCodeReview 最終覆蓋",
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "docs/enterprise/v51/OCR_BUILDER_REVIEW.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "RG-V5-04",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "MEDIUM",
+   "severity_source": "builder_assigned",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": "AUDIT_VERIFIED",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    ".github/workflows/enterprise-verify.yml"
+   ],
+   "root_cause": "UAT 證據可追溯",
+   "fix_commit": "4e18881",
+   "regression": [],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "docs/enterprise/uat/UAT_EVIDENCE_INDEX.json",
+    "scripts/enterprise/uat_evidence_index.py"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "RG-V5-05",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "LOW",
+   "severity_source": "builder_assigned",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "UNRESOLVED_OR_NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "供應鏈 provenance",
+   "fix_commit": "5a72637",
+   "regression": [],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "docs/enterprise/v51/SUPPLY_CHAIN_FINAL_LEDGER.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "RG-V5-06",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "HIGH",
+   "severity_source": "builder_assigned",
+   "builder_status": "BLOCKED_DECISION",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "UNRESOLVED_OR_NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "remote-agent 命令執行安全",
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": null,
+   "evidence": [
+    "docs/enterprise/v51/REMOTE_AGENT_THREAT_MODEL.md（公開摘要；完整版受控保存）"
+   ],
+   "owner": "TAS Team",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "RG-V5-07",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "MEDIUM",
+   "severity_source": "builder_assigned",
+   "builder_status": "WORK_ORDER_ISSUED",
+   "closure_class": "NOT_IMPLEMENTED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "UNRESOLVED_OR_NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "DeID Proxy 加固",
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": null,
+   "evidence": [
+    "docs/enterprise/v51/DEID_PROXY_HARDENING_PLAN.md"
+   ],
+   "owner": "TAS Team",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "BD-BLOB",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "UNRATED_IN_REGISTRY",
+   "severity_source": "none_in_registry",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": "AUDIT_VERIFIED",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    "web-ui/server/modules/enterprise-persistence/enterprise.service.ts",
+    "web-ui/server/modules/enterprise-persistence/ops-report-v1.ts"
+   ],
+   "root_cause": "大型來源 blob 整份讀入（V5-OCR-002）",
+   "fix_commit": "11359bb",
+   "regression": [
+    "server/modules/enterprise-persistence/tests/document-blob-store.test.ts"
+   ],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "server/modules/enterprise-persistence/document-blob-store.ts",
+    "server/modules/enterprise-persistence/tests/document-blob-store.test.ts"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "BD-FLAKE",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "UNRATED_IN_REGISTRY",
+   "severity_source": "none_in_registry",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": "BUILDER_FIXED_PENDING_REAUDIT",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "macOS 非同步 stdout pipe 上，路由 console.log 與 node:test 序列化訊息交錯",
+   "fix_commit": "17f06a3",
+   "regression": [
+    "server/modules/agent/tests/agent.routes.test.ts"
+   ],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "server/modules/agent/tests/agent.routes.test.ts"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "BD-REJECTED",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "UNRATED_IN_REGISTRY",
+   "severity_source": "none_in_registry",
+   "builder_status": "BLOCKED_DECISION",
+   "closure_class": "HUMAN_DECISION_BLOCKED",
+   "auditor_status": "NOT_RUN",
+   "auditor_problem_state": "UNRESOLVED_OR_NOT_RUN",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "NOT_RUN",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": "被拒絕 OPS Report 重送與表成長",
+   "fix_commit": null,
+   "regression": [],
+   "verification_sha": null,
+   "evidence": [],
+   "owner": "人類 owner",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "BD-UPGRADE",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "UNRATED_IN_REGISTRY",
+   "severity_source": "none_in_registry",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": "AUDIT_VERIFIED",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    ".github/workflows/enterprise-image-build.yml",
+    "web-ui/deploy/customer-single/Dockerfile"
+   ],
+   "root_cause": "跨版本升級與回退遠端 CI",
+   "fix_commit": "5a72637, 6933d5e",
+   "regression": [],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "scripts/enterprise/ci/upgrade_rollback.py"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "BD-REVOKE",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "UNRATED_IN_REGISTRY",
+   "severity_source": "none_in_registry",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": "AUDIT_VERIFIED",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    "web-ui/server/modules/enterprise-persistence/enterprise.service.ts",
+    "web-ui/server/modules/enterprise-persistence/ops-report-v1.ts"
+   ],
+   "root_cause": "Session 撤權與長時間報表運算",
+   "fix_commit": "11359bb",
+   "regression": [
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts"
+   ],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "server/modules/enterprise-api/tests/ops-report.integration.test.ts"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "BD-PERF",
+   "registry": "docs/enterprise/v51/REPOGUARD_FINDINGS_DISPOSITION.json",
+   "severity": "UNRATED_IN_REGISTRY",
+   "severity_source": "none_in_registry",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": "AUDIT_VERIFIED",
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    ".github/workflows/enterprise-image-build.yml",
+    "web-ui/deploy/customer-single/Dockerfile"
+   ],
+   "root_cause": "API 端到端報表／匯出效能",
+   "fix_commit": "5a72637",
+   "regression": [],
+   "verification_sha": "6933d5e17f1120d87126df598c594c31b4e474ed",
+   "evidence": [
+    "docs/enterprise/v51/PERFORMANCE_REPORT.md"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "受影響程式／CI 變更或新的固定 HEAD"
+  },
+  {
+   "id": "ASTRA-001",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-002",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-003",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-004",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PASS（track_A PASS）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    ".github/workflows/enterprise-delivery-smoke.yml",
+    ".github/workflows/enterprise-image-build.yml",
+    ".github/workflows/enterprise-verify.yml",
+    "web-ui/deploy/ai-office/dhc-office.py",
+    "web-ui/deploy/customer-single/Dockerfile",
+    "web-ui/scripts/enterprise/ci/compare_known_failures.py",
+    "web-ui/scripts/enterprise/ci/known-v32-baseline-failures.json",
+    "web-ui/scripts/enterprise/驗證AI_Office交付.py"
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-005",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PASS（track_A PASS）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    ".github/workflows/enterprise-delivery-smoke.yml",
+    ".github/workflows/enterprise-image-build.yml",
+    ".github/workflows/enterprise-verify.yml",
+    "web-ui/deploy/ai-office/dhc-office.py",
+    "web-ui/deploy/customer-single/Dockerfile",
+    "web-ui/scripts/enterprise/ci/compare_known_failures.py",
+    "web-ui/scripts/enterprise/ci/known-v32-baseline-failures.json",
+    "web-ui/scripts/enterprise/驗證AI_Office交付.py"
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-006",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PASS（track_A PASS）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    ".github/workflows/enterprise-delivery-smoke.yml",
+    ".github/workflows/enterprise-image-build.yml",
+    ".github/workflows/enterprise-verify.yml",
+    "web-ui/deploy/ai-office/dhc-office.py",
+    "web-ui/deploy/customer-single/Dockerfile",
+    "web-ui/scripts/enterprise/ci/compare_known_failures.py",
+    "web-ui/scripts/enterprise/ci/known-v32-baseline-failures.json",
+    "web-ui/scripts/enterprise/驗證AI_Office交付.py"
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-007",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-008",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-009",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-010",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-011",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-012",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "EVIDENCE_MISSING",
+   "auditor_status": "NOT_RUN",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B NOT_RUN（track_A NOT_RUN）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "NOT_RUN",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-013",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "EVIDENCE_MISSING",
+   "auditor_status": "NOT_RUN",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B NOT_RUN（track_A NOT_RUN）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "NOT_RUN",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-014",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-015",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-016",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PASS（track_A PASS）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    ".github/workflows/enterprise-delivery-smoke.yml",
+    ".github/workflows/enterprise-image-build.yml",
+    ".github/workflows/enterprise-verify.yml",
+    "web-ui/deploy/ai-office/dhc-office.py",
+    "web-ui/deploy/customer-single/Dockerfile",
+    "web-ui/scripts/enterprise/ci/compare_known_failures.py",
+    "web-ui/scripts/enterprise/ci/known-v32-baseline-failures.json",
+    "web-ui/scripts/enterprise/驗證AI_Office交付.py"
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-017",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PARTIAL",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PARTIAL（track_A PARTIAL）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PARTIAL",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  },
+  {
+   "id": "ASTRA-018",
+   "registry": "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json#reports[*].original_18（Astra 原始 18 項；Builder 整改在 V4 RC-FIX）",
+   "severity": "UNRATED_IN_SNAPSHOT",
+   "severity_note": "歷史報告未給嚴重度；保留未知，不推定為 LOW",
+   "severity_source": "auditor",
+   "builder_status": "FIXED_PENDING_REAUDIT",
+   "closure_class": "RETEST_REQUIRED",
+   "auditor_status": "PASS",
+   "auditor_problem_state": null,
+   "auditor_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+   "auditor_receipt": {
+    "report_id": "ASTRA-CONTINUATION-V4-20261107",
+    "auditor": "Astra（獨立 Auditor）",
+    "report_kind": "INDEPENDENT_AUDIT_CONTINUATION",
+    "generated_at": "2026-11-07T00:38:42.863123+08:00",
+    "source_file": "ASTRA_ROLLING_AUDIT_20261106/CONTINUATION_V4/FINDINGS_CURRENT.json（受控交接位置，不在公開 repo）",
+    "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b"
+   },
+   "auditor_history": [
+    {
+     "report_id": "ASTRA-INTERIM-20261106",
+     "status": "track_B PASS（track_A PASS）",
+     "reviewed_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+    },
+    {
+     "report_id": "ASTRA-CONTINUATION-V4-20261107",
+     "status": "PASS",
+     "reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d"
+    }
+   ],
+   "auditor_pass_invalidated_by": [
+    ".github/workflows/enterprise-delivery-smoke.yml",
+    ".github/workflows/enterprise-image-build.yml",
+    ".github/workflows/enterprise-verify.yml",
+    "web-ui/deploy/ai-office/dhc-office.py",
+    "web-ui/deploy/customer-single/Dockerfile",
+    "web-ui/scripts/enterprise/ci/compare_known_failures.py",
+    "web-ui/scripts/enterprise/ci/known-v32-baseline-failures.json",
+    "web-ui/scripts/enterprise/驗證AI_Office交付.py"
+   ],
+   "root_cause": null,
+   "fix_commit": "5614f9d01b9bd62a8c5c83a77ef81f063edac71f",
+   "regression": [],
+   "verification_sha": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+   "evidence": [
+    "docs/enterprise/coordination/AUDITOR_SNAPSHOT.json"
+   ],
+   "owner": "Builder",
+   "recheck_trigger": "Astra 下一輪 track 複驗"
+  }
+ ]
+}

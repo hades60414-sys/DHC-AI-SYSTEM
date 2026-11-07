@@ -1,13 +1,13 @@
 # 後端路線圖（TUI 檢視）
 
-> 由 `scripts/enterprise/render_roadmap.py` 依 `roadmap.json` 產生；CURRENT／NEW_IN_V5／NEW_IN_V51／NEW_IN_V52 項目的 evidence 路徑皆經存在性檢查。
+> 由 `scripts/enterprise/render_roadmap.py` 依 `roadmap.json` 產生；CURRENT／NEW_IN_V5／NEW_IN_V51／NEW_IN_V52／NEW_IN_V53 項目的 evidence 路徑皆經存在性檢查。
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │ DHC AI Office 後端路線圖（由 roadmap.json 產生，勿手改）                       │
 │                                                                                │
-│ 完成度 [██████████████████████████░░░░░░░░░░░░░░] 24/37                        │
-│ ■ CURRENT 7  ◆ V5 6  ◇ V5.1 6  ◈ V5.2 5  □ PLANNED 6  ✕ BLOCKED 7              │
+│ 完成度 [████████████████████████████░░░░░░░░░░░░] 29/42                        │
+│ ■ CURRENT 7  ◆ V5 6  ◇ V5.1 6  ◈ V5.2 5  ◉ V5.3 5  □ PLANNED 6  ✕ BLOCKED 7    │
 ├────────────────────────────────────────────────────────────────────────────────┤
 │ ▸ 身分與隔離                                                                   │
 │   ■ ID-01   企業身分、RBAC、session epoch 撤權、legacy 路由隔離                │
@@ -46,6 +46,9 @@
 │   ◈ V52-CI  ROLL-001／008／009：bash pipefail、gate.sh 三段退出碼、runner exi… │
 │   ◈ V52-DEPLOY ROLL-007／RG-007：離線 image reference 一致、OCI source 指實際… │
 │   ◈ V52-REPO RG-003：全 repository 覆蓋契約與靜態語法 job                      │
+│   ◉ V53-E2E ROLL-002 真 Chromium＋PostgreSQL 切換 E2E：RED（V5.1）／GREEN（本… │
+│   ◉ V53-NEG ROLL-001／008／009 GitHub 負向閘門證據：11 案例、無 continue-on-e… │
+│   ◉ V53-COORD Builder／Auditor 共享狀態：STATE／FINDING_LEDGER＋CI schema 檢…  │
 │   □ PERF-01 CI 效能：端到端報表／匯出 p50／p95 已量（NEW_IN_V51）；多用戶負載… │
 │   □ PERF-02 多用戶併發負載、長時間 soak、arm64 升級回退                        │
 │                                                                                │
@@ -56,6 +59,12 @@
 │ ▸ 驗收                                                                         │
 │   ◇ RG-04   66 項 UAT 機械化證據索引（LINKED_TEST／FILE_LEVEL／EVIDENCE_MISSI… │
 │   □ UAT-01  66 項 UAT 實際執行（目前 PASS 0）                                  │
+│                                                                                │
+│ ▸ 會計對帳                                                                     │
+│   ◉ V53-ACC 跨側同列 ID 手算 golden＋真 PG JSON／CSV／Markdown 一致            │
+│                                                                                │
+│ ▸ 營運報表                                                                     │
+│   ◉ V53-OPS 用戶端中止請求不寫入；5 萬列同站衝突 CPU／RSS／延遲量測            │
 │                                                                                │
 │ ▸ 待人類決策                                                                   │
 │   ✕ DEC-01  條款比對功能（BLOCKED_PRODUCT_DECISION）                           │
@@ -97,6 +106,11 @@
 | V52-DATA | 確定性計算 | ROLL-003／004／005／006／011：分側隔離合計、RFC4180 嚴格 CSV、幣別自有鍵、期間先驗、最小週別 | NEW_IN_V52 | `server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts` |
 | V52-DEPLOY | 品質與 CI | ROLL-007／RG-007：離線 image reference 一致、OCI source 指實際建置 repo | NEW_IN_V52 | `deploy/ai-office/test_dhc_office_images.py`<br/>`deploy/customer-single/Dockerfile` |
 | V52-REPO | 品質與 CI | RG-003：全 repository 覆蓋契約與靜態語法 job | NEW_IN_V52 | `scripts/enterprise/ci/check_repo_coverage.py` |
+| V53-E2E | 品質與 CI | ROLL-002 真 Chromium＋PostgreSQL 切換 E2E：RED（V5.1）／GREEN（本次）＋delivery 兩架構 | NEW_IN_V53 | `tests/enterprise/e2e/office_stale_e2e.mjs`<br/>`scripts/enterprise/ci/office_e2e_redgreen.py` |
+| V53-NEG | 品質與 CI | ROLL-001／008／009 GitHub 負向閘門證據：11 案例、無 continue-on-error、API 核對 job／step conclusion | NEW_IN_V53 | `scripts/enterprise/ci/negative_gate_case.py`<br/>`scripts/enterprise/ci/collect_negative_gate.py` |
+| V53-ACC | 會計對帳 | 跨側同列 ID 手算 golden＋真 PG JSON／CSV／Markdown 一致 | NEW_IN_V53 | `docs/enterprise/scenarios/會計對帳/golden/跨側同列ID_預期.json` |
+| V53-OPS | 營運報表 | 用戶端中止請求不寫入；5 萬列同站衝突 CPU／RSS／延遲量測 | NEW_IN_V53 | `scripts/enterprise/ci/ops-resource-probe.ts` |
+| V53-COORD | 品質與 CI | Builder／Auditor 共享狀態：STATE／FINDING_LEDGER＋CI schema 檢查（Builder 不得標 AUDIT_VERIFIED） | NEW_IN_V53 | `docs/enterprise/coordination/STATE.json`<br/>`scripts/enterprise/coordination/check_state.py` |
 | PERF-01 | 品質與 CI | CI 效能：端到端報表／匯出 p50／p95 已量（NEW_IN_V51）；多用戶負載與 soak 仍未做 | PLANNED | — |
 | UAT-01 | 驗收 | 66 項 UAT 實際執行（目前 PASS 0） | PLANNED | — |
 | DEC-01 | 待人類決策 | 條款比對功能（BLOCKED_PRODUCT_DECISION） | BLOCKED_DECISION | — |

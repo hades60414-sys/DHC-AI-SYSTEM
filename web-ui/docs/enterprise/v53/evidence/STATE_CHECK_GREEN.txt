@@ -1,0 +1,29 @@
+# GREEN：check_state.py V5.3.1（OCR-V531-01／02／03＋D01／D02／D03 修正後），2026-11-07T06:45:29Z
+baseline: exit=0 {"status": "PASS", "findings": 51, "git_checked": true, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_evidence", "
+builder_claims_audit_verified: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+auditor_verified_without_pass: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+auditor_receipt_unknown_hash: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+invented_finding_id: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+unknown_closure_class: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+unrated_downgraded_to_low_hidden: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+stale_fingerprint: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+bad_product_sha: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+missing_sha_role: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+missing_state_field: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+hidden_high: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+fixed_without_verification_sha: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+evidence_sha_not_in_sources: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+pending_rerun_but_ready: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+pr14_missing_from_stack: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+builder_claims_auditor_status_verified: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+forged_snapshot_rewrite: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+forged_fake_auditor_report: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+relabel_human_blocked_as_fixed: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+forged_auditor_pass_full_resync: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+severity_downgrade_full_resync: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_e
+evidence_older_than_its_test_code: exit=1 {"status": "FAIL", "findings": 51, "git_checked": true, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "repo_coverage"], "problems": ["證據
+product_sha_stale: exit=1 {"status": "FAIL", "findings": 51, "git_checked": true, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_evidence", "repo_cover
+doc_head_before_code_changes: exit=1 {"status": "FAIL", "findings": 51, "git_checked": true, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_evidence", "repo_cover
+golden_fixture_changed_after_pr_head: exit=1 expect_fail=True {"status": "FAIL", "findings": 51, "git_checked": true, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_evidence", "repo_cov
+docs_only_change_after_pr_head_positive: exit=0 expect_fail=False {"status": "PASS", "findings": 51, "git_checked": true, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "office_e2e_evidence", "repo
+OK

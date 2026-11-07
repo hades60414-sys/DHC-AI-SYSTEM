@@ -1,0 +1,7 @@
+# RED：check_state.py @ cb19d46（OCR-V531-01／02／03 修正前），2026-11-07T06:38:30Z
+unrated_downgraded_to_low_hidden: exit=1 {"status": "FAIL", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "repo_coverag
+forged_auditor_pass_full_resync: exit=0 {"status": "PASS", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "repo_coverag
+severity_downgrade_full_resync: exit=0 {"status": "PASS", "findings": 51, "git_checked": false, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "repo_coverag
+golden_fixture_changed_after_pr_head: exit=0 expect_fail=True {"status": "PASS", "findings": 51, "git_checked": true, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "repo_coverage"], "pro
+docs_only_change_after_pr_head_positive: exit=0 expect_fail=False {"status": "PASS", "findings": 51, "git_checked": true, "pending_rerun": ["enterprise_verify", "image_build", "negative_gate_evidence", "repo_coverage"], 
+FAILED: ['forged_auditor_pass_full_resync', 'severity_downgrade_full_resync', 'golden_fixture_changed_after_pr_head']

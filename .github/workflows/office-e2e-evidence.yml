@@ -1,0 +1,70 @@
+# V5.3 WP1：ASTRA-ROLL-002 瀏覽器＋真 PostgreSQL 的 RED／GREEN 證據（隔離 workflow；只由 ci-evidence/** 分支 push 或手動觸發）。
+# RED：以 V5.1 固定來源（2cc9e93，修復前）建 image，只用合成資料重現 A→B 錯寫；GREEN：以本次 commit 建 image，同一驅動必須沒有 violation。
+name: office-e2e-evidence
+on:
+  push:
+    branches: ['ci-evidence/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+    working-directory: web-ui
+jobs:
+  office-stale:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: red-v51
+            source: 2cc9e93e75133dc4247e7af3b959865cf8d9d05d
+            expect: red
+          - label: green-current
+            source: current
+            expect: green
+    name: office-stale-${{ matrix.label }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      RUNTIME_BASE: node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d
+      OLD_RUNTIME_BASE: node:22-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        if: matrix.source != 'current'
+        with:
+          ref: ${{ matrix.source }}
+          path: subject
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web-ui/package-lock.json
+      - name: 建置受測 image（RED＝V5.1 來源與其 runtime base；GREEN＝本次 commit）
+        run: |
+          if [ "${{ matrix.source }}" = current ]; then ctx=.; base="$RUNTIME_BASE"; sha="$GITHUB_SHA"; else ctx=../subject/web-ui; base="$OLD_RUNTIME_BASE"; sha="${{ matrix.source }}"; fi
+          docker buildx build --platform linux/amd64 -f "$ctx/deploy/customer-single/Dockerfile" --build-arg DHC_IMAGE_PROFILE=enterprise \
+            --build-arg RUNTIME_BASE="$base" --build-arg DHC_SOURCE_SHA="$sha" -t dhc-ai-office:subject --load "$ctx" > /tmp/build.log 2>&1 || { tail -60 /tmp/build.log; exit 1; }
+          docker image inspect dhc-ai-office:subject --format '{{.Id}} {{index .Config.Labels "org.opencontainers.image.revision"}}' | tee /tmp/image.txt
+      - name: docker-compose shim＋Chromium headless shell
+        run: |
+          printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/local/bin/docker-compose >/dev/null
+          sudo chmod +x /usr/local/bin/docker-compose
+          npm ci --ignore-scripts --no-audit --no-fund
+          npx playwright-core install --with-deps --only-shell chromium
+      - name: 瀏覽器 A→B 情境＋PostgreSQL 交叉核對（預期 ${{ matrix.expect }}）
+        run: |
+          mkdir -p ../ci-out
+          cp /tmp/image.txt ../ci-out/image.txt
+          python3 -B scripts/enterprise/ci/office_e2e_redgreen.py --image dhc-ai-office:subject --expect "${{ matrix.expect }}" --evidence ../ci-out/office-stale
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: office-stale-${{ matrix.label }}
+          path: ci-out/
+          retention-days: 30

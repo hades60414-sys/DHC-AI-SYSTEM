@@ -1,0 +1,12 @@
+# RED：collect_negative_gate.py @ 917c0c3（修正前），2026-11-07T06:20:27Z
+ERROR: test_real_workflow_has_no_continue_on_error (__main__.Collector.test_real_workflow_has_no_continue_on_error)
+FAIL: test_continue_on_error_in_workflow (__main__.Collector.test_continue_on_error_in_workflow)
+FAIL: test_duplicate_case_job (__main__.Collector.test_duplicate_case_job)
+FAIL: test_exit_receipt_missing (__main__.Collector.test_exit_receipt_missing)
+FAIL: test_exit_receipt_tampered (__main__.Collector.test_exit_receipt_tampered)
+FAIL: test_exit_receipt_wrong_tool_exit (__main__.Collector.test_exit_receipt_wrong_tool_exit)
+FAIL: test_step_outcome_receipt_disagrees_with_api (__main__.Collector.test_step_outcome_receipt_disagrees_with_api)
+FAIL: test_step_outcome_receipt_missing (__main__.Collector.test_step_outcome_receipt_missing)
+FAIL: test_unexpected_extra_case_job (__main__.Collector.test_unexpected_extra_case_job)
+Ran 14 tests in 0.491s
+FAILED (failures=8, errors=1)

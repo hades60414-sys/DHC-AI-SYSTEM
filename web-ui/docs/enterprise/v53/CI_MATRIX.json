@@ -1,0 +1,183 @@
+{
+ "head_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+ "product_source_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+ "note": "V5.3.1 F1：完整 CI；產品路徑對 d38afd8 diff 為空（check_state --require-git 驗證）。",
+ "runs": [
+  {
+   "workflow": "enterprise-verify",
+   "run_id": 42349084781,
+   "attempt": 1,
+   "event": "pull_request",
+   "conclusion": "success",
+   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349084781",
+   "jobs": [
+    {
+     "id": 128333153403,
+     "name": "postgres-integration",
+     "conclusion": "success"
+    },
+    {
+     "id": 128333153533,
+     "name": "static-and-unit",
+     "conclusion": "success"
+    },
+    {
+     "id": 128334253438,
+     "name": "csv-spreadsheet-safety",
+     "conclusion": "success"
+    }
+   ],
+   "artifacts": [
+    {
+     "id": 13565136150,
+     "name": "enterprise-verify-postgres",
+     "size": 29953,
+     "digest": "sha256:0e2f29db71b872a7a705bda0d75bc702ca1a1b76abc3ef44aedfeff3d08d66b4",
+     "expires_at": "2026-11-14T06:57:13Z"
+    },
+    {
+     "id": 13565111966,
+     "name": "enterprise-verify-csv-spreadsheet",
+     "size": 686,
+     "digest": "sha256:e109068111e67832a502c671c4cdf9439ed6bcc3f921739ee4b6fa8473c29f8f",
+     "expires_at": "2026-11-14T07:01:23Z"
+    },
+    {
+     "id": 13564913305,
+     "name": "enterprise-verify-static-unit",
+     "size": 123916,
+     "digest": "sha256:9cafdead1c6b682ba946e9b6edff28f87d43fc46ad44f0670a2ab4ea1c1a6148",
+     "expires_at": "2026-11-14T07:00:51Z"
+    }
+   ]
+  },
+  {
+   "workflow": "enterprise-image-build",
+   "run_id": 42349084776,
+   "attempt": 1,
+   "event": "pull_request",
+   "conclusion": "success",
+   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349084776",
+   "jobs": [
+    {
+     "id": 128333153616,
+     "name": "build-arm64",
+     "conclusion": "success"
+    },
+    {
+     "id": 128333153833,
+     "name": "build-amd64",
+     "conclusion": "success"
+    },
+    {
+     "id": 128333817245,
+     "name": "delivery-arm64 / delivery",
+     "conclusion": "success"
+    },
+    {
+     "id": 128333890302,
+     "name": "delivery-amd64 / delivery",
+     "conclusion": "success"
+    },
+    {
+     "id": 128333890371,
+     "name": "upgrade-rollback-amd64",
+     "conclusion": "success"
+    }
+   ],
+   "artifacts": [
+    {
+     "id": 13565136328,
+     "name": "enterprise-image-archive-arm64",
+     "size": 284570981,
+     "digest": "sha256:eee54338261a3294066ed661be12f768ba5b0e3eef11b37510c23a798742f653",
+     "expires_at": "2026-11-08T06:58:34Z"
+    },
+    {
+     "id": 13564976996,
+     "name": "enterprise-delivery-amd64",
+     "size": 33250,
+     "digest": "sha256:5b7c11f087f355ac7a035abd4fa06ad53d60eb63308e372603e48654eaf9d5f2",
+     "expires_at": "2026-11-14T07:03:15Z"
+    },
+    {
+     "id": 13564798331,
+     "name": "enterprise-image-report-amd64",
+     "size": 161488,
+     "digest": "sha256:acfff29224a250ee3f873c7415bfa5680bfcb80bf4c74852251bbb675a5021d5",
+     "expires_at": "2026-11-14T06:58:43Z"
+    },
+    {
+     "id": 13564593892,
+     "name": "enterprise-image-archive-amd64",
+     "size": 286037151,
+     "digest": "sha256:e269c7fdf7057ffab8ccc1bc13d80d7370945e787b5d1a58429047477c8b67e3",
+     "expires_at": "2026-11-08T06:58:39Z"
+    },
+    {
+     "id": 13564484354,
+     "name": "enterprise-upgrade-rollback-amd64",
+     "size": 14543,
+     "digest": "sha256:71d86b374b9f58d11bd2f8c5dee9fbaaefc7834fc44327351f6e2c8684a3d045",
+     "expires_at": "2026-11-14T07:02:19Z"
+    },
+    {
+     "id": 13564439563,
+     "name": "enterprise-delivery-arm64",
+     "size": 33221,
+     "digest": "sha256:203cc17815866a1d67c43251f9159377e8763ffe8aee37677fe054c5f7bdca56",
+     "expires_at": "2026-11-14T07:02:27Z"
+    },
+    {
+     "id": 13564404185,
+     "name": "enterprise-image-report-arm64",
+     "size": 161578,
+     "digest": "sha256:64fb3e761ef9f1df29f52065f1fa837957395fd9f0d92d7258823b7825b707a6",
+     "expires_at": "2026-11-14T06:58:37Z"
+    }
+   ]
+  },
+  {
+   "workflow": "repo-coverage",
+   "run_id": 42349084813,
+   "attempt": 1,
+   "event": "pull_request",
+   "conclusion": "success",
+   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42349084813",
+   "jobs": [
+    {
+     "id": 128333153680,
+     "name": "coverage-contract",
+     "conclusion": "success"
+    }
+   ],
+   "artifacts": [
+    {
+     "id": 13564408816,
+     "name": "repo-coverage",
+     "size": 916,
+     "digest": "sha256:db9530870bd032ed55dd0e11c815e1c8689a68dc2ab9d53ab20dd705bd821630",
+     "expires_at": "2026-11-14T06:55:42Z"
+    }
+   ]
+  }
+ ],
+ "evidence_runs": {
+  "office_e2e_evidence": {
+   "run_id": 42348102966,
+   "sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+   "conclusion": "success"
+  },
+  "negative_gate_evidence": {
+   "run_id": 42348102897,
+   "sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+   "conclusion": "failure（預期；collect success＋all_match）"
+  }
+ },
+ "gate_self_evidence": {
+  "run_id": 42348453024,
+  "sha": "828a763681fc60c795df27733aaa5c1369be0571",
+  "conclusion": "failure（預期：協作狀態閘門擋下只推程式 commit）"
+ },
+ "history": "V5.3 原始矩陣（45713dc）見 git 歷史 917c0c3 的本檔"
+}

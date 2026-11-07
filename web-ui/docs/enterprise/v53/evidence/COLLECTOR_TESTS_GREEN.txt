@@ -1,0 +1,3 @@
+# GREEN：collect_negative_gate.py V5.3.1（修正後），2026-11-07T06:20:54Z
+Ran 14 tests in 0.553s
+OK

@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, test } from 'node:test';
 
 import { isoWeekRange, runOpsReportV1 } from '../ops-report-v1.js';
@@ -36,6 +38,16 @@ describe('V5.2 ASTRA-ROLL ACC-MATCH-v1 資料正確性', () => {
       ['R1,ORG,P1,2026-10-08,D1,C1,TWD,2,100,x', 'R2,ORG,P2,2026-10-09,D2,C1,TWD,2,30,x'],
     ));
     assert.deepEqual(renamed.totals, result.totals);
+  });
+
+  test('V5.3 golden（人工手算 JSON）：跨側同列ID 的案件、計數與兩幣別合計', () => {
+    const golden = path.resolve('docs/enterprise/scenarios/會計對帳/golden');
+    const expected = JSON.parse(readFileSync(path.join(golden, '跨側同列ID_預期.json'), 'utf8'));
+    const result = completed(runAccMatchV1({ ledger: { content: readFileSync(path.join(golden, '跨側同列ID_內部帳.csv')), versionId: 'v-l', sha256: 'a'.repeat(64) },
+      receipts: { content: readFileSync(path.join(golden, '跨側同列ID_收款明細.csv')), versionId: 'v-r', sha256: 'b'.repeat(64) }, ...expected.period }));
+    assert.deepEqual(result.cases.map(item => ({ documentId: item.documentId, category: item.category, ledgerRowIds: item.ledgerRowIds, receiptRowIds: item.receiptRowIds, differenceMinor: item.differenceMinor, isolated: item.isolated })), expected.cases);
+    assert.deepEqual(result.totals, expected.totals.map(({ derivation: _d, ...rest }: Record<string, string>) => rest));
+    for (const [key, value] of Object.entries(expected.counts)) assert.equal((result.counts as Record<string, number>)[key], value, key);
   });
 
   test('ROLL-004：閉引號後還有字元（"100"000）→ 拒收；合法引號欄（含逗號、跳脫雙引號）仍可', () => {

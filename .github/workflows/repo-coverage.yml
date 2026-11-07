@@ -3,7 +3,7 @@
 name: repo-coverage
 on:
   pull_request:
-    branches: [main, 'integration/enterprise-rcfix-v4-20261106', 'feature/ai-office-backend-v5-20261106', 'fix/ai-office-v51-repoguard-hardening']
+    branches: [main, 'integration/enterprise-rcfix-v4-20261106', 'feature/ai-office-backend-v5-20261106', 'fix/ai-office-v51-repoguard-hardening', 'fix/ai-office-v52-astra-roll']
   workflow_dispatch:
 permissions:
   contents: read

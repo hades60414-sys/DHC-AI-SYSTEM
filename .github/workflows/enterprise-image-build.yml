@@ -5,7 +5,7 @@ name: enterprise-image-build
 on:
   pull_request:
     # main，以及 stacked PR 的 base（V4 整合分支）——讓 V5 PR 也觸發完整驗證
-    branches: [main, 'integration/enterprise-rcfix-v4-20261106', 'feature/ai-office-backend-v5-20261106', 'fix/ai-office-v51-repoguard-hardening']
+    branches: [main, 'integration/enterprise-rcfix-v4-20261106', 'feature/ai-office-backend-v5-20261106', 'fix/ai-office-v51-repoguard-hardening', 'fix/ai-office-v52-astra-roll']
     paths: ['web-ui/**', '.github/workflows/enterprise-*.yml']
   workflow_dispatch:
 permissions:

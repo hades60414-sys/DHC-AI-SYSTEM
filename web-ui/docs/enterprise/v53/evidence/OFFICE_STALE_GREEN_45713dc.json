@@ -1,0 +1,171 @@
+{
+ "source_artifact": "42343824443/office-stale-green-current",
+ "image": "sha256:172f76adb73c0afc284204f42eab6fbfbcf991228b01f318148209eb54b00f09 45713dce4a272cd9303478ffe56ac8c732eacd23",
+ "harness": {
+  "status": "PASS",
+  "expect": "green",
+  "image": "dhc-ai-office:subject",
+  "error": null,
+  "steps": [
+   {
+    "name": "01-init-secrets",
+    "exit_code": 0
+   },
+   {
+    "name": "02-up",
+    "exit_code": 0
+   },
+   {
+    "name": "03-bootstrap",
+    "exit_code": 0
+   },
+   {
+    "name": "04-subscription",
+    "exit_code": 0
+   }
+  ],
+  "checks": [
+   {
+    "name": "瀏覽器：沒有任何 violation（所有情境）",
+    "passed": true
+   },
+   {
+    "name": "瀏覽器：每個情境都完整執行（沒有情境錯誤）",
+    "passed": true
+   },
+   {
+    "name": "PG：B 沒有任何一版內容等於 A",
+    "passed": true
+   },
+   {
+    "name": "PG：B 只有第 1 版＋合法修改的第 2 版",
+    "passed": true
+   },
+   {
+    "name": "PG：B 的 draft.revised 稽核恰 1 筆、draft.submitted 0 筆（與 revision 一致）",
+    "passed": true
+   },
+   {
+    "name": "PG：B 仍為 draft（未被錯誤送審）",
+    "passed": true
+   },
+   {
+    "name": "PG：approval D 已核准、C 仍 pending；核准稽核 D=1、C=0",
+    "passed": true
+   },
+   {
+    "name": "PG：A 未被修改（1 版）",
+    "passed": true
+   }
+  ],
+  "db": {
+   "browser_scenario_errors": [],
+   "draftB_revisions": [
+    {
+     "revision": 1,
+     "body_md5": "e2269e7849566ac6e180ea047876355d",
+     "equals_A_body": false
+    },
+    {
+     "revision": 2,
+     "body_md5": "3b8141938be94a87fd5499b4c6072648",
+     "equals_A_body": false
+    }
+   ],
+   "draftB_status": "draft",
+   "audit_draft.revised_B": 1,
+   "audit_draft.submitted_B": 0,
+   "approval_C": "pending",
+   "audit_decided_C": 0,
+   "approval_D": "approved",
+   "audit_decided_D": 1,
+   "draftA_revisions": 1,
+   "citation_hashes_differ_A_B": true,
+   "approval_C_D_same_sha": true
+  },
+  "cleanup_exit_code": 0
+ },
+ "browser": {
+  "status": "PASS",
+  "scenarios": [
+   {
+    "name": "草稿：A 已載入、B GET 延遲（同作者同版號）",
+    "mode": "pending",
+    "from": "draftA",
+    "to": "draftB",
+    "attempts": {
+     "儲存修改": "absent",
+     "送審": "absent"
+    },
+    "shownFromBodyUnderTo": false,
+    "writesToTarget": []
+   },
+   {
+    "name": "草稿：A 已載入、B GET 503（同作者同版號）",
+    "mode": "503",
+    "from": "draftA",
+    "to": "draftB",
+    "attempts": {
+     "儲存修改": "absent",
+     "送審": "absent"
+    },
+    "shownFromBodyUnderTo": false,
+    "writesToTarget": []
+   },
+   {
+    "name": "草稿：A 已載入、丁 GET 503（不同版號）",
+    "mode": "503",
+    "from": "draftA",
+    "to": "draftDiff",
+    "attempts": {
+     "儲存修改": "absent",
+     "送審": "absent"
+    },
+    "shownFromBodyUnderTo": false,
+    "writesToTarget": []
+   },
+   {
+    "name": "草稿正向：B 正常載入後儲存",
+    "ok": true
+   },
+   {
+    "name": "審批：C 已載入、D 回 503（相同內容、不同 approval）",
+    "attempts": {
+     "核准": "absent",
+     "退回": "absent"
+    },
+    "labelUnderD": null,
+    "decisionsWhileNotReady": []
+   },
+   {
+    "name": "審批正向：D 正常載入後核准",
+    "ok": true
+   }
+  ],
+  "scenario_errors": [],
+  "violation_counts": {},
+  "violations": [],
+  "writes": [
+   {
+    "method": "PUT",
+    "url": "enterprise/v1/drafts/3b7a76eb-b054-44ea-8db3-98d323103bc6",
+    "body": "{\"expectedRevision\":1,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源乙 預算上限 88,000 乙方負責驗收 [1]\\n（E2E 合法修改）\"}"
+   },
+   {
+    "method": "POST",
+    "url": "enterprise/v1/approvals/9ae76934-e0c5-4f3a-897d-a611792a66bd/decision",
+    "body": "{\"decision\":\"approve\",\"comment\":\"\",\"expectedRevision\":1,\"expectedSha256\":\"da0e916ade8f4b96b506d7931246cfbb650abb904db5c78c03e102a1d5055618\"}"
+   }
+  ],
+  "ids": {
+   "draftA": "75815d4e-3b10-491a-bfb1-6ff8ad234669",
+   "draftB": "3b7a76eb-b054-44ea-8db3-98d323103bc6",
+   "draftDiff": "d502e1c6-cce0-4b74-9916-3c826ba7f022",
+   "draftC": "158c1bdc-03b7-4258-a7fd-ce7197841880",
+   "draftD": "12b3136d-8ea4-4120-baa8-7273c10c38e2",
+   "approvalC": "618f72db-a7a6-4f2b-b96d-d3beca464c1d",
+   "approvalD": "9ae76934-e0c5-4f3a-897d-a611792a66bd",
+   "editedBodyB": "（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\n\n- 合成來源乙 預算上限 88,000 乙方負責驗收 [1]\n（E2E 合法修改）"
+  }
+ }
+}

@@ -57,6 +57,8 @@ jobs:
           npx playwright-core install --with-deps --only-shell chromium
       - name: 完整交付驗證（原生 ${{ inputs.arch }}，app 與 PostgreSQL 同架構）
         run: python3 -B scripts/enterprise/驗證AI_Office交付.py --skip-build --image dhc-ai-office:ci-$ARCH --evidence ci-evidence/delivery
+      - name: V5.3 ASTRA-ROLL-002 瀏覽器 A→B 情境（本次 image＋真 PostgreSQL，預期無 violation）
+        run: python3 -B scripts/enterprise/ci/office_e2e_redgreen.py --image dhc-ai-office:ci-$ARCH --expect green --evidence ci-evidence/office-stale
       - name: 容量（交付後）
         if: always()
         run: '{ df -h; docker system df; } | tee ci-evidence/capacity-after.txt'

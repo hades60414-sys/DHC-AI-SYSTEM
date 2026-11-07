@@ -1,0 +1,63 @@
+{
+ "head_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+ "runs": {
+  "image_build": 42349084776
+ },
+ "images": [
+  {
+   "arch": "amd64",
+   "image_id": "sha256:b1569cc3e68b320774b77ec4851b40387cef9f6ff2b69006dddb34a5f9461e68",
+   "source_revision": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+   "runtime_base": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+   "license": "AGPL-3.0-or-later",
+   "image_archive_sha256": "dc95b5343b183e4eb122f6b5c1d38d195782018324627940a05fb06bc0453c45",
+   "archive_artifact": {
+    "id": 13564593892,
+    "digest": "sha256:e269c7fdf7057ffab8ccc1bc13d80d7370945e787b5d1a58429047477c8b67e3",
+    "expires_at": "2026-11-08T06:58:39Z"
+   },
+   "report_artifact_id": 13564798331,
+   "build_command": "docker buildx build --platform linux/amd64 -f deploy/customer-single/Dockerfile --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE=node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d --build-arg DHC_SOURCE_SHA=0e5b470776c38c44e322057ed3bbae132fa2cce6 --build-arg DHC_SOURCE_REPOSITORY=https://github.com/hades60414-sys/DHC-AI-SYSTEM",
+   "trivy": {
+    "os-pkgs": {
+     "CRITICAL": 1,
+     "HIGH": 34
+    },
+    "lang-pkgs": {
+     "CRITICAL": 0,
+     "HIGH": 0
+    }
+   },
+   "sbom": "sbom/sbom.cdx.json（artifact enterprise-image-report-amd64）"
+  },
+  {
+   "arch": "arm64",
+   "image_id": "sha256:269013852e2ff36910933359eacf0e3abd903738d8fb18ba73aea60006cebefb",
+   "source_revision": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
+   "runtime_base": "node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d",
+   "license": "AGPL-3.0-or-later",
+   "image_archive_sha256": "5c89131c888dfe1b09f68d1ce5e8a29a5c3c675b102eaf119cb8142c49ef021c",
+   "archive_artifact": {
+    "id": 13565136328,
+    "digest": "sha256:eee54338261a3294066ed661be12f768ba5b0e3eef11b37510c23a798742f653",
+    "expires_at": "2026-11-08T06:58:34Z"
+   },
+   "report_artifact_id": 13564404185,
+   "build_command": "docker buildx build --platform linux/arm64 -f deploy/customer-single/Dockerfile --build-arg DHC_IMAGE_PROFILE=enterprise --build-arg RUNTIME_BASE=node:22-bookworm-slim@sha256:5ec23b7c622b00547753bc6ffd78085dd868a68aeb41c8e0a1418f033e13d96d --build-arg DHC_SOURCE_SHA=0e5b470776c38c44e322057ed3bbae132fa2cce6 --build-arg DHC_SOURCE_REPOSITORY=https://github.com/hades60414-sys/DHC-AI-SYSTEM",
+   "trivy": {
+    "os-pkgs": {
+     "CRITICAL": 1,
+     "HIGH": 34
+    },
+    "lang-pkgs": {
+     "CRITICAL": 0,
+     "HIGH": 0
+    }
+   },
+   "sbom": "sbom/sbom.cdx.json（artifact enterprise-image-report-arm64）"
+  }
+ ],
+ "delta_vs_v52": "Trivy 與 V5.2／V5.3 相同：OS CRITICAL 1（zlib1g CVE-2023-45853 will_not_fix）、OS HIGH 34、lang 0／0；SC-OWNER 待決。",
+ "retention": "image archive artifact 依 expires_at 到期；長期保存需人類核准 GHCR private＋digest＋attestation，不備份至本機。",
+ "not_claimed": "未推 registry、無簽章／provenance attestation、非正式 release。"
+}

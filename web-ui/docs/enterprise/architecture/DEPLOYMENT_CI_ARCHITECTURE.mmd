@@ -4,6 +4,7 @@ flowchart TB
   classDef newv5 fill:#e6eef8,stroke:#2f5d8a,color:#2A2A2A
   classDef newv51 fill:#e9e6f6,stroke:#5a4a9a,color:#2A2A2A
   classDef newv52 fill:#f6e9df,stroke:#9a5a2a,color:#2A2A2A
+  classDef newv53 fill:#e3f1f1,stroke:#2a7a7a,color:#2A2A2A
   classDef planned fill:#f4f1e6,stroke:#8a7a2f,color:#2A2A2A,stroke-dasharray:4 3
   classDef blocked fill:#f6e8e8,stroke:#8a2f2f,color:#2A2A2A,stroke-dasharray:2 2
 
@@ -13,6 +14,7 @@ flowchart TB
     pg["postgres-integration：PostgreSQL 16 固定 digest、全部 *.integration.test.ts 序列執行<br/>[CURRENT]"]:::current
     probe["資源邊界探針、UAT 證據索引檢查、CSV 實測素材<br/>[NEW_IN_V51]"]:::newv51
     gates["shell bash（pipefail）＋gate.sh：工具／比較器／閘門三段退出碼；runner exit、skip 清單、lint 分母；負向閘門測試<br/>[NEW_IN_V52]"]:::newv52
+    state["協作狀態 schema：STATE／FINDING_LEDGER 一致性＋竄改負向測試<br/>[NEW_IN_V53]"]:::newv53
     lo["csv-spreadsheet-safety：LibreOffice Calc 無頭匯入（求值公式開）<br/>[NEW_IN_V51]"]:::newv51
   end
   subgraph image["enterprise-image-build"]
@@ -23,7 +25,18 @@ flowchart TB
     upg["upgrade-rollback-amd64：V4（1e481e2）image → 本次 image 升級＋還原回退<br/>[NEW_IN_V51]"]:::newv51
     lbl["OCI source＝實際建置 repo、upstream 另列；交付驗證 image 覆寫負例（up／restore）<br/>[NEW_IN_V52]"]:::newv52
     a64 --- lbl
+    stale["delivery 內 Office A→B 切換 E2E（Chromium＋PostgreSQL，預期 GREEN）<br/>[NEW_IN_V53]"]:::newv53
+    dl --- stale
   end
+  subgraph evidence["隔離證據 workflow（只由 ci-evidence/** push 或手動觸發；不是 PR 必要檢查）[NEW_IN_V53]"]
+    neg["negative-gate-evidence：11 案例 job（無 continue-on-error）→ collect 以 GitHub API 核對 job／step conclusion<br/>workflow 預期 failure"]:::newv53
+    rg["office-e2e-evidence：RED＝V5.1 image（合成資料）／GREEN＝本次 image；psql 交叉核對"]:::newv53
+  end
+  evb["ci-evidence/** 分支（與 PR 相同 SHA）"]:::newv53
+  evb --> neg
+  evb --> rg
+  neg --> art
+  rg --> art
   art[("Actions artifacts（短期保留）<br/>TAP／JSON／SBOM／Trivy／image tar")]:::current
   ghcr["正式映像發布<br/>[BLOCKED_DECISION]"]:::blocked
   perf["多用戶負載、soak、arm64 升級回退<br/>[PLANNED：未量測項標 NOT_RUN]"]:::planned
@@ -37,6 +50,7 @@ flowchart TB
   a64 --> upg
   su --> probe
   su --> gates
+  su --> state
   cov["repo-coverage：全 repo 覆蓋契約＋非 web-ui 模組靜態語法（不執行）<br/>[NEW_IN_V52]"]:::newv52
   pr --> cov
   probe --> lo

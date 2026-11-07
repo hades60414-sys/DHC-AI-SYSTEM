@@ -1,0 +1,506 @@
+{
+ "reviewer": "independent fresh-context agent",
+ "range": {
+  "from": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
+  "to": "cb19d46e3950a18dcde2353a91a60b52feb34b1c"
+ },
+ "files": [
+  {
+   "path": ".github/workflows/enterprise-delivery-smoke.yml",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": ".github/workflows/enterprise-image-build.yml",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": ".github/workflows/enterprise-verify.yml",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": ".github/workflows/negative-gate-evidence.yml",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": ".github/workflows/office-e2e-evidence.yml",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": ".github/workflows/repo-coverage.yml",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/architecture/DEPLOYMENT_CI_ARCHITECTURE.mmd",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/architecture/ROADMAP_TUI.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/architecture/TECHNICAL_ROADMAP.mmd",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/architecture/roadmap.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/coordination/AUDITOR_SNAPSHOT.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/coordination/AUDIT_INTAKE.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/coordination/BUILDER_RECEIPT.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/coordination/CHANGELOG.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/coordination/EVIDENCE_SOURCES.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/coordination/FINDING_LEDGER.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/coordination/STATE.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/scenarios/會計對帳/golden/跨側同列ID_內部帳.csv",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/scenarios/會計對帳/golden/跨側同列ID_收款明細.csv",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/scenarios/會計對帳/golden/跨側同列ID_預期.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/CI_MATRIX.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/CLOSURE_CHECKPOINT.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/DECISION_PROPOSALS.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/EVIDENCE_SUMMARY.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/HANDOFF_TO_ASTRA.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/HANDOFF_TO_CHATGPT.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/NEXT_SESSION_HANDOFF.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/OCR_REVIEW.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/OFFICE_E2E_VERIFICATION.md",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/SHA256SUMS",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/SUPPLY_CHAIN_PROVENANCE.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/evidence/COLLECTOR_TESTS_GREEN.txt",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/evidence/COLLECTOR_TESTS_RED_917c0c3.txt",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/evidence/NEGATIVE_GATE_EVIDENCE.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/evidence/OFFICE_STALE_DELIVERY_AMD64.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/evidence/OFFICE_STALE_DELIVERY_ARM64.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/evidence/OFFICE_STALE_GREEN_45713dc.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/evidence/OFFICE_STALE_RED_V51.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/evidence/OPS_RESOURCE_PROBE.json",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/docs/enterprise/v53/evidence/PG_ACC_OPS_TESTS.txt",
+   "coverage": "completeness",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/ci/collect_negative_gate.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/ci/negative_gate_case.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/ci/office_e2e_redgreen.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/ci/ops-resource-probe.ts",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/ci/test_collect_negative_gate.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/ci/test_gate.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/coordination/build_state.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/coordination/check_state.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/coordination/sync_auditor_snapshot.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/coordination/test_check_state.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/scripts/enterprise/render_roadmap.py",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-api/tests/ops-report.integration.test.ts",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-api/tests/reconciliation-export.integration.test.ts",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/server/modules/enterprise-persistence/tests/acc-match-astra-roll.test.ts",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  },
+  {
+   "path": "web-ui/tests/enterprise/e2e/office_stale_e2e.mjs",
+   "coverage": "semantic",
+   "verdict": "reviewed",
+   "skip_reason": null
+  }
+ ],
+ "findings": [
+  {
+   "id": "OCR-V531-01",
+   "path": "web-ui/scripts/enterprise/coordination/check_state.py",
+   "start_line": 139,
+   "end_line": 145,
+   "category": "security",
+   "severity": "high",
+   "confidence": "high",
+   "content": "Auditor-verdict check only verifies that auditor_receipt.source_sha256 is one of the hashes in AUDITOR_SNAPSHOT and that the ledger-local auditor_status starts with \"PASS\" (or auditor_problem_state==\"AUDIT_VERIFIED\"). It never cross-checks the ledger auditor_status/problem_state/closure_class against the verdict the snapshot actually records for that finding ID. A Builder edit of FINDING_LEDGER.json that sets ASTRA-ROLL-001 (snapshot verdict FAIL / CONFIRMED_DEFECT) to auditor_status=PASS, auditor_problem_state=AUDIT_VERIFIED, closure_class=AUDITOR_VERIFIED (reusing the genuine CONTINUATION_V4 hash) plus a recomputed fingerprint/open_critical_high/closure_counts passes check_state.py --require-git (exit 0) and removes a HIGH from open_critical_high. So the rule \"Builder may never mark AUDIT_VERIFIED\" is enforced only for builder_status, not for the auditor fields. The validator also does not re-derive closure_class from builder_status+snapshot (build_state does, check_state trusts it). Also, AUDITOR_SNAPSHOT is itself Builder-written from raw reports that are not in the repo, so a source_sha256 shows only that a hash string is present, not that the report is real.",
+   "repro": "python3 -B <scratchpad>/ocr531/demo/forge.py <repo>/web-ui  -> \"forged_PASS_on_ASTRA-ROLL-001 exit 0 status PASS\" (works on a temp copy of coordination/ via --coord). Fix: for each finding, find the latest snapshot entry with that id and require ledger auditor_status/problem_state==snapshot values and receipt.report_id/source_sha256==that report; re-derive closure_class."
+  },
+  {
+   "id": "OCR-V531-02",
+   "path": "web-ui/scripts/enterprise/coordination/check_state.py",
+   "start_line": 159,
+   "end_line": 161,
+   "category": "security",
+   "severity": "medium",
+   "confidence": "high",
+   "content": "open_critical_high is derived from ledger severity, but ledger severity is never checked against the registry (v52 matrix) or the Auditor snapshot severity. Changing ASTRA-ROLL-002 severity HIGH->LOW in FINDING_LEDGER.json (and recomputing STATE) passes check_state.py --require-git, which silently drops an open HIGH. test_check_state only tests clearing STATE.open_unrated_historical, not downgrading in the ledger. Separately, build_state.py labels severity_source=\"auditor\" for v52 IDs even though the value comes from the Builder registry (it matches today).",
+   "repro": "Same harness as above, mutation severity_HIGH_to_LOW_on_ASTRA-ROLL-002 -> exit 0, status PASS."
+  },
+  {
+   "id": "OCR-V531-03",
+   "path": "web-ui/scripts/enterprise/coordination/check_state.py",
+   "start_line": 115,
+   "end_line": 122,
+   "category": "bug",
+   "severity": "medium",
+   "confidence": "high",
+   "content": "The \"doc-only after pr_head_sha\" rule treats everything under web-ui/docs/enterprise/ as documentation, and enterprise_verify/repo_coverage depends_on_exclude web-ui/docs/enterprise/* (EVIDENCE_SOURCES.json lines 63, 100). But web-ui/docs/enterprise/scenarios/會計對帳/ (including golden/跨側同列ID_*.csv and 跨側同列ID_預期.json) holds the test fixtures and expected values that acc-match-astra-roll.test.ts and reconciliation-export.integration.test.ts read. So golden inputs/expectations can change after the evidence SHA or pr_head_sha with no staleness error: product-test evidence gets mixed with \"doc\" commits, which is the opposite of what --require-git is supposed to stop.",
+   "repro": "In a temp clone at cb19d46: set enterprise_verify sha = pr_head_sha = HEAD, drop pending_rerun, commit a change to 跨側同列ID_預期.json (TWD isolatedLedgerMinor -> the known-wrong 103000). check_state.py --require-git -> exit 0 PASS. Fix: exclude docs/enterprise/scenarios/** (and any fixture dirs) from the doc allow-list and from depends_on_exclude."
+  },
+  {
+   "id": "OCR-V531-04",
+   "path": "web-ui/scripts/enterprise/ci/office_e2e_redgreen.py",
+   "start_line": 105,
+   "end_line": 105,
+   "category": "test",
+   "severity": "medium",
+   "confidence": "high",
+   "content": "The PostgreSQL cross-check for the approval scenario cannot tell the bug apart from correct behaviour. In the committed RED evidence (OFFICE_STALE_RED_V51.json) the old UI approved D while C was displayed, sending C revision/sha (identical to D by construction). Yet PG shows exactly the GREEN state: approval_D=approved, approval_C=pending, audit_decided_D=1, audit_decided_C=0. So the GREEN check \"approval D approved, C pending\" passes whether or not the stale-decision bug exists, and the only oracle for the approval half of ROLL-002 is the browser-side DECISION_WHILE_NOT_READY detector. OFFICE_E2E_VERIFICATION.md presents the DB approval/audit row as an independent confirmation. Fixtures where C and D have different content/sha, or a check that D decision audit happened only after the positive step (e.g. via timestamps or the request log), would make PG discriminating.",
+   "repro": "Compare harness.db in evidence/OFFICE_STALE_RED_V51.json vs OFFICE_STALE_GREEN_45713dc.json: approval_* and audit_decided_* fields are identical."
+  },
+  {
+   "id": "OCR-V531-05",
+   "path": "web-ui/tests/enterprise/e2e/office_stale_e2e.mjs",
+   "start_line": 124,
+   "end_line": 137,
+   "category": "test",
+   "severity": "low",
+   "confidence": "medium",
+   "content": "Vacuity guard missing: the negative draft/approval scenarios never assert that the page.route handler was hit, i.e. that the target GET was really delayed or failed with 503. If the UI ever fetches the resource by another path or query shape, B loads normally, no stale window exists, and GREEN passes with no violations without testing anything. Also, \"absent\" button attempts are accepted with no check, and the positive controls cover 儲存修改/核准 but not 送審/退回. Today the paths match (src/shared/api.ts:815,818), so this is a robustness gap, not a current false PASS. The harness also ignores the driver process exit code (office_e2e_redgreen.py:74-79) and relies only on RESULT.json.",
+   "repro": "Record a counter in handler and require >0 per scenario; GREEN evidence currently has no such field."
+  },
+  {
+   "id": "OCR-V531-06",
+   "path": "web-ui/scripts/enterprise/ci/collect_negative_gate.py",
+   "start_line": 67,
+   "end_line": 70,
+   "category": "test",
+   "severity": "low",
+   "confidence": "medium",
+   "content": "For wrong_sha256 / build_failure / smoke_failure (spec None) the collector accepts any gate-step failure. It does not check the cause: exit 3 from the busybox smoke, a sha256sum FAILED line, or the missing-file COPY error. Image pull or rate-limit failures, or a missing buildx, would be recorded as matching evidence. What is still proven is pipefail propagation through | tee, so impact is limited. Consider uploading the tee output and asserting the expected marker.",
+   "repro": "Make busybox pull fail (e.g. typo the tag in negative_gate_case.py): the case still matches."
+  },
+  {
+   "id": "OCR-V531-07",
+   "path": "web-ui/docs/enterprise/v53/SHA256SUMS",
+   "start_line": 1,
+   "end_line": 21,
+   "category": "documentation",
+   "severity": "low",
+   "confidence": "high",
+   "content": "At cb19d46, 3 of 21 entries fail: coordination/AUDITOR_SNAPSHOT.json, FINDING_LEDGER.json and STATE.json, all rewritten after 917c0c3. EVIDENCE_SOURCES.json, CLOSURE_CHECKPOINT.md, OFFICE_E2E_VERIFICATION.md, COLLECTOR_TESTS_GREEN.txt and COLLECTOR_TESTS_RED_917c0c3.txt are not listed. Paths are relative to web-ui/docs/enterprise/, not to the file's own directory, so `sha256sum -c` run inside v53/ fails all 21. CLOSURE_CHECKPOINT S6 marks SHA256SUMS TODO, so this is a known stale state, but the file is currently inconsistent evidence.",
+   "repro": "cd web-ui/docs/enterprise && shasum -a 256 -c v53/SHA256SUMS -> 3 FAILED."
+  },
+  {
+   "id": "OCR-V531-08",
+   "path": "web-ui/docs/enterprise/coordination/BUILDER_RECEIPT.md",
+   "start_line": 12,
+   "end_line": 30,
+   "category": "documentation",
+   "severity": "low",
+   "confidence": "high",
+   "content": "The receipt is stale against schema-2 state. It claims CI_EVIDENCE_READY (STATE.ci_status is CI_PENDING, 4 evidences pending_rerun). It says no item is AUDIT_VERIFIED (the ledger has RG-006 closure AUDITOR_VERIFIED / auditor_problem_state AUDIT_VERIFIED, from Astra). It cites only snapshot hash 84137ee9… (the snapshot now also has 690b71a3…, which most receipts reference). OCR_REVIEW.md similarly describes an older 27-file range and \"8\" tamper tests. NEGATIVE_GATE_EVIDENCE.json is the pre-785485e collector output (no collector/problems fields), and CLOSURE_CHECKPOINT S1 says the hardened collector re-evaluated it, but that output is not committed (the entry is pending_rerun).",
+   "repro": "Compare BUILDER_RECEIPT.md lines 12/29/30 with STATE.json ci_status and FINDING_LEDGER RG-006."
+  },
+  {
+   "id": "OCR-V531-09",
+   "path": "web-ui/scripts/enterprise/coordination/build_state.py",
+   "start_line": 146,
+   "end_line": 152,
+   "category": "maintainability",
+   "severity": "low",
+   "confidence": "high",
+   "content": "v51 findings not in the hard-coded severity_v51 map (all BD-* items, including BD-REJECTED BLOCKED_DECISION) default to LOW, with severity_source \"builder\". This conflicts with the stated principle, applied to original_18, of keeping unknown severity as UNRATED rather than presuming LOW, and it keeps these items out of open_critical_high and open_unrated_historical.",
+   "repro": "FINDING_LEDGER.json BD-* entries show severity LOW; REPOGUARD_FINDINGS_DISPOSITION.json has no severity field for them."
+  },
+  {
+   "id": "OCR-V531-10",
+   "path": ".github/workflows/negative-gate-evidence.yml",
+   "start_line": 41,
+   "end_line": 41,
+   "category": "security",
+   "severity": "low",
+   "confidence": "high",
+   "content": "`run: ${{ steps.prepare.outputs.cmd }}` puts a step output straight into the script (expression-injection pattern). The inputs are only the static matrix and repo scripts, triggers are push to ci-evidence/** or dispatch, and permissions are read-only, so it is not exploitable today (the Builder self-reported this as Low). Passing the command via env and `bash -c \"$CMD\"`, or having the prepare script write a script file, would remove the pattern.",
+   "repro": "n/a (pattern review)."
+  }
+ ],
+ "commands_run": [
+  {
+   "cmd": "cd web-ui && python3 -B scripts/enterprise/ci/test_collect_negative_gate.py",
+   "exit_code": 0
+  },
+  {
+   "cmd": "cd web-ui && python3 -B scripts/enterprise/coordination/check_state.py --require-git",
+   "exit_code": 0
+  },
+  {
+   "cmd": "cd web-ui && python3 -B scripts/enterprise/coordination/test_check_state.py --require-git",
+   "exit_code": 0
+  },
+  {
+   "cmd": "cd web-ui && python3 -B scripts/enterprise/ci/test_gate.py",
+   "exit_code": 0
+  },
+  {
+   "cmd": "cd web-ui && python3 -B scripts/enterprise/render_roadmap.py --check",
+   "exit_code": 0
+  },
+  {
+   "cmd": "cd web-ui/docs/enterprise && shasum -a 256 -c v53/SHA256SUMS",
+   "exit_code": 1
+  },
+  {
+   "cmd": "python3 -B scratchpad/ocr531/demo/forge.py <repo>/web-ui (temp copy; forged PASS + severity downgrade)",
+   "exit_code": 0
+  },
+  {
+   "cmd": "git clone --no-local <repo> scratchpad/ocr531/demo/clone; edit golden+STATE; commit; check_state.py --require-git",
+   "exit_code": 0
+  },
+  {
+   "cmd": "git status --porcelain (repo unchanged before/after)",
+   "exit_code": 0
+  }
+ ],
+ "verified_ok": [
+  "Golden 跨側同列ID hand-recomputed: TWD ledger 103000, receipt 103000, isolated ledger 3000 (L2+L3), isolated receipt 3000 (receipt L1), exact 100000; USD 5000/4500, diff -500, no isolation; pre-fix wrong value 103000 is consistent with a mixed Set. Both tests deepEqual cases/totals/counts against the JSON (not tautological); the API test also checks CSV and Markdown.",
+  "OPS abort test is non-vacuous: abort fires only inside beforeOpsReportCommit, so if the hook is not reached the fetch resolves and assert.rejects fails.",
+  "Collector correctly fails closed on missing, duplicate and unexpected case-* jobs, missing or tampered receipts, missing or disagreeing step-outcome, and continue-on-error (14 synthetic tests pass).",
+  "gate.sh writes <prefix>-exit.json at $RUNNER_TEMP/case/<kind>-exit.json, matching the cp glob; artifact paths (cases/negative-case-*/) match the collector layout.",
+  "RED oracle not vacuous: it needs a browser FROM_BODY_SHOWN_UNDER_TO or WROTE_FROM_BODY_TO_TARGET violation AND PG evidence (B rev2 md5 == A in the committed RED evidence). The md5 path is empirically validated by RED.",
+  "CI_MATRIX claim \"no product change since d38afd8\" verified: git diff d38afd8..cb19d46 on src/server(non-test)/deploy/package* is empty.",
+  "No secrets, real emails (all *.example.invalid) or local absolute user paths in the added lines. The only password is a runtime-random synthetic one.",
+  "All workflows declare shell: bash; actions pinned by SHA; permissions are read-only; fetch-depth: 0 was added for check_state --require-git."
+ ],
+ "summary": {
+  "total_files": 55,
+  "semantic_reviewed": 38,
+  "completeness_reviewed": 17,
+  "skipped": 0,
+  "coverage_rate": "55/55 (100%)"
+ }
+}
