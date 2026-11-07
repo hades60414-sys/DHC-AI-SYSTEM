@@ -1,0 +1,184 @@
+{
+ "run_id": 42348102966,
+ "source_artifact": "office-stale-green-current",
+ "image": "sha256:5de45aa21ecbfb818daf7de3ea55feb45221de2a5cc6fe6de8cd8af921026870 c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
+ "harness": {
+  "status": "PASS",
+  "expect": "green",
+  "image": "dhc-ai-office:subject",
+  "error": null,
+  "steps": [
+   {
+    "name": "01-init-secrets",
+    "exit_code": 0
+   },
+   {
+    "name": "02-up",
+    "exit_code": 0
+   },
+   {
+    "name": "03-bootstrap",
+    "exit_code": 0
+   },
+   {
+    "name": "04-subscription",
+    "exit_code": 0
+   }
+  ],
+  "checks": [
+   {
+    "name": "瀏覽器：沒有任何 violation（所有情境）",
+    "passed": true
+   },
+   {
+    "name": "瀏覽器：每個情境都完整執行（沒有情境錯誤）",
+    "passed": true
+   },
+   {
+    "name": "瀏覽器：每個負向情境的攔截都實際命中（未就緒視窗確實存在）",
+    "passed": true
+   },
+   {
+    "name": "driver 退出碼 0",
+    "passed": true
+   },
+   {
+    "name": "PG：B 沒有任何一版內容等於 A",
+    "passed": true
+   },
+   {
+    "name": "PG：B 只有第 1 版＋合法修改的第 2 版",
+    "passed": true
+   },
+   {
+    "name": "PG：B 的 draft.revised 稽核恰 1 筆、draft.submitted 0 筆（與 revision 一致）",
+    "passed": true
+   },
+   {
+    "name": "PG：B 仍為 draft（未被錯誤送審）",
+    "passed": true
+   },
+   {
+    "name": "PG：approval D 已核准、C 仍 pending；核准稽核 D=1、C=0",
+    "passed": true
+   },
+   {
+    "name": "PG：A 未被修改（1 版）",
+    "passed": true
+   }
+  ],
+  "db": {
+   "browser_scenario_errors": [],
+   "draftB_revisions": [
+    {
+     "revision": 1,
+     "body_md5": "e2269e7849566ac6e180ea047876355d",
+     "equals_A_body": false
+    },
+    {
+     "revision": 2,
+     "body_md5": "3b8141938be94a87fd5499b4c6072648",
+     "equals_A_body": false
+    }
+   ],
+   "draftB_status": "draft",
+   "audit_draft.revised_B": 1,
+   "audit_draft.submitted_B": 0,
+   "approval_C": "pending",
+   "audit_decided_C": 0,
+   "approval_D": "approved",
+   "audit_decided_D": 1,
+   "draftA_revisions": 1,
+   "citation_hashes_differ_A_B": true,
+   "approval_C_D_same_sha": true
+  },
+  "cleanup_exit_code": 0
+ },
+ "browser": {
+  "status": "PASS",
+  "scenarios": [
+   {
+    "name": "草稿：A 已載入、B GET 延遲（同作者同版號）",
+    "mode": "pending",
+    "from": "draftA",
+    "to": "draftB",
+    "attempts": {
+     "儲存修改": "absent",
+     "送審": "absent"
+    },
+    "shownFromBodyUnderTo": false,
+    "interceptedGets": 1,
+    "writesToTarget": []
+   },
+   {
+    "name": "草稿：A 已載入、B GET 503（同作者同版號）",
+    "mode": "503",
+    "from": "draftA",
+    "to": "draftB",
+    "attempts": {
+     "儲存修改": "absent",
+     "送審": "absent"
+    },
+    "shownFromBodyUnderTo": false,
+    "interceptedGets": 1,
+    "writesToTarget": []
+   },
+   {
+    "name": "草稿：A 已載入、丁 GET 503（不同版號）",
+    "mode": "503",
+    "from": "draftA",
+    "to": "draftDiff",
+    "attempts": {
+     "儲存修改": "absent",
+     "送審": "absent"
+    },
+    "shownFromBodyUnderTo": false,
+    "interceptedGets": 1,
+    "writesToTarget": []
+   },
+   {
+    "name": "草稿正向：B 正常載入後儲存",
+    "ok": true
+   },
+   {
+    "name": "審批：C 已載入、D 回 503（相同內容、不同 approval）",
+    "attempts": {
+     "核准": "absent",
+     "退回": "absent"
+    },
+    "interceptedGets": 1,
+    "labelUnderD": null,
+    "decisionsWhileNotReady": []
+   },
+   {
+    "name": "審批正向：D 正常載入後核准",
+    "ok": true
+   }
+  ],
+  "scenario_errors": [],
+  "violation_counts": {},
+  "violations": [],
+  "writes": [
+   {
+    "method": "PUT",
+    "url": "enterprise/v1/drafts/298280b9-f974-4aed-962f-aeb42cf5eb98",
+    "body": "{\"expectedRevision\":1,\"body\":\"（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\\n\\n- 合成來源乙 預算上限 88,000 乙方負責驗收 [1]\\n（E2E 合法修改）\"}"
+   },
+   {
+    "method": "POST",
+    "url": "enterprise/v1/approvals/4740b7ed-a25e-46f8-ac5d-5c6b6814302e/decision",
+    "body": "{\"decision\":\"approve\",\"comment\":\"\",\"expectedRevision\":1,\"expectedSha256\":\"ce635ebe0e4260d6fae7e7613ba792cbb0ce46043113d2e0202ca832712d1cf1\"}"
+   }
+  ],
+  "ids": {
+   "draftA": "962e8a34-cf3f-47e0-a435-a057bfea7557",
+   "draftB": "298280b9-f974-4aed-962f-aeb42cf5eb98",
+   "draftDiff": "8271c207-9438-4c07-a685-d5c76f250c15",
+   "draftC": "1a093621-6b66-442a-bc25-01dcc8a4f916",
+   "draftD": "27a2702b-fe11-44ab-a749-4f8b7b13655d",
+   "approvalC": "e968091f-9900-4852-88a3-bd1df37a81cf",
+   "approvalD": "4740b7ed-a25e-46f8-ac5d-5c6b6814302e",
+   "editedBodyB": "（本草稿由離線 mock provider 依引用段落整理，未使用語言模型，需人工撰寫與核對）\n\n- 合成來源乙 預算上限 88,000 乙方負責驗收 [1]\n（E2E 合法修改）"
+  }
+ }
+}

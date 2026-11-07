@@ -1,0 +1,2 @@
+preview exit=0
+rule exit=0

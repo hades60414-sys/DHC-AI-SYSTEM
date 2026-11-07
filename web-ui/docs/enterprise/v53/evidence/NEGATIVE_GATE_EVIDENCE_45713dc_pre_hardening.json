@@ -1,0 +1,187 @@
+{
+ "run_id": "42343824459",
+ "run_attempt": "1",
+ "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+ "cases": [
+  {
+   "case": "positive_control",
+   "expected_job_conclusion": "success",
+   "job_conclusion": "success",
+   "job_id": 128317125238,
+   "gate_step_conclusion": "success",
+   "gate_step_outcome_reported": "success",
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 0,
+     "gate_exit": 0
+    }
+   },
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "tool_nonzero_output_all_pass",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125301,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 1,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "comparator_nonzero_new_fail",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125443,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 1,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "wrong_sha256",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125356,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {},
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "new_skip",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125307,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "new_todo",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125365,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "missing_output",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125331,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "truncated_report",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125248,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {
+    "backend-exit.json": {
+     "kind": "backend",
+     "tool_exit": 0,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "frontend_exit1_all_pass",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125274,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {
+    "frontend-exit.json": {
+     "kind": "frontend",
+     "tool_exit": 1,
+     "comparator_exit": 1,
+     "gate_exit": 1
+    }
+   },
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "build_failure",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125267,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {},
+   "continue_on_error": false,
+   "matches": true
+  },
+  {
+   "case": "smoke_failure",
+   "expected_job_conclusion": "failure",
+   "job_conclusion": "failure",
+   "job_id": 128317125293,
+   "gate_step_conclusion": "failure",
+   "gate_step_outcome_reported": "failure",
+   "exit_receipts": {},
+   "continue_on_error": false,
+   "matches": true
+  }
+ ],
+ "all_match": true,
+ "workflow_conclusion_expected": "failure（負向案例 job 預期失敗；本 collect job 只證明每個案例的失敗／成功符合預期）",
+ "note": "案例 step 未使用 continue-on-error；failure 由 bash pipefail＋gate.sh 的真實退出碼造成。"
+}

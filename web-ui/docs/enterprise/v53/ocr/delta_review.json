@@ -1,0 +1,165 @@
+{
+ "range": {
+  "from": "cb19d46e3950a18dcde2353a91a60b52feb34b1c",
+  "to": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4"
+ },
+ "per_finding": [
+  {
+   "id": "OCR-V531-01",
+   "status": "PARTIAL",
+   "evidence": "The original forgery, where only the ledger is edited, is now rejected: forge.py forged_PASS_on_ASTRA-ROLL-001 exits 1. check_state re-derives auditor_status, problem_state, reviewed_sha and receipt hash from the latest snapshot report. But the snapshot itself is still trusted, so new bypasses NF-01 and NF-02 below give exit 0 and remove a HIGH from open_critical_high."
+  },
+  {
+   "id": "OCR-V531-02",
+   "status": "FIXED",
+   "evidence": "severity_HIGH_to_LOW_on_ASTRA-ROLL-002 now exits 1. Severity is pinned to snapshot, then registry, then BUILDER_ASSIGNED_SEVERITY, which is held in checker code. Every v52 ID has a snapshot severity, so editing the v52 registry under docs/ has no effect. Residual: a snapshot rewrite (NF-01/NF-02) can still change severity, because the snapshot is the top-priority source."
+  },
+  {
+   "id": "OCR-V531-03",
+   "status": "FIXED",
+   "evidence": "In a throwaway clone at c2ae88b I set enterprise_verify sha and pr_head to HEAD and committed a golden 預期.json change. check_state --require-git now exits 1 with two errors: stale evidence and a non-doc change after pr_head. The new test_check_state clone cases (golden_fixture_changed_after_pr_head fails as expected; docs-only positive passes) also pass. Residual low item: see NF-04."
+  },
+  {
+   "id": "OCR-V531-04",
+   "status": "NOT_IN_SCOPE",
+   "evidence": "Record-only by Builder decision. office_e2e_redgreen.py:105 is unchanged, so the PG approval check still cannot tell the bug from correct behaviour."
+  },
+  {
+   "id": "OCR-V531-05",
+   "status": "FIXED",
+   "evidence": "The driver counts intercepted GETs per negative scenario and adds a ROUTE_NOT_HIT violation when the count is 0. The harness GREEN check requires exactly 4 scenarios with interceptedGets>0 and requires driver exit code 0. A spurious GREEN failure is unlikely: useOfficeQuery has no cache and refetches on every path change (src/modules/office/hooks/useOfficeQuery.ts:18-27), so every A->B switch issues the intercepted GET. In 'pending' mode the GET is held until after the button attempts, so the stale window really exists. A scenario that throws is never pushed, so the count drops below 4 and GREEN fails closed. The RED check is unaffected. Remaining minor gap: the positive controls still do not exercise 送審/退回. The office_e2e evidence is now pending_rerun, so no GREEN run with the new check exists yet."
+  },
+  {
+   "id": "OCR-V531-06",
+   "status": "NOT_IN_SCOPE",
+   "evidence": "Record-only by design; collect_negative_gate.py is unchanged."
+  },
+  {
+   "id": "OCR-V531-07",
+   "status": "NOT_FIXED",
+   "evidence": "Deferred to a later docs slice. SHA256SUMS was not regenerated in this range."
+  },
+  {
+   "id": "OCR-V531-08",
+   "status": "NOT_FIXED",
+   "evidence": "Deferred to a later docs slice. BUILDER_RECEIPT.md was not updated."
+  },
+  {
+   "id": "OCR-V531-09",
+   "status": "FIXED",
+   "evidence": "build_state assigns UNRATED_IN_REGISTRY to BD-* findings (severity_source none_in_registry). They are counted in open_unrated_historical, and check_state validates them through UNRATED_IN_REGISTRY."
+  },
+  {
+   "id": "OCR-V531-10",
+   "status": "NOT_IN_SCOPE",
+   "evidence": "Record-only by design."
+  }
+ ],
+ "new_findings": [
+  {
+   "id": "OCR-V531-D01",
+   "path": "web-ui/scripts/enterprise/coordination/check_state.py",
+   "start_line": 132,
+   "end_line": 140,
+   "category": "security",
+   "severity": "high",
+   "confidence": "high",
+   "content": "The derived Auditor verdict comes from AUDITOR_SNAPSHOT.json, a Builder-written transcription whose raw source reports are not in the repo. Nothing ties the transcribed verdict content to source_sha256; the hash string is just a field. Rewriting ASTRA-ROLL-001's verdict inside the existing CONTINUATION_V4 report entry to PASS/AUDIT_VERIFIED, with the hash left unchanged, and mirroring the change in the ledger plus a STATE resync, passes check_state --require-git with exit 0. ASTRA-ROLL-001 (HIGH) then drops out of open_critical_high. The validator cannot enforce 'Builder may never mark AUDIT_VERIFIED' while the Builder controls the snapshot. Mitigations: commit the raw Auditor files (or an Auditor-signed digest) and re-derive the snapshot in CI; or pin the per-ID verdict digest of each report in a file only the Auditor can change (CODEOWNERS or a protected path); or at minimum require any snapshot diff to come from an Auditor commit or signature.",
+   "repro": "python3 -B <scratchpad>/ocr531/demo/forge2.py <repo>/web-ui -> 'A_snapshot_verdict_rewritten exit 0 PASS'."
+  },
+  {
+   "id": "OCR-V531-D02",
+   "path": "web-ui/scripts/enterprise/coordination/check_state.py",
+   "start_line": 44,
+   "end_line": 46,
+   "category": "security",
+   "severity": "high",
+   "confidence": "high",
+   "content": "A completely fabricated Auditor report is accepted. I appended a report with an invented source_sha256 ('1'*64) and a later generated_at, containing ASTRA-ROLL-002 PASS/AUDIT_VERIFIED, then pointed the ledger receipt at it. The checker accepts it because report_hashes is just the set of hashes in the snapshot, and the newest report wins. STATE.auditor_reports and latest_report_id are not compared against the snapshot either. Result: exit 0, PASS, and ASTRA-ROLL-002 (HIGH) is removed from open_critical_high. Mitigation: pin the allowed report IDs and hashes outside Builder control, or verify them against committed raw reports.",
+   "repro": "forge2.py -> 'B_fabricated_report_appended exit 0 PASS'."
+  },
+  {
+   "id": "OCR-V531-D03",
+   "path": "web-ui/scripts/enterprise/coordination/check_state.py",
+   "start_line": 178,
+   "end_line": 181,
+   "category": "bug",
+   "severity": "medium",
+   "confidence": "high",
+   "content": "builder_status is not checked against the registry. RG-001 (HIGH; BLOCKED_DECISION in the v52 matrix) can be relabelled FIXED_PENDING_REAUDIT with closure_class BUILDER_FIXED_PENDING_REAUDIT and any verification_sha, and the check passes with exit 0. A pending human decision then shows up as 'fixed, awaiting reaudit' and closure_counts.HUMAN_DECISION_BLOCKED goes down. The finding stays in open_critical_high, so this is not a closure bypass, but it misrepresents gating state. The expected_class map only constrains closure for 4 builder statuses and never checks the status itself against registry status/status_map.",
+   "repro": "forge2.py -> 'C_blocked_decision_relabelled_fixed exit 0 PASS'."
+  },
+  {
+   "id": "OCR-V531-D04",
+   "path": "web-ui/scripts/enterprise/coordination/check_state.py",
+   "start_line": 178,
+   "end_line": 181,
+   "category": "maintainability",
+   "severity": "low",
+   "confidence": "high",
+   "content": "For non-PASS items, closure_class is not re-derived the way build_state.closure() does it. For example, ASTRA-ROLL-001 BUILDER_FIXED_PENDING_REAUDIT -> EVIDENCE_MISSING passes. Only AUDITOR_VERIFIED is gated, so the open lists stay correct, but closure_counts can be skewed freely. Running the same closure() logic in the checker would close this.",
+   "repro": "forge2.py -> 'D_closure_changed_nonpass exit 0 PASS'."
+  },
+  {
+   "id": "OCR-V531-D05",
+   "path": "web-ui/scripts/enterprise/coordination/check_state.py",
+   "start_line": 36,
+   "end_line": 36,
+   "category": "other",
+   "severity": "low",
+   "confidence": "medium",
+   "content": "FIXTURES covers only web-ui/docs/enterprise/scenarios/*. Other files under docs/enterprise/ are still treated as documentation after pr_head and excluded from enterprise_verify/repo_coverage depends_on, even though CI or validators read them. These include docs/enterprise/architecture/roadmap.json (render_roadmap.py --check in enterprise-verify), docs/enterprise/uat/*.json (uat_evidence_index.py --check), docs/enterprise/v51|v52 registries, and AUDITOR_SNAPSHOT.json itself. They are inputs to checks, not product tests, so impact is low. CI on the new head would still catch a broken render or uat check, but the evidence SHA would not be flagged as stale.",
+   "repro": "Commit a roadmap.json edit after pr_head in a clone: the pr_head doc-only rule does not flag it."
+  }
+ ],
+ "commands_run": [
+  {
+   "cmd": "cd web-ui && python3 -B scripts/enterprise/coordination/check_state.py --require-git",
+   "exit_code": 0
+  },
+  {
+   "cmd": "cd web-ui && python3 -B scripts/enterprise/coordination/test_check_state.py --require-git",
+   "exit_code": 0
+  },
+  {
+   "cmd": "cd web-ui && python3 -B scripts/enterprise/ci/test_collect_negative_gate.py",
+   "exit_code": 0
+  },
+  {
+   "cmd": "python3 -B scratchpad/ocr531/demo/forge.py <repo>/web-ui  (forged_PASS_on_ASTRA-ROLL-001)",
+   "exit_code": 1
+  },
+  {
+   "cmd": "python3 -B scratchpad/ocr531/demo/forge.py <repo>/web-ui  (severity_HIGH_to_LOW_on_ASTRA-ROLL-002)",
+   "exit_code": 1
+  },
+  {
+   "cmd": "throwaway clone scratchpad/ocr531/demo/clone2 at c2ae88b: baseline check_state --require-git",
+   "exit_code": 0
+  },
+  {
+   "cmd": "clone2: commit golden 預期.json change + evidence/pr_head=HEAD; check_state --require-git",
+   "exit_code": 1
+  },
+  {
+   "cmd": "python3 -B scratchpad/ocr531/demo/forge2.py <repo>/web-ui  (A snapshot verdict rewrite)",
+   "exit_code": 0
+  },
+  {
+   "cmd": "forge2.py (B fabricated report)",
+   "exit_code": 0
+  },
+  {
+   "cmd": "forge2.py (C BLOCKED_DECISION relabelled fixed)",
+   "exit_code": 0
+  },
+  {
+   "cmd": "forge2.py (D non-PASS closure changed)",
+   "exit_code": 0
+  },
+  {
+   "cmd": "git status --porcelain (repo unchanged)",
+   "exit_code": 0
+  }
+ ]
+}

@@ -4,18 +4,18 @@
  "artifact_source_note": "image 由 artifact_source_sha 建置（label revision）；之後若產品路徑未變，最新 HEAD 的 image-build 另以 CI_MATRIX 記錄。",
  "evidence": {
   "office_e2e_evidence": {
-   "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
    "workflow": "office-e2e-evidence.yml",
-   "run_id": 42343824443,
+   "run_id": 42348102966,
    "attempt": 1,
    "expected_conclusion": "success",
    "jobs": {
-    "office-stale-red-v51": 128317125314,
-    "office-stale-green-current": 128317125119
+    "office-stale-red-v51": 128330146126,
+    "office-stale-green-current": 128330145971
    },
    "artifacts": {
-    "office-stale-red-v51": 13562971307,
-    "office-stale-green-current": 13562439293
+    "office-stale-red-v51": 13564188633,
+    "office-stale-green-current": 13564651319
    },
    "depends_on": [
     "web-ui/tests/enterprise/e2e/*",
@@ -30,23 +30,39 @@
    "depends_on_exclude": [
     "web-ui/server/*/tests/*"
    ],
-   "pending_rerun": true,
-   "pending_reason": "OCR-V531-05：E2E driver／harness 加入攔截命中與 driver 退出碼檢查，需在新 SHA 重跑"
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343824443,
+     "note": "route-hit 檢查加入前"
+    }
+   ]
   },
   "negative_gate_evidence": {
-   "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "sha": "c2ae88b8b93a8440a2c804fcab8b1cd72b8464f4",
    "workflow": "negative-gate-evidence.yml",
-   "run_id": 42343824459,
+   "run_id": 42348102897,
    "attempt": 1,
    "expected_conclusion": "failure（負向 job 預期失敗；collect success＋all_match）",
-   "pending_rerun": true,
-   "pending_reason": "V5.3.1 強化 collector；cb19d46 已重跑（run 42347191391），待最終 SHA 一併記錄",
    "depends_on": [
     ".github/workflows/negative-gate-evidence.yml",
     "web-ui/scripts/enterprise/ci/negative_gate_case.py",
     "web-ui/scripts/enterprise/ci/collect_negative_gate.py",
     "web-ui/scripts/enterprise/ci/gate.sh",
     "web-ui/scripts/enterprise/ci/compare_known_failures.py"
+   ],
+   "jobs": {
+    "collect": 128330204686
+   },
+   "artifacts": {
+    "negative-gate-evidence": 13564144115
+   },
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343824459,
+     "note": "collector 強化前"
+    }
    ]
   },
   "enterprise_verify": {
@@ -56,7 +72,7 @@
    "attempt": 1,
    "expected_conclusion": "success",
    "pending_rerun": true,
-   "pending_reason": "V5.3.1 新增測試與狀態檢查",
+   "pending_reason": "在 F1（本 commit）跑完整 CI 後，由 F2 docs commit 記錄；828a763 單獨推送時 verify 被 SHA 混用閘門正確擋下（run 42348453024）",
    "depends_on": [
     "web-ui/*",
     ".github/workflows/enterprise-verify.yml"
@@ -72,7 +88,7 @@
    "attempt": 1,
    "expected_conclusion": "success",
    "pending_rerun": true,
-   "pending_reason": "最終 code SHA 重跑",
+   "pending_reason": "在 F1（本 commit）跑完整 CI 後，由 F2 docs commit 記錄；828a763 單獨推送時 verify 被 SHA 混用閘門正確擋下（run 42348453024）",
    "depends_on": [
     "web-ui/src/*",
     "web-ui/server/*",
@@ -94,7 +110,7 @@
    "attempt": 1,
    "expected_conclusion": "success",
    "pending_rerun": true,
-   "pending_reason": "最終 code SHA 重跑",
+   "pending_reason": "在 F1（本 commit）跑完整 CI 後，由 F2 docs commit 記錄；828a763 單獨推送時 verify 被 SHA 混用閘門正確擋下（run 42348453024）",
    "depends_on": [
     "*"
    ],
@@ -102,5 +118,11 @@
     "web-ui/docs/enterprise/*"
    ]
   }
+ },
+ "gate_self_evidence": {
+  "run_id": 42348453024,
+  "job": 128331283056,
+  "sha": "828a763681fc60c795df27733aaa5c1369be0571",
+  "conclusion": "failure（預期：只推程式 commit、STATE 仍指向舊 pr_head → 協作狀態閘門拒絕）"
  }
 }
