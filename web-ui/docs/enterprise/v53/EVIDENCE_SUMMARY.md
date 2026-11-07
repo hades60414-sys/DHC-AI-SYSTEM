@@ -1,4 +1,4 @@
-# V5.3 證據摘要（Builder 提交；尚待 Astra 獨立複驗）
+# V5.3 證據摘要（歷史版本，45713dc；最新請看 FINAL_CLOSURE_REPORT.md）
 
 - PR：#14（Draft，base `fix/ai-office-v52-astra-roll`＝#13 head `601dbb3`，#13 未修改）
 - 驗證 head：`45713dce4a272cd9303478ffe56ac8c732eacd23`

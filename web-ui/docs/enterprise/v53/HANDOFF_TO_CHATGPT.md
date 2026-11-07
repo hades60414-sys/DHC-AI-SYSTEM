@@ -1,19 +1,27 @@
-# Handoff → ChatGPT（規劃／審閱）— V5.3
+# 交接給 ChatGPT（規劃／審閱）— V5.3.1
 
-## 本輪完成（Builder 提交，待 Astra 獨立複驗）
-- **WP1**：ROLL-002 有了 Chromium＋PostgreSQL 的 RED／GREEN runtime 證據。
-- **WP2**：ROLL-001／008／009 有了 GitHub 上的負向閘門證據，共 11 個案例。
-- **WP3**：ACC 手算 golden 與真 PG 三格式比對；OPS 中止請求、併發上限、非法日期的測試，以及 5 萬列量測。
-- **WP4**：協作狀態檔與 CI schema 檢查。
-- **WP5**：決策提案，全部維持 PENDING。
+入口：`FINAL_CLOSURE_REPORT.md`。判定：`V53_BACKEND_ENGINEERING_MILESTONE_READY`，同時保留 `ASTRA_INDEPENDENT_REAUDIT_PENDING`、`CUSTOMER_UAT_NOT_APPROVED`、`COMMERCIAL_RELEASE_NO_GO`。
 
-CI 全部在同一個 SHA `45713dc` 上執行，見 `EVIDENCE_SUMMARY.md`。
+## 本輪完成
+- **ROLL-001**：collector 改為 fail closed。
+- **ROLL-002**：完成逐項核對，加入 route-hit 檢查，重跑後 RED／GREEN 一致。
+- **協作狀態 schema 2**：
+  - SHA 角色分離，並以 git 歷史驗證。
+  - 補抄 Astra CONTINUATION_V4。
+  - 51 項 Finding 分成六類。
+- **獨立 OCR 審查**：首審 10 項＋複驗 5 項。
+  - High：OCR-01 已修；D01／D02 只做了緩解。
+- 產品程式沒有變更，也沒有新增功能。
 
-## 需要人類決策（Builder 不核准）
-清單見 `DECISION_PROPOSALS.md`：SEC-01、SEC-02（DEID-01..10）、DEC-05、DEC-07、SC-OWNER、UAT-66、RD-002／003、IP／AGPL／SDK／DAS、SOW／價格／到期／維護。
+## 需要人類決策
+- **新增**：Auditor 錨點（D01／D02），二選一：
+  - CODEOWNERS＋branch protection，把 `AUDITOR_SNAPSHOT.json` 指給 Astra；
+  - 或由 Astra 簽章摘要。
+- **新增**：image 長期保存方案（GHCR private＋digest＋attestation）。
+- **既有**：SEC-01、SEC-02、DEC-05（含 6.4 MB 衝突 JSON）、DEC-07、SC-OWNER、UAT-66、RD-002／003、IP／AGPL、SOW。
 
 ## 建議下一步
-1. 等 Astra 的複驗收據。
-2. 由人類 owner 決定 SEC-01、SC-OWNER、DEC-05。
-3. TAS Team 依工單處理 DEID-09／10（ROLL-012／013）。
-4. 之後才討論是否 merge。目前仍是 Draft，不 merge、不 release。
+1. Astra 對 828a763 與證據 run 做 delta 複驗。
+2. 由人類決定 Auditor 錨點。
+3. TAS Team 處理 DEID-09／10。
+4. 之後才討論 merge 順序（#10 → #14）。

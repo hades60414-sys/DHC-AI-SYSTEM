@@ -1,6 +1,6 @@
 {
  "note": "每個證據的來源 SHA、run／attempt／artifact，以及「若其後這些路徑改變則證據過期」的 depends_on。check_state.py --require-git 以 git 歷史驗證。",
- "artifact_source_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+ "artifact_source_sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
  "artifact_source_note": "image 由 artifact_source_sha 建置（label revision）；之後若產品路徑未變，最新 HEAD 的 image-build 另以 CI_MATRIX 記錄。",
  "evidence": {
   "office_e2e_evidence": {
@@ -66,29 +66,42 @@
    ]
   },
   "enterprise_verify": {
-   "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
    "workflow": "enterprise-verify.yml",
-   "run_id": 42343825984,
+   "run_id": 42349084781,
    "attempt": 1,
    "expected_conclusion": "success",
-   "pending_rerun": true,
-   "pending_reason": "在 F1（本 commit）跑完整 CI 後，由 F2 docs commit 記錄；828a763 單獨推送時 verify 被 SHA 混用閘門正確擋下（run 42348453024）",
    "depends_on": [
     "web-ui/*",
     ".github/workflows/enterprise-verify.yml"
    ],
    "depends_on_exclude": [
     "web-ui/docs/enterprise/*"
+   ],
+   "jobs": {
+    "postgres-integration": 128333153403,
+    "static-and-unit": 128333153533,
+    "csv-spreadsheet-safety": 128334253438
+   },
+   "artifacts": {
+    "enterprise-verify-postgres": 13565136150,
+    "enterprise-verify-csv-spreadsheet": 13565111966,
+    "enterprise-verify-static-unit": 13564913305
+   },
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343825984,
+     "note": "V5.3"
+    }
    ]
   },
   "image_build": {
-   "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
    "workflow": "enterprise-image-build.yml",
-   "run_id": 42343825894,
+   "run_id": 42349084776,
    "attempt": 1,
    "expected_conclusion": "success",
-   "pending_rerun": true,
-   "pending_reason": "在 F1（本 commit）跑完整 CI 後，由 F2 docs commit 記錄；828a763 單獨推送時 verify 被 SHA 混用閘門正確擋下（run 42348453024）",
    "depends_on": [
     "web-ui/src/*",
     "web-ui/server/*",
@@ -101,21 +114,55 @@
    ],
    "depends_on_exclude": [
     "web-ui/server/*/tests/*"
+   ],
+   "jobs": {
+    "build-arm64": 128333153616,
+    "build-amd64": 128333153833,
+    "delivery-arm64 / delivery": 128333817245,
+    "delivery-amd64 / delivery": 128333890302,
+    "upgrade-rollback-amd64": 128333890371
+   },
+   "artifacts": {
+    "enterprise-image-archive-arm64": 13565136328,
+    "enterprise-delivery-amd64": 13564976996,
+    "enterprise-image-report-amd64": 13564798331,
+    "enterprise-image-archive-amd64": 13564593892,
+    "enterprise-upgrade-rollback-amd64": 13564484354,
+    "enterprise-delivery-arm64": 13564439563,
+    "enterprise-image-report-arm64": 13564404185
+   },
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343825894,
+     "note": "V5.3"
+    }
    ]
   },
   "repo_coverage": {
-   "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "sha": "0e5b470776c38c44e322057ed3bbae132fa2cce6",
    "workflow": "repo-coverage.yml",
-   "run_id": 42343825939,
+   "run_id": 42349084813,
    "attempt": 1,
    "expected_conclusion": "success",
-   "pending_rerun": true,
-   "pending_reason": "在 F1（本 commit）跑完整 CI 後，由 F2 docs commit 記錄；828a763 單獨推送時 verify 被 SHA 混用閘門正確擋下（run 42348453024）",
    "depends_on": [
     "*"
    ],
    "depends_on_exclude": [
     "web-ui/docs/enterprise/*"
+   ],
+   "jobs": {
+    "coverage-contract": 128333153680
+   },
+   "artifacts": {
+    "repo-coverage": 13564408816
+   },
+   "history": [
+    {
+     "sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+     "run_id": 42343825939,
+     "note": "V5.3"
+    }
    ]
   }
  },

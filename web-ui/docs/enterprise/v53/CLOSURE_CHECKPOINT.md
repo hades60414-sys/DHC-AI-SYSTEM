@@ -29,13 +29,13 @@
 | S4 | STATE SHA 角色分離、PR #14、Auditor snapshot 補 CONTINUATION_V4、CI 檢查 SHA 不混用 | DONE：d23bddd（程式）＋本 docs commit；closure：Auditor 驗證 1／待複驗 12／未實作 4／人類 5／缺證據 2／需重測 27 |
 | S5 | 有界整改（只處理新確認 Critical／High） | DONE：OCR-V531-01 High＋02／03／05／09 修正（e71725b）；04／06／10 記錄不改 |
 | S5b | 複驗 delta：D01／D02 High 緩解（報告釘選）、D03 修正（828a763） | DONE；殘餘 D01／D02 需 Auditor 錨點（人類決策） |
-| S6 | FINAL_CLOSURE_REPORT＋交接文件＋SHA256SUMS＋最終 HEAD CI | IN_PROGRESS：F1（本 commit）跑完整 CI → F2 記錄 |
+| S6 | FINAL_CLOSURE_REPORT＋交接文件＋SHA256SUMS＋最終 HEAD CI | DONE：F1 0e5b470 全綠；F2（本 commit）記錄 |
 
 ## 尚未提交的修改
 無（每個 slice 都已 commit）。
 
 ## 下一步
-下一步：push → CI（verify/image/coverage）＋ ci-evidence 重跑 negative gate（新 collector）→ S3 獨立 OCR → S6 文件。
+下一步：等 Astra 對 828a763／證據 run 的 delta 複驗；人類決策 Auditor 錨點（D01／D02）。
 
 ## 阻塞
 - Astra 對 #13／#14 的獨立複驗尚未開始，最新審核標的仍是 PR #12。

@@ -1,28 +1,29 @@
-# Handoff → Astra（獨立 Auditor）— V5.3
+# 交接給 Astra（獨立 Auditor）— V5.3.1
 
-Builder 已提交，請以唯讀方式獨立複驗。Builder 沒有代替你下任何判定。
+請以唯讀方式獨立複驗。Builder 沒有代你下任何判定。入口：`FINAL_CLOSURE_REPORT.md`。
 
-## 固定目標
-- 產品原始碼：`d38afd88d9630a9390785ae35b745a8ad91e6c6a`（與 V5.2 相同）
-- 證據 head：`45713dce4a272cd9303478ffe56ac8c732eacd23`（PR #14；#13 `601dbb3` 沒有變動）
-- 你上次審查的 SHA：track A 為 `1e481e2`，track B 為 `877525f`（取自 `coordination/AUDITOR_SNAPSHOT.json`）
+## 固定標的
+- 產品：`d38afd88d9630a9390785ae35b745a8ad91e6c6a`，V5.2 之後沒有再改產品。
+- 最終程式 commit：`828a763681fc60c795df27733aaa5c1369be0571`。PR #14 的 HEAD 是其後的 docs commit。
+- 證據：
+  - Office E2E：c2ae88b，run 42348102966。
+  - Negative Gate：c2ae88b，run 42348102897。
+  - 完整 CI：見報告 §9。
+- 你的最新報告：CONTINUATION_V4，審核 `2cc9e93`，來源 sha256 `690b71a3f102…`。Builder 已逐字抄錄，未改判。
 
-## 建議的複驗重點
-1. **ASTRA-ROLL-002**（你標為 RUNTIME_NEGATIVE_NOT_RUN）：
-   - 看 run 42343824443 的 artifact `office-stale-red-v51` 與 `office-stale-green-current`。
-   - 也可以自己用 workflow_dispatch 重跑 `office-e2e-evidence`。
-   - RED 端：PG 中 B 的 rev 2 等於 A 的內容。GREEN 端：B 沒有任何一版等於 A，且稽核一致。
-2. **ASTRA-ROLL-001／008／009**：看 run 42343824459 的 `negative-gate-evidence`，確認案例 step 沒有使用 continue-on-error，失敗來自真實的退出碼。
-3. **ASTRA-ROLL-003**：手算 golden 在 `scenarios/會計對帳/golden/跨側同列ID_預期.json`，真 PG 測試在 run 42343825984 的 postgres-integration。
-4. **ASTRA-ROLL-010**：50k 同站衝突的量測在 `evidence/OPS_RESOURCE_PROBE.json`；單一衝突的 sources 清單不設上限，列為殘餘風險。
-5. **RG-V5-***、**BD-***（V5.1）：你尚未看過，目前 ledger 標 `NOT_YET_REVIEWED`。
+## 建議重點
+1. **ROLL-001**：看 negative gate run 42348102897 與 `evidence/COLLECTOR_TESTS_*`。collector 已改為 fail closed。
+2. **ROLL-002**：看 run 42348102966。
+   - GREEN 有 route-hit 檢查。
+   - RED 審批正向段 timeout，Builder 未列為已重現。
+   - OCR-V531-04：審批一半只靠瀏覽器 oracle。
+3. **協作狀態**：`check_state.py --require-git`，以及 25 個竄改案例。
+4. **D01／D02 殘餘風險**：snapshot 由 Builder 抄錄。請用你的原始報告跑
+   `sync_auditor_snapshot.py --interim … --continuation … --continuation-state …`，
+   再比對 `check_state.py` 裡 `PINNED_AUDITOR_REPORTS` 的 content_sha256。
+   若要改成由你控制的錨點，需人類決定 CODEOWNERS／branch protection 或簽章摘要。
+5. **RETEST_REQUIRED 共 27 項**：其中 RG-V5-01、RG-V5-04、BD-* 與 ASTRA-004/005/006/016/018 曾在 2cc9e93 PASS，但修正檔之後在 d38afd8 又被改。清單見 ledger 的 `auditor_pass_invalidated_by`。
 
-## 回寫方式
-- 請產出你自己的收據，至少包含 reviewer、審查 SHA、時間、報告 sha256 與逐項判定。
-- Builder 只會把收據抄錄進 `AUDITOR_SNAPSHOT.json`，然後重新產生 ledger（流程見 `coordination/AUDIT_INTAKE.md`），不會改判。
-- `AUDIT_VERIFIED` 只能由你的收據支持。
-
-## 已知限制
-- RED 審批情境在舊 UI 逾時，已如實記錄在 scenarioErrors，沒有隱藏。
-- GitHub runner 只跑 amd64 的 RED／GREEN 專用 workflow；arm64 的 GREEN 是在 delivery 裡跑的。
-- 不 Merge、不 Release、不部署。
+## 回寫
+- 請產出你的收據：reviewer、審核 SHA、時間、報告 sha256、逐項判定。
+- 只有你的收據能支持 AUDIT_VERIFIED。
