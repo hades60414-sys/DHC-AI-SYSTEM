@@ -1,5 +1,5 @@
 {
- "schema_version": 1,
+ "schema_version": 2,
  "repo": "hades60414-sys/DHC-AI-SYSTEM",
  "pr_stack": [
   {
@@ -19,51 +19,62 @@
    "head": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c"
   },
   {
-   "pr": "V5.3",
-   "head": "45713dce4a272cd9303478ffe56ac8c732eacd23"
+   "pr": 14,
+   "branch": "fix/ai-office-v53-closure",
+   "head": "d23bddd21df40cc2b0cefa0fd4fe6e41de483b3b",
+   "head_note": "產生本檔時的 HEAD；本檔所在的 commit 在其後"
   }
  ],
- "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
- "head_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23",
- "base_sha": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
- "builder_commit": "45713dce4a272cd9303478ffe56ac8c732eacd23",
- "head_sha_note": "head_sha 是產生本檔時的 commit；本檔所在的文件提交會在其後（文件不改產品）。",
- "auditor_last_reviewed_sha": {
-  "track_A": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
-  "track_B": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+ "shas": {
+  "product_sha": "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+  "ci_evidence_sha": {
+   "office_e2e_evidence": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "negative_gate_evidence": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "enterprise_verify": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "image_build": "45713dce4a272cd9303478ffe56ac8c732eacd23",
+   "repo_coverage": "45713dce4a272cd9303478ffe56ac8c732eacd23"
+  },
+  "documentation_head_sha": "d23bddd21df40cc2b0cefa0fd4fe6e41de483b3b",
+  "pr_head_sha": "d23bddd21df40cc2b0cefa0fd4fe6e41de483b3b",
+  "base_sha": "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
+  "auditor_last_reviewed_sha": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+  "artifact_source_sha": "45713dce4a272cd9303478ffe56ac8c732eacd23"
  },
- "auditor_snapshot_sha256": "84137ee9ef477bc8c51f20af50d849754e5b47078ccef380b29801f5248402ab",
- "ci": {
-  "enterprise_verify": {
-   "run_id": "42343825984",
-   "attempt": "1",
-   "artifact": "13562699147",
-   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343825984"
+ "sha_rules": [
+  "product_sha..HEAD 不得改產品路徑",
+  "每個 ci_evidence_sha..HEAD 不得改該證據 depends_on 的路徑",
+  "pr_head_sha 必須是 HEAD 的祖先（或等於 HEAD）且其後只改文件／狀態",
+  "artifact_source_sha＝image label revision（CI_MATRIX／SUPPLY_CHAIN_PROVENANCE）"
+ ],
+ "evidence_sources": "EVIDENCE_SOURCES.json",
+ "auditor_reports": [
+  {
+   "report_id": "ASTRA-INTERIM-20261106",
+   "generated_at": "2026-11-06T23:39:57.878381+08:00",
+   "source_sha256": "84137ee9ef477bc8c51f20af50d849754e5b47078ccef380b29801f5248402ab",
+   "reviewed_shas": {
+    "track_A": "1e481e2fca812dcd2bfc45645623129bd7b54dea",
+    "track_B": "877525f27eed8d394f609d7ad7d2d8695be1035b"
+   }
   },
-  "image_build": {
-   "run_id": "42343825894",
-   "attempt": "1",
-   "artifact": "13562602980",
-   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343825894"
-  },
-  "repo_coverage": {
-   "run_id": "42343825939",
-   "attempt": "1",
-   "artifact": "13562527346",
-   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343825939"
-  },
-  "negative_gate_evidence": {
-   "run_id": "42343824459",
-   "attempt": "1",
-   "artifact": "13561699794",
-   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343824459"
-  },
-  "office_e2e_evidence": {
-   "run_id": "42343824443",
-   "attempt": "1",
-   "artifact": "13562439293",
-   "url": "https://github.com/hades60414-sys/DHC-AI-SYSTEM/actions/runs/42343824443"
+  {
+   "report_id": "ASTRA-CONTINUATION-V4-20261107",
+   "generated_at": "2026-11-07T00:38:42.863123+08:00",
+   "source_sha256": "690b71a3f102fe484a8220ffd526c1fc64d09000e442b53fff7871f2fa38482b",
+   "reviewed_shas": {
+    "snapshot": "2cc9e93e75133dc4247e7af3b959865cf8d9d05d",
+    "base": "877525f27eed8d394f609d7ad7d2d8695be1035b",
+    "declared_product_source": "6933d5e17f1120d87126df598c594c31b4e474ed"
+   }
   }
+ ],
+ "auditor_coverage": {
+  "shas": [
+   "d38afd88d9630a9390785ae35b745a8ad91e6c6a",
+   "601dbb3ee1d75f94ce75947af6e1cb2eea17661c",
+   "PR #14 全部 commit"
+  ],
+  "status": "AUDITOR_REPORT_NOT_AVAILABLE"
  },
  "open_critical_high": [
   "ASTRA-ROLL-001",
@@ -72,9 +83,41 @@
   "RG-V5-01",
   "RG-V5-06"
  ],
+ "open_unrated_historical": [
+  "ASTRA-001",
+  "ASTRA-002",
+  "ASTRA-003",
+  "ASTRA-004",
+  "ASTRA-005",
+  "ASTRA-006",
+  "ASTRA-007",
+  "ASTRA-008",
+  "ASTRA-009",
+  "ASTRA-010",
+  "ASTRA-011",
+  "ASTRA-012",
+  "ASTRA-013",
+  "ASTRA-014",
+  "ASTRA-015",
+  "ASTRA-016",
+  "ASTRA-017",
+  "ASTRA-018"
+ ],
+ "closure_counts": {
+  "AUDITOR_VERIFIED": 1,
+  "BUILDER_FIXED_PENDING_REAUDIT": 12,
+  "NOT_IMPLEMENTED": 4,
+  "HUMAN_DECISION_BLOCKED": 5,
+  "EVIDENCE_MISSING": 2,
+  "RETEST_REQUIRED": 27
+ },
  "builder_status": "BUILDER_SUBMITTED",
- "auditor_status": "ASTRA_REAUDIT_PENDING",
- "ci_status": "CI_EVIDENCE_READY",
+ "auditor_status": "ASTRA_INDEPENDENT_REAUDIT_PENDING",
+ "ci_status": "CI_PENDING",
+ "release_gates": {
+  "customer_uat": "CUSTOMER_UAT_NOT_APPROVED",
+  "commercial_release": "COMMERCIAL_RELEASE_NO_GO"
+ },
  "human_decisions": {
   "SEC-01": "PENDING",
   "SEC-02": "PENDING",
@@ -87,9 +130,9 @@
   "IP-AGPL-SDK-DAS": "PENDING",
   "SOW-PRICING-EXPIRY-MAINTENANCE": "PENDING"
  },
- "evidence_fingerprint": "98f9072466515b6f7451d44fb1bfbb9d23ce155652f7b1d8a6fca7464ce8f8bc",
- "last_updated_utc": "2026-11-07T05:53:34Z",
- "next_safe_action": "Astra 以唯讀方式複驗固定 product_sha 與 CI 證據；Builder 在收到 Auditor 收據前不改判、不推 #10～#13",
+ "evidence_fingerprint": "5fd9394f5931fcc1c49bcf367f09e3a1fd8fe78066edc32c66cc900cef51034d",
+ "last_updated_utc": "2026-11-07T06:28:34Z",
+ "next_safe_action": "Astra 以唯讀方式複驗 product_sha 與 EVIDENCE_SOURCES 列出的 CI 證據；Builder 在收到 Auditor 收據前不改判、不推 #10～#13",
  "update_triggers": [
   "PR push",
   "workflow completion",
